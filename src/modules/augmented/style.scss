@@ -1,0 +1,238 @@
+/* Import the base Augmented UI styles */
+@import 'augmented-ui/augmented-ui.css';
+
+/* Base augmented button styles */
+.augmented-btn {
+  --aug-clip-tl1: initial;
+  --aug-round-tr1: initial;
+  --aug-clip-br1: initial;
+  --aug-round-bl1: initial;
+  --aug-border: initial;
+  --aug-inlay: initial;
+  --aug-border-all: 4px;
+  --aug-inlay-all: 2px;
+  --aug-border-bg: gold;
+  --aug-inlay-bg: black;
+  --aug-inlay-opacity: 0.95;
+  --aug-tl1: 40px;
+  --aug-br1: 40px;
+  --aug-tr1: 10px;
+  --aug-bl1: 10px;
+  color: #cccccc;
+  text-align: center;
+  padding: 30px;
+  width: 50%;
+  margin: 0.25rem auto;
+  font-size: 0.75rem;
+}
+
+/*****************************************************************
+  AUGMENGED UI
+  *****************************************************************/
+
+/* Generate utility classes for clip corners */
+.aug-border {
+  --aug-border: initial;
+}
+.aug-inlay {
+  --aug-inlay: initial;
+}
+.aug-clip-tl {
+  --aug-clip-tl1: initial;
+  --aug-clip-tl2: initial;
+}
+.aug-clip-tr {
+  --aug-clip-tr1: initial;
+  --aug-clip-tr2: initial;
+}
+.aug-clip-bl {
+  --aug-clip-bl1: initial;
+  --aug-clip-bl2: initial;
+}
+.aug-clip-br {
+  --aug-clip-br1: initial;
+  --aug-clip-br2: initial;
+}
+
+.aug-clip-tl2 {
+  --aug-clip-tl2: initial;
+}
+.aug-clip-tr2 {
+  --aug-clip-tr2: initial;
+}
+.aug-clip-bl2 {
+  --aug-clip-tr2: initial;
+}
+.aug-clip-br2 {
+  --aug-clip-tr2: initial;
+}
+
+.aug-clip-tl1 {
+  --aug-clip-tl1: initial;
+}
+.aug-clip-tr1 {
+  --aug-clip-tr1: initial;
+}
+.aug-clip-bl1 {
+  --aug-clip-bl1: initial;
+}
+.aug-clip-br1 {
+  --aug-clip-br1: initial;
+}
+
+.aug-round-tl1 {
+  --aug-round-tl1: initial;
+}
+.aug-round-tr1 {
+  --aug-round-tr1: initial;
+}
+.aug-round-bl1 {
+  --aug-round-bl1: initial;
+}
+.aug-round-br1 {
+  --aug-round-br1: initial;
+}
+
+.aug-round-tl2 {
+  --aug-round-tl2: initial;
+}
+.aug-round-tr2 {
+  --aug-round-tr2: initial;
+}
+.aug-round-bl2 {
+  --aug-round-bl2: initial;
+}
+.aug-round-br2 {
+  --aug-round-br2: initial;
+}
+
+.aug-round {
+  --aug-round-tl1: initial;
+  --aug-round-tr1: initial;
+  --aug-round-bl1: initial;
+  --aug-round-br1: initial;
+  --aug-round-tl2: initial;
+  --aug-round-tr2: initial;
+  --aug-round-bl2: initial;
+  --aug-round-br2: initial;
+}
+
+.aug-round-1 {
+  --aug-round-tl1: initial;
+  --aug-round-tr1: initial;
+  --aug-round-bl1: initial;
+  --aug-round-br1: initial;
+}
+
+.aug-round-r1 {
+  --aug-round-tr1: initial;
+  --aug-round-br1: initial;
+}
+
+.aug-round-l1 {
+  --aug-round-tl1: initial;
+  --aug-round-bl1: initial;
+}
+
+.aug-round-2 {
+  --aug-round-tl2: initial;
+  --aug-round-tr2: initial;
+  --aug-round-bl2: initial;
+  --aug-round-br2: initial;
+}
+
+/* Generate utility classes for corner sizes */
+@for $i from 0 through 30 {
+  .aug-tl1-#{$i} {
+    --aug-tl1: #{$i}px;
+  }
+  .aug-tr1-#{$i} {
+    --aug-tr1: #{$i}px;
+  }
+  .aug-bl1-#{$i} {
+    --aug-bl1: #{$i}px;
+  }
+  .aug-br1-#{$i} {
+    --aug-br1: #{$i}px;
+  }
+}
+
+@for $i from 0 through 30 {
+  .aug-tl-#{$i} {
+    --aug-tl1: #{$i}px;
+    --aug-tl2: #{$i}px;
+  }
+  .aug-tr-#{$i} {
+    --aug-tr1: #{$i}px;
+    --aug-tr2: #{$i}px;
+  }
+  .aug-bl-#{$i} {
+    --aug-bl1: #{$i}px;
+    --aug-bl2: #{$i}px;
+  }
+  .aug-br-#{$i} {
+    --aug-br1: #{$i}px;
+    --aug-br2: #{$i}px;
+  }
+}
+
+@for $i from 0 through 30 {
+  .aug-tl2-#{$i} {
+    --aug-tl2: #{$i}px;
+  }
+  .aug-tr2-#{$i} {
+    --aug-tr2: #{$i}px;
+  }
+  .aug-bl2-#{$i} {
+    --aug-bl2: #{$i}px;
+  }
+  .aug-br2-#{$i} {
+    --aug-br2: #{$i}px;
+  }
+}
+
+/* Generate utility classes for border and inlay sizes */
+@for $i from 0 through 10 {
+  .aug-border-#{$i} {
+    --aug-border-all: #{$i}px;
+  }
+  .aug-inlay-#{$i} {
+    --aug-inlay-all: #{$i}px;
+  }
+}
+
+/* Generate utility classes for inlay background colors */
+.aug-inlay-bg-black {
+  --aug-inlay-bg: black;
+}
+.aug-inlay-bg-white {
+  --aug-inlay-bg: white;
+}
+.aug-inlay-bg-gray {
+  --aug-inlay-bg: gray;
+}
+
+.aug-border-bg-black {
+  --aug-border-bg: black;
+}
+.aug-border-bg-white {
+  --aug-border-bg: white;
+}
+.aug-border-bg-gray {
+  --aug-border-bg: gray;
+}
+/* Add more colors as needed */
+
+.aug-border-bg-primary {
+  --aug-border-bg: #141a20;
+}
+.aug-border-bg-secondary {
+  --aug-border-bg: #5f5c64;
+}
+
+/* Generate utility classes for inlay opacity */
+@for $i from 1 through 9 {
+  .aug-inlay-opacity-#{$i} {
+    --aug-inlay-opacity: #{$i * 0.1};
+  }
+}
