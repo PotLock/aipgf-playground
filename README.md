@@ -9,8 +9,7 @@ customizable onchain function , You can create agents that connect to onchain in
 
 - **Customization with Agent**: AI PGF Playground enables you to add custom Agent.
 - **Easy Agent Onchain Tools**: You can create a tool that connects to the agent automatically from the smartcontract address.
-- **reAct Agent**: Simply type into SmartAction, for example: `Show me my balance`, and you
-  can create a fantastic Agent based on your imagination.
+- **reAct Agent**: Create multiple tasks and process each task.
 - **User Own AI**: Users can create their own AI agents tailored to their needs, allowing for a personalized experience.
 - **Social Creativity**: Share your agents with others on social media, and explore creations from the
   community. Everyone can freely innovate and use each other's agents to enhance their agents.
