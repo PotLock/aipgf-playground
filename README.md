@@ -1,40 +1,40 @@
-# Prompt Wallet - Customize Your Wallet in Just a Minute
+# AI PGF Playground - Customize Your Agent in Just a Minute
 
 ## Introduction
 
-**Prompt Wallet** is the first crypto wallet that allows you to customize it in a completely unique way. With
-customizable widgets, you can create a wallet interface that reflects your style and personal preferences.
+**AI PGF Playground** is the first Web3 Agent that allows you to customize it in a completely unique way. With
+customizable onchain function , You can create agents that connect to onchain in your own way.
 
 ## Key Features
 
-- **Customization with Widgets**: Prompt Wallet enables you to add custom widgets to your wallet interface.
-- **Diverse Content Options**: You can add text, images, and anything else you can imagine.
-- **Easy Widget Creation**: Simply type into SmartAction, for example: `I want to show my FriendPet Health 2x2`, and you
-  can create a fantastic widget based on your imagination.
+- **Customization with Agent**: AI PGF Playground enables you to add custom Agent.
+- **Easy Agent Onchain Tools**: You can create a tool that connects to the agent automatically from the smartcontract address.
+- **reAct Agent**: Simply type into SmartAction, for example: `Show me my balance`, and you
+  can create a fantastic Agent based on your imagination.
 - **User Own AI**: Users can create their own AI agents tailored to their needs, allowing for a personalized experience.
-- **Social Creativity**: Share your agents and widgets with others on social media, and explore creations from the
-  community. Everyone can freely innovate and use each other's agents/widgets to enhance their wallets.
+- **Social Creativity**: Share your agents with others on social media, and explore creations from the
+  community. Everyone can freely innovate and use each other's agents to enhance their agents.
 
 ## How to Use
 
-1. **Visit Promptwallet.com**: Go to our official website to get started.
-2. **Add Available Widgets**:
-   - Choose from pre-made options like text and images, or use SmartAction to create custom widgets.
-3. **Create Your Own AI Agent**: Use the **Agent Father** tool to develop a unique AI agent tailored specifically for
+1. **Visit aiplayground.com**: Go to our official website to get started.
+2. **Add Available Agents**:
+   - Choose from pre-made options like text and images, or use SmartAction to create custom Agents.
+3. **Create Your Own AI Agent**: Use the **Agent** tool to develop a unique AI agent tailored specifically for
    you.
-4. **Save and Share**: Once finished, save your changes and share your wallet, widgets, and agents with friends and the
+4. **Save and Share**: Once finished, save your changes and share your wallet, tools, and agents with friends and the
    community.
 
 ## Connect with the Community
 
 We welcome feedback and ideas from you. Join our community on social media to stay updated and share your experiences
-with Prompt Wallet! Collaborate with others and discover new ways to enhance your wallet.
+with AI playground! Collaborate with others and discover new ways to enhance your wallet.
 
 ## Contact Us
 
-If you have any questions or need support, please reach out to us via email at: support@promptwallet.com.
+If you have any questions or need support, please reach out to us via email at: support@aipgf.com.
 
 ---
 
-Start your journey of customizing your crypto wallet with **Prompt Wallet** today, and unleash your creativity with
+Start your journey of customizing your crypto wallet with **Ai playground** today, and unleash your creativity with
 **User Own AI**!
