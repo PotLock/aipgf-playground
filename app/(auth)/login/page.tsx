@@ -10,6 +10,8 @@ import { SubmitButton } from '@/components/custom/submit-button';
 
 import { login, LoginActionState } from '../actions';
 
+import { WalletSelector } from '@/components/context/wallet-selector';
+
 export default function Page() {
   const router = useRouter();
 
@@ -46,19 +48,7 @@ export default function Page() {
             Use your email and password to sign in
           </p>
         </div>
-        <AuthForm action={handleSubmit} defaultEmail={email}>
-          <SubmitButton>Sign in</SubmitButton>
-          <p className="text-center text-sm text-gray-600 mt-4 dark:text-zinc-400">
-            {"Don't have an account? "}
-            <Link
-              href="/register"
-              className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
-            >
-              Sign up
-            </Link>
-            {' for free.'}
-          </p>
-        </AuthForm>
+        <WalletSelector />
       </div>
     </div>
   );
