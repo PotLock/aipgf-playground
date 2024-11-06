@@ -14,6 +14,8 @@ import {
   Message,
   message,
   vote,
+  agent,
+  Agent,
 } from './schema';
 
 // Optionally, if not using username/pass login, you can
@@ -265,6 +267,47 @@ export async function getSuggestionsByDocumentId({
     console.error(
       'Failed to get suggestions by document version from database'
     );
+    throw error;
+  }
+}
+
+export async function createAgent({
+  name,
+  description,
+  avatar,
+  intro,
+  model,
+  tool,
+  userId,
+  prompt,
+}: Agent) {
+  try {
+    return await db
+      .insert(agent)
+      .values({
+        name,
+        description,
+        tool,
+        prompt,
+        avatar,
+        intro,
+        model,
+        userId,
+      })
+      .returning({
+        id: agent.id,
+        name: agent.name,
+        description: agent.description,
+        tool: agent.tool,
+        prompt: agent.prompt,
+        avatar: agent.avatar,
+        intro: agent.intro,
+        model: agent.model,
+        userId: agent.userId,
+        createdAt: agent.createdAt,
+      });
+  } catch (error) {
+    console.error('Failed to create user in database');
     throw error;
   }
 }
