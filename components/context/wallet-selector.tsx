@@ -81,7 +81,7 @@ export function WalletSelector() {
         defaultValue={username}
         required
       />
-      <Button onClick={modal.show} disabled={pending}>{isLoading ? 'Loading' : 'Connect a Wallet'}</Button>
+      <Button onClick={modal.show} disabled={isLoading}>{isLoading ? 'Loading' : 'Connect a Wallet'}</Button>
     </Form>
   );
 }

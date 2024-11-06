@@ -5,6 +5,7 @@ import { signOut } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 
 import { User } from '@/app/(auth)/auth';
+import { useWalletSelector } from "@/components/context/wallet-selector-provider"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,8 +19,10 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 
+
 export function SidebarUserNav({ user }: { user: User }) {
   const { setTheme, theme } = useTheme();
+  const { accountId, selector,getBalance,callMethod,sendToken } = useWalletSelector();
 
   return (
     <SidebarMenu>
@@ -52,10 +55,12 @@ export function SidebarUserNav({ user }: { user: User }) {
             <DropdownMenuItem asChild>
               <button
                 className="w-full cursor-pointer"
-                onClick={() => {
+                onClick={async () => {
                   signOut({
                     redirectTo: '/',
                   });
+                  const wallet = await selector.wallet();
+                  await wallet.signOut();
                 }}
               >
                 Sign out

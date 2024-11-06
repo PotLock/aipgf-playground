@@ -12,8 +12,9 @@ export default function Page() {
           <p className="text-sm text-gray-500 dark:text-zinc-400">
             Use your email and password to sign in
           </p>
+          <WalletSelector />
         </div>
-        <WalletSelector />
+        
       </div>
     </div>
   );
