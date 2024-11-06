@@ -1,7 +1,9 @@
 'use client';
 
-import { WalletSelectorContextProvider } from "@/components/context/wallet-selector-provider"
 import { ReactNode } from 'react';
+
+import { WalletSelectorContextProvider } from "@/components/context/wallet-selector-provider"
+
 import "@near-wallet-selector/modal-ui/styles.css";
 
 

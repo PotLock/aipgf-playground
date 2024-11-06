@@ -1,16 +1,16 @@
 'use client';
 
-import { useWalletSelector } from "@/components/context/wallet-selector-provider"
 
 import Form from 'next/form';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useCallback, useState, useRef, useActionState } from 'react';
+import { useFormStatus } from "react-dom";
+import { toast } from 'sonner';
 
 import { authenticate, AuthenticateActionState } from "@/app/(auth)/actions";
-import CustomButton from '@/components/custom/custom-button'
-import { useToast } from '@/components/ui/use-toast';
-import { useFormStatus } from "react-dom";
+import { useWalletSelector } from "@/components/context/wallet-selector-provider"
 
+import { Button } from "../ui/button";
 export function WalletSelector() {
 
   const [state, formAction] = useActionState<AuthenticateActionState, FormData>(
@@ -21,43 +21,31 @@ export function WalletSelector() {
   );
   const router = useRouter();
   const { modal, accountId, selector } = useWalletSelector();
-  const { toast } = useToast();
+
   const [isLoading, setIsLoading] = useState(false);
   const submitForm = useRef<HTMLFormElement>(null)
   const [username, setUsername] = useState('')
   const { pending } = useFormStatus()
 
   useEffect(() => {
-    if (state) {
-      if (state.status === "failed") {
-        toast({
-          title: 'Invalid credentials!',
-          description: ''
-        });
-      } else if (state.status === "invalid_data") {
-        toast({
-          title: 'Failed validating your submission!',
-          description: ''
-        });
-      } else if (state.status === "success") {
-        router.refresh();
-      }
+    if (state.status === 'failed') {
+      toast.error('Invalid credentials!');
+    } else if (state.status === 'invalid_data') {
+      toast.error('Failed validating your submission!');
+    } else if (state.status === 'success') {
+      router.refresh();
     }
-
-  }, [state, router, toast]);
+  }, [state.status, router]);
 
 
   const handleConnect = useCallback(async () => {
     setIsLoading(true);
     if (accountId) {
       setUsername(accountId)
-      toast({
-        title: 'Connecting wallet...',
-        description: 'Please wait while we connect your wallet.'
-      });
+
       submitForm.current?.requestSubmit()
     }
-  }, [accountId, toast]);
+  }, [accountId]);
 
   useEffect(() => {
     if (accountId) {
@@ -93,7 +81,7 @@ export function WalletSelector() {
         defaultValue={username}
         required
       />
-      <CustomButton onClick={modal.show} disabled={pending}>{isLoading ? 'Loading' : 'Connect a Wallet'}</CustomButton>
+      <Button onClick={modal.show} disabled={pending}>{isLoading ? 'Loading' : 'Connect a Wallet'}</Button>
     </Form>
   );
 }

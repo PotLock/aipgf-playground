@@ -1,17 +1,25 @@
 'server-only';
 
 import { genSaltSync, hashSync } from 'bcrypt-ts';
-import { desc, eq, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq, gt } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
-import { user, chat, User, agent, Agent, tool, Tool } from './schema';
+import {
+  user,
+  chat,
+  User,
+  document,
+  Suggestion,
+  Message,
+  message,
+  vote,
+} from './schema';
 
 // Optionally, if not using username/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
 // https://authjs.dev/reference/adapter/drizzle
-
-let client = postgres(process.env.POSTGRES_URL!);
+let client = postgres(`${process.env.POSTGRES_URL!}?sslmode=require`);
 let db = drizzle(client);
 
 export async function getUser(username: string): Promise<Array<User>> {
@@ -37,33 +45,19 @@ export async function createUser(username: string, password: string) {
 
 export async function saveChat({
   id,
-  messages,
   userId,
-  agentId,
+  title,
 }: {
   id: string;
-  messages: any;
   userId: string;
-  agentId: string;
+  title: string;
 }) {
   try {
-    const selectedChats = await db.select().from(chat).where(eq(chat.id, id));
-
-    if (selectedChats.length > 0) {
-      return await db
-        .update(chat)
-        .set({
-          messages: JSON.stringify(messages),
-        })
-        .where(eq(chat.id, id));
-    }
-
     return await db.insert(chat).values({
       id,
       createdAt: new Date(),
-      messages: JSON.stringify(messages),
       userId,
-      agentId,
+      title,
     });
   } catch (error) {
     console.error('Failed to save chat in database');
@@ -73,6 +67,9 @@ export async function saveChat({
 
 export async function deleteChatById({ id }: { id: string }) {
   try {
+    await db.delete(vote).where(eq(vote.chatId, id));
+    await db.delete(message).where(eq(message.chatId, id));
+
     return await db.delete(chat).where(eq(chat.id, id));
   } catch (error) {
     console.error('Failed to delete chat by id from database');
@@ -103,148 +100,171 @@ export async function getChatById({ id }: { id: string }) {
   }
 }
 
-export async function getAgentByUserId(userId: string): Promise<Array<Agent>> {
+export async function saveMessages({ messages }: { messages: Array<Message> }) {
   try {
-    return await db.select().from(agent).where(eq(agent.userId, userId));
+    return await db.insert(message).values(messages);
   } catch (error) {
-    console.error('Failed to get user from database');
+    console.error('Failed to save messages in database', error);
     throw error;
   }
 }
 
-export async function getAgentById(id: string) {
-  try {
-    const [selectedAgent] = await db
-      .select()
-      .from(agent)
-      .where(eq(agent.id, id));
-    return selectedAgent;
-  } catch (error) {
-    console.error('Failed to get user from database');
-    throw error;
-  }
-}
-export async function createAgent({
-  name,
-  description,
-  avatar,
-  intro,
-  suggestedActions,
-  tool,
-  userId,
-  prompt,
-}: Agent) {
+export async function getMessagesByChatId({ id }: { id: string }) {
   try {
     return await db
-      .insert(agent)
-      .values({
-        name,
-        description,
-        suggestedActions,
-        tool,
-        prompt,
-        avatar,
-        intro,
-        userId,
-      })
-      .returning({
-        id: agent.id,
-        name: agent.name,
-        description: agent.description,
-        suggestedActions: agent.suggestedActions,
-        tool: agent.tool,
-        prompt: agent.prompt,
-        avatar: agent.avatar,
-        intro: agent.intro,
-        userId: agent.userId,
-        createdAt: agent.createdAt,
+      .select()
+      .from(message)
+      .where(eq(message.chatId, id))
+      .orderBy(asc(message.createdAt));
+  } catch (error) {
+    console.error('Failed to get messages by chat id from database', error);
+    throw error;
+  }
+}
+
+export async function voteMessage({
+  chatId,
+  messageId,
+  type,
+}: {
+  chatId: string;
+  messageId: string;
+  type: 'up' | 'down';
+}) {
+  try {
+    const [existingVote] = await db
+      .select()
+      .from(vote)
+      .where(and(eq(vote.messageId, messageId)));
+
+    if (existingVote) {
+      return await db
+        .update(vote)
+        .set({ isUpvoted: type === 'up' ? true : false })
+        .where(and(eq(vote.messageId, messageId), eq(vote.chatId, chatId)));
+    } else {
+      return await db.insert(vote).values({
+        chatId,
+        messageId,
+        isUpvoted: type === 'up' ? true : false,
       });
+    }
   } catch (error) {
-    console.error('Failed to create user in database');
+    console.error('Failed to upvote message in database', error);
     throw error;
   }
 }
 
-export async function getToolByUserId(userId: string): Promise<Array<Tool>> {
+export async function getVotesByChatId({ id }: { id: string }) {
   try {
-    return await db.select().from(tool).where(eq(tool.userId, userId));
+    return await db.select().from(vote).where(eq(vote.chatId, id));
   } catch (error) {
-    console.error('Failed to get user from database');
-    throw error;
-  }
-}
-export async function getToolById(id: string): Promise<Array<Tool>> {
-  try {
-    return await db.select().from(tool).where(eq(tool.id, id));
-  } catch (error) {
-    console.error('Failed to get user from database');
+    console.error('Failed to get votes by chat id from database', error);
     throw error;
   }
 }
 
-export async function getTools(ids: any[]): Promise<Array<Tool>> {
-  try {
-    return await db.select().from(tool).where(inArray(tool.id, ids));
-  } catch (error) {
-    console.error('Failed to get user from database');
-    throw error;
-  }
-}
-
-export async function createApiTool({
+export async function saveDocument({
   id,
-  name,
-  description,
-  typeName,
-  accessToken,
-  spec,
+  title,
+  content,
   userId,
-}: Tool) {
+}: {
+  id: string;
+  title: string;
+  content: string;
+  userId: string;
+}) {
   try {
-    return await db.insert(tool).values({
+    return await db.insert(document).values({
       id,
-      typeName,
-      name,
-      description,
-      accessToken,
-      spec,
+      title,
+      content,
       userId,
+      createdAt: new Date(),
     });
   } catch (error) {
-    console.error('Failed to create user in database');
+    console.error('Failed to save document in database');
     throw error;
   }
 }
 
-export async function createContractTool({
-  id,
-  name,
-  description,
-  typeName,
-  args,
-  typeMethod,
-  methods,
-  userId,
-  chain,
-  network,
-  createdAt
-}: Tool) {
+export async function getDocumentsById({ id }: { id: string }) {
   try {
-    return await db.insert(tool).values({
-      id,
-      name,
-      description,
-      typeName,
-      args,
-      typeMethod,
-      methods,
-      userId,
-      chain,
-      network,
-      createdAt
-    });
+    const documents = await db
+      .select()
+      .from(document)
+      .where(eq(document.id, id))
+      .orderBy(asc(document.createdAt));
+
+    return documents;
   } catch (error) {
-    console.error('Failed to create user in database');
+    console.error('Failed to get document by id from database');
+    throw error;
+  }
+}
+
+export async function getDocumentById({ id }: { id: string }) {
+  try {
+    const [selectedDocument] = await db
+      .select()
+      .from(document)
+      .where(eq(document.id, id))
+      .orderBy(desc(document.createdAt));
+
+    return selectedDocument;
+  } catch (error) {
+    console.error('Failed to get document by id from database');
+    throw error;
+  }
+}
+
+export async function deleteDocumentsByIdAfterTimestamp({
+  id,
+  timestamp,
+}: {
+  id: string;
+  timestamp: Date;
+}) {
+  try {
+    return await db
+      .delete(document)
+      .where(and(eq(document.id, id), gt(document.createdAt, timestamp)));
+  } catch (error) {
+    console.error(
+      'Failed to delete documents by id after timestamp from database'
+    );
+    throw error;
+  }
+}
+
+export async function saveSuggestions({
+  suggestions,
+}: {
+  suggestions: Array<Suggestion>;
+}) {
+  try {
+    return await db.insert(Suggestion).values(suggestions);
+  } catch (error) {
+    console.error('Failed to save suggestions in database');
+    throw error;
+  }
+}
+
+export async function getSuggestionsByDocumentId({
+  documentId,
+}: {
+  documentId: string;
+}) {
+  try {
+    return await db
+      .select()
+      .from(Suggestion)
+      .where(and(eq(Suggestion.documentId, documentId)));
+  } catch (error) {
+    console.error(
+      'Failed to get suggestions by document version from database'
+    );
     throw error;
   }
 }

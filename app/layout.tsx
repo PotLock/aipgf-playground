@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 import { Toaster } from 'sonner';
 
+import { WalletProvider } from '@/components/context/wallet-provider'
 import { ThemeProvider } from '@/components/custom/theme-provider';
-
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -63,8 +63,10 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Toaster position="top-center" />
-          {children}
+          <WalletProvider>
+            <Toaster position="top-center" />
+            {children}
+          </WalletProvider>
         </ThemeProvider>
       </body>
     </html>

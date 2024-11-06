@@ -1,25 +1,26 @@
 "use client"
 
-import type { AccountState, WalletSelector } from "@near-wallet-selector/core";
-import { setupWalletSelector } from "@near-wallet-selector/core";
-import type { WalletSelectorModal } from "@near-wallet-selector/modal-ui";
-import { setupModal } from "@near-wallet-selector/modal-ui";
-import { setupNightly } from "@near-wallet-selector/nightly";
-import { setupMyNearWallet } from "@near-wallet-selector/my-near-wallet";
-import { setupHereWallet } from "@near-wallet-selector/here-wallet";
 import { setupBitteWallet } from "@near-wallet-selector/bitte-wallet";
+import { setupWalletSelector } from "@near-wallet-selector/core";
+import { setupHereWallet } from "@near-wallet-selector/here-wallet";
 import { setupMeteorWallet } from "@near-wallet-selector/meteor-wallet";
+import { setupModal } from "@near-wallet-selector/modal-ui";
+import { setupMyNearWallet } from "@near-wallet-selector/my-near-wallet";
+import { setupNightly } from "@near-wallet-selector/nightly";
 import { providers, utils } from "near-api-js";
-
-import type { ReactNode } from "react";
 import React, {
     useCallback,
     useContext,
     useEffect,
     useState,
     useMemo,
+    createContext
 } from "react";
 import { distinctUntilChanged, map } from "rxjs";
+
+import type { AccountState, WalletSelector } from "@near-wallet-selector/core";
+import type { WalletSelectorModal } from "@near-wallet-selector/modal-ui";
+import type { ReactNode } from "react";
 
 
 declare global {
@@ -50,8 +51,7 @@ interface WalletSelectorContextValue {
     sendToken: (receiverId: string, amount: string) => Promise<any>;
 }
 
-const WalletSelectorContext =
-    React.createContext<WalletSelectorContextValue | null>(null);
+const WalletSelectorContext = createContext<WalletSelectorContextValue | null>(null);
 
 export const Loading: React.FC = () => (
     <div className="lds-ellipsis">
@@ -146,7 +146,7 @@ export const WalletSelectorContextProvider: React.FC<{
             args?: Record<string, unknown>;
         }) => {
             if (!selector) return null;
-            
+
             const { network } = selector.options;
             const url = `https://rpc.${network.networkId}.near.org`;
             const provider = new providers.JsonRpcProvider({ url });
@@ -167,7 +167,7 @@ export const WalletSelectorContextProvider: React.FC<{
     const getBalance = useCallback(
         async (accountId: string) => {
             if (!selector) return 0;
-            
+
             const { network } = selector.options;
             const provider = new providers.JsonRpcProvider({ url: network.nodeUrl });
 
@@ -212,7 +212,7 @@ export const WalletSelectorContextProvider: React.FC<{
             try {
                 // Get the wallet
                 const wallet = await selector.wallet();
-                
+
                 // Check if we have an active account
                 if (!accounts.length) {
                     await modal?.show();
@@ -249,7 +249,7 @@ export const WalletSelectorContextProvider: React.FC<{
 
             try {
                 const wallet = await selector.wallet();
-                
+
                 if (!accounts.length) {
                     await modal?.show();
                     return null;
