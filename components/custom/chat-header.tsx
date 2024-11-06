@@ -8,7 +8,7 @@ import { SidebarToggle } from '@/components/custom/sidebar-toggle';
 import { Button } from '@/components/ui/button';
 import { BetterTooltip } from '@/components/ui/tooltip';
 
-import { PlusIcon, GitIcon } from './icons';
+import { PlusIcon, GitIcon, BotIcon, BoxIcon } from './icons';
 import { useSidebar } from '../ui/sidebar';
 
 export function ChatHeader({ selectedModelId }: { selectedModelId: string }) {
@@ -33,6 +33,30 @@ export function ChatHeader({ selectedModelId }: { selectedModelId: string }) {
           </Button>
         </BetterTooltip>
       )}
+      <BetterTooltip content="Agent">
+        <Button
+          variant="outline"
+          className="order-2 md:order-1 md:px-2 px-2 md:h-fit ml-auto md:ml-0"
+          asChild
+        >
+          <Link href="/agent">
+            <BotIcon />
+            <span className="md:sr-only">Agent</span>
+          </Link>
+        </Button>
+      </BetterTooltip>
+      <BetterTooltip content="Tool">
+        <Button
+          variant="outline"
+          className="order-2 md:order-1 md:px-2 px-2 md:h-fit ml-auto md:ml-0"
+          asChild
+        >
+          <Link href="/tool">
+            <BoxIcon size={16} />
+            <span className="md:sr-only">Tool</span>
+          </Link>
+        </Button>
+      </BetterTooltip>
       <ModelSelector
         selectedModelId={selectedModelId}
         className="order-1 md:order-2"

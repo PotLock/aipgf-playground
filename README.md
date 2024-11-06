@@ -16,7 +16,7 @@
 
 ## Features
 
-- [NearBlock](https://nearblocks.io/) Onchain Intgration
+- [NearBlock](https://nearblocks.io/) Onchain Integration
   - Advanced Connect to Ethereum data via RPC
   - Advanced Connect to Near data
 - [OpenAI](https://spec.openapis.org/oas/v3.1.0.html) OpenAPI Specification v3.1.0
