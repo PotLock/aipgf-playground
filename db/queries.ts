@@ -311,3 +311,16 @@ export async function createAgent({
     throw error;
   }
 }
+
+export async function getAgentByUserId({ userId }: { userId: string }) {
+  try {
+    return await db
+      .select()
+      .from(agent)
+      .where(eq(agent.userId, userId))
+      .orderBy(desc(chat.createdAt));
+  } catch (error) {
+    console.error('Failed to get chats by user from database');
+    throw error;
+  }
+}
