@@ -318,7 +318,7 @@ export async function getAgentByUserId({ userId }: { userId: string }) {
       .select()
       .from(agent)
       .where(eq(agent.userId, userId))
-      .orderBy(desc(chat.createdAt));
+      .orderBy(desc(agent.createdAt));
   } catch (error) {
     console.error('Failed to get chats by user from database');
     throw error;
