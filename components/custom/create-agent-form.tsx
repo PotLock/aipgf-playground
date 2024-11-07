@@ -1,11 +1,10 @@
-import { Cat, Dog, Fish, Rabbit, Turtle } from "lucide-react";
+import { List, Server } from "lucide-react";
 import Form from 'next/form';
 import { useState } from "react";
 
 import { DEFAULT_MODEL_NAME, models } from '@/ai/models';
 
 import { MultiSelect } from '../custom/multi-select';
-import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectItem, SelectContent, SelectGroup, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
@@ -19,18 +18,14 @@ export function CreateAgentForm({
   action: any;
   children: React.ReactNode;
 }) {
-  const [selectedFrameworks, setSelectedFrameworks] = useState<string[]>(["react", "angular"]);
+  const [selectedFrameworks, setSelectedFrameworks] = useState<string[]>([]);
 
   const frameworksList = [
-    { value: "react", label: "React", icon: Turtle },
-    { value: "angular", label: "Angular", icon: Cat },
-    { value: "vue", label: "Vue", icon: Dog },
-    { value: "svelte", label: "Svelte", icon: Rabbit },
-    { value: "ember", label: "Ember", icon: Fish },
+    { value: "tool1", label: "Tool 1", icon: List },
+    { value: "tool2", label: "Tool 2", icon: Server },
   ];
   return (
     <Form action={action} className="flex flex-col gap-4 px-4 sm:px-16">
-
       <div className="flex flex-col gap-2">
         <Label
           htmlFor="text"
@@ -48,7 +43,7 @@ export function CreateAgentForm({
           autoComplete="text"
           required
           autoFocus
-          defaultValue={''}
+          defaultValue={'/Logo.svg'}
         />
       </div>
       <div className="flex flex-col gap-2">
@@ -81,8 +76,8 @@ export function CreateAgentForm({
         </Label>
 
         <Textarea
-          id="Description"
-          name="Description"
+          id="description"
+          name="description"
           className="bg-muted text-md md:text-sm"
           required
         />
@@ -111,7 +106,7 @@ export function CreateAgentForm({
         >
           Model
         </Label>
-        <Select>
+        <Select name="model">
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select Model" />
           </SelectTrigger>
@@ -147,14 +142,25 @@ export function CreateAgentForm({
           Tool
         </Label>
         <MultiSelect
-          name='tool'
           options={frameworksList}
           onValueChange={setSelectedFrameworks}
           defaultValue={selectedFrameworks}
-          placeholder="Select frameworks"
+          placeholder="Select tools"
           variant="inverted"
           animation={0}
           maxCount={3}
+        />
+        <Input
+          id="tool"
+          name="tool"
+          hidden
+          className="bg-muted text-md md:text-sm hidden"
+          type="text"
+          placeholder="Super Agent"
+          autoComplete="text"
+          required
+          autoFocus
+          defaultValue={selectedFrameworks}
         />
       </div>
       {children}

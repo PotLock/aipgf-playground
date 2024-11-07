@@ -307,7 +307,7 @@ export async function createAgent({
         createdAt: agent.createdAt,
       });
   } catch (error) {
-    console.error('Failed to create user in database');
+    console.error('Failed to create agent in database');
     throw error;
   }
 }

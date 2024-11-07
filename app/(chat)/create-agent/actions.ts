@@ -5,16 +5,14 @@ import { z } from 'zod';
 import { auth } from '@/app/(auth)/auth';
 import { createAgent } from '@/db/queries';
 
-const session = await auth();
-
 const createAgentFormSchema = z.object({
   name: z.string().min(4),
   avatar: z.string().min(4),
-  description: z.string().min(6),
-  intro: z.string().min(6),
-  model: z.string().min(6),
-  prompt: z.string().min(6),
-  tool: z.string().array(),
+  description: z.string().min(4),
+  intro: z.string(),
+  model: z.string().min(4),
+  prompt: z.string().min(4),
+  tool: z.string(),
 });
 
 export interface CreateAgentActionState {
@@ -31,6 +29,8 @@ export const createAgentAction = async (
   formData: FormData
 ): Promise<CreateAgentActionState> => {
   try {
+    const session = await auth();
+    console.log(formData);
     const validatedData = createAgentFormSchema.parse({
       avatar: formData.get('avatar'),
       name: formData.get('name'),
@@ -40,6 +40,7 @@ export const createAgentAction = async (
       prompt: formData.get('prompt'),
       tool: formData.get('tool'),
     });
+    const tool = validatedData.tool.split(',');
     await createAgent({
       name: validatedData.name,
       avatar: validatedData.avatar,
@@ -48,7 +49,7 @@ export const createAgentAction = async (
       model: validatedData.model,
       prompt: validatedData.prompt,
       createdAt: new Date(),
-      tool: validatedData.tool,
+      tool: tool,
       userId: session?.user?.id,
     } as any);
 
