@@ -48,16 +48,19 @@ export async function createUser(username: string, password: string) {
 export async function saveChat({
   id,
   userId,
+  agentId,
   title,
 }: {
   id: string;
   userId: string;
+  agentId: string;
   title: string;
 }) {
   try {
     return await db.insert(chat).values({
       id,
       createdAt: new Date(),
+      agentId,
       userId,
       title,
     });
@@ -120,6 +123,18 @@ export async function getMessagesByChatId({ id }: { id: string }) {
       .orderBy(asc(message.createdAt));
   } catch (error) {
     console.error('Failed to get messages by chat id from database', error);
+    throw error;
+  }
+}
+export async function getAgentById(id: string) {
+  try {
+    const [selectedAgent] = await db
+      .select()
+      .from(agent)
+      .where(eq(agent.id, id));
+    return selectedAgent;
+  } catch (error) {
+    console.error('Failed to get user from database');
     throw error;
   }
 }

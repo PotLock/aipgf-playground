@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { auth } from '@/app/(auth)/auth';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +25,7 @@ export default async function Page() {
         {agent.prompt}
       </CardContent>
       <CardFooter className="flex justify-between">
-        <Button className="w-full">Start Chat</Button>
+        <Link className="w-full" href={`/chat?agentId=${agent.id}`}>Start Chat</Link>
       </CardFooter>
     </Card>
   ))
