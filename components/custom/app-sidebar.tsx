@@ -34,9 +34,9 @@ export function AppSidebar({ user }: { user: User | undefined }) {
             >
               <span className="text-lg font-semibold px-2">Chatbot</span>
             </Link>
-            <BetterTooltip content="New Chat" align="start">
+            <BetterTooltip content="New Agent" align="start">
               <Button variant="ghost" className="p-2 h-fit" asChild>
-                <Link href="/" onClick={() => setOpenMobile(false)}>
+                <Link href="/create-agent" onClick={() => setOpenMobile(false)}>
                   <PlusIcon />
                 </Link>
               </Button>

@@ -59,6 +59,7 @@ export function Canvas({
   messages,
   setMessages,
   votes,
+  
 }: {
   chatId: string;
   input: string;
@@ -289,7 +290,7 @@ export function Canvas({
               ref={messagesContainerRef}
               className="flex flex-col gap-4 h-full items-center overflow-y-scroll px-4 pt-20"
             >
-              {messages.map((message, index) => (
+              {/* {messages.map((message, index) => (
                 <PreviewMessage
                   chatId={chatId}
                   key={message.id}
@@ -303,7 +304,7 @@ export function Canvas({
                       : undefined
                   }
                 />
-              ))}
+              ))} */}
 
               <div
                 ref={messagesEndRef}

@@ -3,6 +3,7 @@
 import { Message } from 'ai';
 import cx from 'classnames';
 import { motion } from 'framer-motion';
+import { BotIcon } from 'lucide-react';
 import { Dispatch, SetStateAction } from 'react';
 
 import { Vote } from '@/db/schema';
@@ -22,6 +23,8 @@ export const PreviewMessage = ({
   setCanvas,
   vote,
   isLoading,
+  bot,
+  user
 }: {
   chatId: string;
   message: Message;
@@ -29,6 +32,8 @@ export const PreviewMessage = ({
   setCanvas: Dispatch<SetStateAction<UICanvas>>;
   vote: Vote | undefined;
   isLoading: boolean;
+  bot: string;
+  user: string
 }) => {
   return (
     <motion.div
@@ -49,7 +54,7 @@ export const PreviewMessage = ({
       >
         {message.role === 'assistant' && (
           <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border">
-            <SparklesIcon size={14} />
+            <BotIcon size={14} />
           </div>
         )}
 
