@@ -36,6 +36,13 @@
       "when": 1731013476057,
       "tag": "0004_classy_wendell_vaughn",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1731137191818,
+      "tag": "0005_nifty_firestar",
+      "breakpoints": true
     }
   ]
 }

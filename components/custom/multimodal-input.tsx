@@ -23,16 +23,16 @@ import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 
 const suggestedActions = [
-  {
-    title: 'What is the weather',
-    label: 'in San Francisco?',
-    action: 'What is the weather in San Francisco?',
-  },
-  {
-    title: 'Help me draft an essay',
-    label: 'about Silicon Valley',
-    action: 'Help me draft an essay about Silicon Valley',
-  },
+  // {
+  //   title: 'What is the weather',
+  //   label: 'in San Francisco?',
+  //   action: 'What is the weather in San Francisco?',
+  // },
+  // {
+  //   title: 'Help me draft an essay',
+  //   label: 'about Silicon Valley',
+  //   action: 'Help me draft an essay about Silicon Valley',
+  // },
 ];
 
 export function MultimodalInput({

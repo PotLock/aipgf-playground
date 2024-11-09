@@ -26,9 +26,9 @@ export function ChatHeader({ selectedModelId }: { selectedModelId: string }) {
             className="order-2 md:order-1 md:px-2 px-2 md:h-fit ml-auto md:ml-0"
             asChild
           >
-            <Link href="/">
+            <Link href="/create-agent">
               <PlusIcon />
-              <span className="md:sr-only">New Chat</span>
+              <span className="md:sr-only">New Agent</span>
             </Link>
           </Button>
         </BetterTooltip>

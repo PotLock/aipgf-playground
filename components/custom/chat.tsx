@@ -44,7 +44,7 @@ export function Chat({
     stop,
     data: streamingData,
   } = useChat({
-    body: { id, modelId: selectedModelId, agentId: agent.id },
+    body: { id, modelId: selectedModelId, agent: agent },
     initialMessages,
     onFinish: () => {
       mutate('/api/history');

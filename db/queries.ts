@@ -134,7 +134,8 @@ export async function getAgentById(id: string) {
       .where(eq(agent.id, id));
     return selectedAgent;
   } catch (error) {
-    console.error('Failed to get user from database');
+    console.log(error);
+    console.error('Failed to get Agent from database');
     throw error;
   }
 }
@@ -335,7 +336,8 @@ export async function getAgentByUserId({ userId }: { userId: string }) {
       .where(eq(agent.userId, userId))
       .orderBy(desc(agent.createdAt));
   } catch (error) {
-    console.error('Failed to get chats by user from database');
+    console.log(error);
+    console.error('Failed to get agents by userId from database');
     throw error;
   }
 }
