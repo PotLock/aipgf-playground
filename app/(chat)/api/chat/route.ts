@@ -50,8 +50,13 @@ export async function POST(request: Request) {
     id,
     messages,
     modelId,
-  }: { id: string; messages: Array<Message>; modelId: string } =
-    await request.json();
+    agent,
+  }: {
+    id: string;
+    messages: Array<Message>;
+    modelId: string;
+    agent: any;
+  } = await request.json();
 
   const session = await auth();
 
@@ -76,7 +81,12 @@ export async function POST(request: Request) {
 
   if (!chat) {
     const title = await generateTitleFromUserMessage({ message: userMessage });
-    await saveChat({ id, userId: session.user.id, title });
+    await saveChat({
+      id,
+      userId: session.user.id,
+      title,
+      agentId: agent.id,
+    });
   }
 
   await saveMessages({
@@ -89,7 +99,7 @@ export async function POST(request: Request) {
 
   const result = await streamText({
     model: customModel(model.apiIdentifier),
-    system: modelId === 'gpt-4o-canvas' ? canvasPrompt : regularPrompt,
+    system: `Your name are ${agent.name} \n\n ${agent.prompt}`, //modelId === 'gpt-4o-canvas' ? canvasPrompt : regularPrompt,
     messages: coreMessages,
     maxSteps: 5,
     experimental_activeTools:

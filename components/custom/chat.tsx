@@ -10,7 +10,7 @@ import { useWindowSize } from 'usehooks-ts';
 import { ChatHeader } from '@/components/custom/chat-header';
 import { PreviewMessage, ThinkingMessage } from '@/components/custom/message';
 import { useScrollToBottom } from '@/components/custom/use-scroll-to-bottom';
-import { Vote } from '@/db/schema';
+import { Agent, User, Vote } from '@/db/schema';
 import { fetcher } from '@/lib/utils';
 
 import { Canvas, UICanvas } from './canvas';
@@ -22,10 +22,14 @@ export function Chat({
   id,
   initialMessages,
   selectedModelId,
+  agent,
+  user
 }: {
   id: string;
   initialMessages: Array<Message>;
   selectedModelId: string;
+  agent: Agent;
+  user: User
 }) {
   const { mutate } = useSWRConfig();
 
@@ -40,7 +44,7 @@ export function Chat({
     stop,
     data: streamingData,
   } = useChat({
-    body: { id, modelId: selectedModelId },
+    body: { id, modelId: selectedModelId, agent: agent },
     initialMessages,
     onFinish: () => {
       mutate('/api/history');
@@ -82,10 +86,12 @@ export function Chat({
           ref={messagesContainerRef}
           className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"
         >
-          {messages.length === 0 && <Overview />}
+          {messages.length === 0 && <Overview intro={agent?.intro || "GM"} />}
 
           {messages.map((message, index) => (
             <PreviewMessage
+              bot={agent.name}
+              user={user.username}
               key={message.id}
               chatId={id}
               message={message}

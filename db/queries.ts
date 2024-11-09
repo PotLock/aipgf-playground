@@ -14,6 +14,8 @@ import {
   Message,
   message,
   vote,
+  agent,
+  Agent,
 } from './schema';
 
 // Optionally, if not using username/pass login, you can
@@ -46,16 +48,19 @@ export async function createUser(username: string, password: string) {
 export async function saveChat({
   id,
   userId,
+  agentId,
   title,
 }: {
   id: string;
   userId: string;
+  agentId: string;
   title: string;
 }) {
   try {
     return await db.insert(chat).values({
       id,
       createdAt: new Date(),
+      agentId,
       userId,
       title,
     });
@@ -118,6 +123,19 @@ export async function getMessagesByChatId({ id }: { id: string }) {
       .orderBy(asc(message.createdAt));
   } catch (error) {
     console.error('Failed to get messages by chat id from database', error);
+    throw error;
+  }
+}
+export async function getAgentById(id: string) {
+  try {
+    const [selectedAgent] = await db
+      .select()
+      .from(agent)
+      .where(eq(agent.id, id));
+    return selectedAgent;
+  } catch (error) {
+    console.log(error);
+    console.error('Failed to get Agent from database');
     throw error;
   }
 }
@@ -265,6 +283,61 @@ export async function getSuggestionsByDocumentId({
     console.error(
       'Failed to get suggestions by document version from database'
     );
+    throw error;
+  }
+}
+
+export async function createAgent({
+  name,
+  description,
+  avatar,
+  intro,
+  model,
+  tool,
+  userId,
+  prompt,
+}: Agent) {
+  try {
+    return await db
+      .insert(agent)
+      .values({
+        name,
+        description,
+        tool,
+        prompt,
+        avatar,
+        intro,
+        model,
+        userId,
+      })
+      .returning({
+        id: agent.id,
+        name: agent.name,
+        description: agent.description,
+        tool: agent.tool,
+        prompt: agent.prompt,
+        avatar: agent.avatar,
+        intro: agent.intro,
+        model: agent.model,
+        userId: agent.userId,
+        createdAt: agent.createdAt,
+      });
+  } catch (error) {
+    console.error('Failed to create agent in database');
+    throw error;
+  }
+}
+
+export async function getAgentByUserId({ userId }: { userId: string }) {
+  try {
+    return await db
+      .select()
+      .from(agent)
+      .where(eq(agent.userId, userId))
+      .orderBy(desc(agent.createdAt));
+  } catch (error) {
+    console.log(error);
+    console.error('Failed to get agents by userId from database');
     throw error;
   }
 }

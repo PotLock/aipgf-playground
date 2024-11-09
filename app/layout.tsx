@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://chat.vercel.ai'),
   title: 'AIPGF - Playground',
   description: 'AIPGF - Playground build agent on multichain.',
+  icons: {
+    icon: "/Logo.svg",
+    apple: "/Logo.svg",
+  },
 };
 
 export const viewport = {
