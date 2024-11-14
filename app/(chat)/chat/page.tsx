@@ -5,11 +5,7 @@ import { notFound } from 'next/navigation';
 import { DEFAULT_MODEL_NAME, models } from '@/ai/models';
 import { auth } from '@/app/(auth)/auth';
 import { Chat } from '@/components/custom/chat';
-import {
-    getChatById, getMessagesByChatId, getAgentById
-
-} from '@/db/queries';
-import { Agent } from '@/db/schema';
+import { getAgentById } from '@/db/queries';
 import { generateUUID } from '@/lib/utils';
 
 export default async function Page(props: { searchParams: Promise<any> }) {
