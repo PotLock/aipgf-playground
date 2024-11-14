@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { auth } from '@/app/(auth)/auth';
+import { ChatHeader } from '@/components/custom/chat-header';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +19,8 @@ export default async function Page(props: { searchParams: Promise<any> }) {
 
   return (
     <div className="flex flex-col min-w-0 h-dvh bg-background">
+      <ChatHeader selectedModelId={'test'} />
+
       <Card>
         <CardHeader>
           <CardTitle>Agent</CardTitle>
