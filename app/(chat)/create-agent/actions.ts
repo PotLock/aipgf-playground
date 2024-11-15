@@ -13,6 +13,7 @@ const createAgentFormSchema = z.object({
   model: z.string().min(4),
   prompt: z.string().min(4),
   tool: z.string(),
+  suggestedActions: z.string(),
 });
 
 export interface CreateAgentActionState {
@@ -39,6 +40,7 @@ export const createAgentAction = async (
       model: formData.get('model'),
       prompt: formData.get('prompt'),
       tool: formData.get('tool'),
+      suggestedActions: formData.get('suggestedActions'),
     });
     const tool = validatedData.tool.split(',');
     await createAgent({
@@ -50,6 +52,7 @@ export const createAgentAction = async (
       prompt: validatedData.prompt,
       createdAt: new Date(),
       tool: tool,
+      suggestedActions: validatedData.suggestedActions,
       userId: session?.user?.id,
     } as any);
 

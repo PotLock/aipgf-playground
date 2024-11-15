@@ -43,6 +43,13 @@
       "when": 1731137191818,
       "tag": "0005_nifty_firestar",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1731659743602,
+      "tag": "0006_robust_doctor_spectrum",
+      "breakpoints": true
     }
   ]
 }

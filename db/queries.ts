@@ -296,6 +296,7 @@ export async function createAgent({
   tool,
   userId,
   prompt,
+  suggestedActions,
 }: Agent) {
   try {
     return await db
@@ -309,6 +310,7 @@ export async function createAgent({
         intro,
         model,
         userId,
+        suggestedActions,
       })
       .returning({
         id: agent.id,
@@ -321,6 +323,7 @@ export async function createAgent({
         model: agent.model,
         userId: agent.userId,
         createdAt: agent.createdAt,
+        suggestedActions: agent.suggestedActions,
       });
   } catch (error) {
     console.error('Failed to create agent in database');
