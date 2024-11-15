@@ -26,7 +26,7 @@ export default async function Page(props: { searchParams: Promise<any> }) {
 
   return (
     <div className="flex flex-col min-w-0 h-dvh bg-background">
-      <ChatHeader selectedModelId={selectedModelId} />
+      <ChatHeader />
       <Card>
         <CardHeader>
           <CardTitle>Agent</CardTitle>

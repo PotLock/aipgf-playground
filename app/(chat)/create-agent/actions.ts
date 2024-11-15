@@ -13,6 +13,7 @@ const createAgentFormSchema = z.object({
   model: z.string().min(4),
   prompt: z.string().min(4),
   tool: z.string(),
+  suggestedActions: z.string(),
 });
 
 export interface CreateAgentActionState {
@@ -30,7 +31,6 @@ export const createAgentAction = async (
 ): Promise<CreateAgentActionState> => {
   try {
     const session = await auth();
-    console.log(formData);
     const validatedData = createAgentFormSchema.parse({
       avatar: formData.get('avatar'),
       name: formData.get('name'),
@@ -39,8 +39,10 @@ export const createAgentAction = async (
       model: formData.get('model'),
       prompt: formData.get('prompt'),
       tool: formData.get('tool'),
+      suggestedActions: formData.get('suggestedActions'),
     });
     const tool = validatedData.tool.split(',');
+    const suggestedActions = JSON.parse(validatedData.suggestedActions);
     await createAgent({
       name: validatedData.name,
       avatar: validatedData.avatar,
@@ -50,11 +52,13 @@ export const createAgentAction = async (
       prompt: validatedData.prompt,
       createdAt: new Date(),
       tool: tool,
+      suggestedActions: suggestedActions,
       userId: session?.user?.id,
     } as any);
 
     return { status: 'success' };
   } catch (error) {
+    console.log(error);
     if (error instanceof z.ZodError) {
       return { status: 'invalid_data' };
     }
