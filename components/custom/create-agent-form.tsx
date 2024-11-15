@@ -43,16 +43,19 @@ export function CreateAgentForm({
     if (newAction.label && newAction.action && newAction.title) {
       setActions([...actions, { ...newAction, id: Date.now() }])
       setNewAction({ label: "", action: "", title: "" })
-
+      setActionsValue(JSON.stringify([...actions, { ...newAction, id: Date.now() }]))
     }
   }
 
   const removeAction = (id: number) => {
     setActions(actions.filter(item => item.id !== id))
+    setActionsValue(JSON.stringify(actions.filter(item => item.id !== id)))
+
   }
 
   const deleteAllActions = () => {
     setActions([])
+    setActionsValue('')
   }
 
   return (
@@ -235,7 +238,7 @@ export function CreateAgentForm({
                       />
                     </div>
                   </div>
-                  <Button onClick={(e) => { e.preventDefault(); addAction(); setActionsValue(JSON.stringify(actions)) }} className="w-full">
+                  <Button onClick={(e) => { e.preventDefault(); addAction(); }} className="w-full">
                     <PlusCircle className="mr-2 size-4" /> Add Item
                   </Button>
                 </div>
@@ -268,10 +271,8 @@ export function CreateAgentForm({
             </Card>
             <Input
               name="suggestedActions"
-              hidden
               className="hidden"
               type="text"
-              value={actionsValue}
               defaultValue={actionsValue}
             />
           </div>
