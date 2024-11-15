@@ -35,12 +35,15 @@ export function CreateAgentForm({
 
 
   const [actions, setActions] = useState<SuggestedActions[]>([])
+  const [actionsValue, setActionsValue] = useState<string>('')
+
   const [newAction, setNewAction] = useState<Omit<SuggestedActions, "id">>({ label: "", action: "", title: "" })
 
   const addAction = () => {
     if (newAction.label && newAction.action && newAction.title) {
       setActions([...actions, { ...newAction, id: Date.now() }])
       setNewAction({ label: "", action: "", title: "" })
+
     }
   }
 
@@ -61,7 +64,7 @@ export function CreateAgentForm({
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <Form action={action} className="flex flex-col gap-4 px-4 sm:px-16">
+        <Form action={action} className="flex flex-col gap-4 px-4 sm:px-16" >
           <div className="flex flex-col gap-2">
             <Label
               htmlFor="text"
@@ -232,7 +235,7 @@ export function CreateAgentForm({
                       />
                     </div>
                   </div>
-                  <Button onClick={(e) => { e.preventDefault(); addAction(); }} className="w-full">
+                  <Button onClick={(e) => { e.preventDefault(); addAction(); setActionsValue(JSON.stringify(actions)) }} className="w-full">
                     <PlusCircle className="mr-2 size-4" /> Add Item
                   </Button>
                 </div>
@@ -264,12 +267,12 @@ export function CreateAgentForm({
               </CardFooter>
             </Card>
             <Input
-              id="suggestedActions"
               name="suggestedActions"
               hidden
               className="hidden"
               type="text"
-              defaultValue={JSON.stringify(actions)}
+              value={actionsValue}
+              defaultValue={actionsValue}
             />
           </div>
           {children}

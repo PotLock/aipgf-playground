@@ -201,7 +201,7 @@ export function MultimodalInput({
         attachments.length === 0 &&
         uploadQueue.length === 0 && (
           <div className="grid sm:grid-cols-2 gap-2 w-full">
-            {agent && agent.suggestedActions.map((suggestedAction: any, index: number) => (
+            {agent.suggestedActions && agent.suggestedActions.map((suggestedAction: any, index: number) => (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

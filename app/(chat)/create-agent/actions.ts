@@ -31,7 +31,6 @@ export const createAgentAction = async (
 ): Promise<CreateAgentActionState> => {
   try {
     const session = await auth();
-
     const validatedData = createAgentFormSchema.parse({
       avatar: formData.get('avatar'),
       name: formData.get('name'),
@@ -43,20 +42,7 @@ export const createAgentAction = async (
       suggestedActions: formData.get('suggestedActions'),
     });
     const tool = validatedData.tool.split(',');
-    console.log(validatedData.suggestedActions)
     const suggestedActions = JSON.parse(validatedData.suggestedActions);
-    console.log({
-      name: validatedData.name,
-      avatar: validatedData.avatar,
-      description: validatedData.description,
-      intro: validatedData.intro,
-      model: validatedData.model,
-      prompt: validatedData.prompt,
-      createdAt: new Date(),
-      tool,
-      suggestedActions,
-      userId: session?.user?.id,
-    });
     await createAgent({
       name: validatedData.name,
       avatar: validatedData.avatar,
@@ -72,7 +58,7 @@ export const createAgentAction = async (
 
     return { status: 'success' };
   } catch (error) {
-    console.log(error)
+    console.log(error);
     if (error instanceof z.ZodError) {
       return { status: 'invalid_data' };
     }
