@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import React, {
   useRef,
   useEffect,
-  useState, 
+  useState,
   useCallback,
   Dispatch,
   SetStateAction,
@@ -15,12 +15,14 @@ import React, {
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
+import { Agent } from '@/db/schema';
 import { sanitizeUIMessages } from '@/lib/utils';
 
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
 import { PreviewAttachment } from './preview-attachment';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
+
 
 const suggestedActions = [
   {
@@ -48,6 +50,7 @@ export function MultimodalInput({
   append,
   handleSubmit,
   className,
+  agent,
 }: {
   chatId: string;
   input: string;
@@ -69,6 +72,7 @@ export function MultimodalInput({
     chatRequestOptions?: ChatRequestOptions
   ) => void;
   className?: string;
+  agent: any
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
@@ -197,7 +201,7 @@ export function MultimodalInput({
         attachments.length === 0 &&
         uploadQueue.length === 0 && (
           <div className="grid sm:grid-cols-2 gap-2 w-full">
-            {/* {suggestedActions.map((suggestedAction, index) => (
+            {agent && agent.suggestedActions.map((suggestedAction: any, index: number) => (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -224,7 +228,7 @@ export function MultimodalInput({
                   </span>
                 </Button>
               </motion.div>
-            ))} */}
+            ))}
           </div>
         )}
 

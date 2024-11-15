@@ -264,8 +264,8 @@ export function CreateAgentForm({
               </CardFooter>
             </Card>
             <Input
-              id="suggestaction"
-              name="suggestaction"
+              id="suggestedActions"
+              name="suggestedActions"
               hidden
               className="hidden"
               type="text"
