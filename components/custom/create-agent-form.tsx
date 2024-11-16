@@ -50,7 +50,6 @@ export function CreateAgentForm({
   const removeAction = (id: number) => {
     setActions(actions.filter(item => item.id !== id))
     setActionsValue(JSON.stringify(actions.filter(item => item.id !== id)))
-
   }
 
   const deleteAllActions = () => {
@@ -80,12 +79,11 @@ export function CreateAgentForm({
               id="avatar"
               name="avatar"
               className="bg-muted text-md md:text-sm"
-              type="text"
+              type="file" 
               placeholder="Avatar"
               autoComplete="text"
               required
               autoFocus
-              defaultValue={'/Logo.svg'}
             />
           </div>
           <div className="flex flex-col gap-2">

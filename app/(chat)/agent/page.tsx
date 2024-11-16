@@ -1,7 +1,6 @@
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 
-import { DEFAULT_MODEL_NAME, models } from '@/ai/models';
 import { auth } from '@/app/(auth)/auth';
 import { ChatHeader } from '@/components/custom/chat-header';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,13 +16,8 @@ export default async function Page(props: { searchParams: Promise<any> }) {
     return Response.json('Unauthorized!', { status: 401 });
   }
 
-  const cookieStore = await cookies();
-  const modelIdFromCookie = cookieStore.get('model-id')?.value;
   const agents = await getAgentByUserId({ userId: session.user.id! });
-  const selectedModelId =
-    models.find((model) => model.id === modelIdFromCookie)?.id ||
-    DEFAULT_MODEL_NAME;
-
+  
   return (
     <div className="flex flex-col min-w-0 h-dvh bg-background">
       <ChatHeader />

@@ -1,5 +1,6 @@
 'use server';
 
+import { put } from '@vercel/blob';
 import { z } from 'zod';
 
 import { auth } from '@/app/(auth)/auth';
@@ -7,7 +8,7 @@ import { createAgent } from '@/db/queries';
 
 const createAgentFormSchema = z.object({
   name: z.string().min(4),
-  avatar: z.string().min(4),
+  avatar: z.any(),
   description: z.string().min(4),
   intro: z.string(),
   model: z.string().min(4),
@@ -31,8 +32,14 @@ export const createAgentAction = async (
 ): Promise<CreateAgentActionState> => {
   try {
     const session = await auth();
+    const imageFile = formData.get('avatar') as File;
+
+    const blob = await put(imageFile.name, imageFile, {
+      access: 'public',
+    });
+    console.log(blob);
     const validatedData = createAgentFormSchema.parse({
-      avatar: formData.get('avatar'),
+      avatar: blob,
       name: formData.get('name'),
       description: formData.get('description'),
       intro: formData.get('intro'),
@@ -45,7 +52,7 @@ export const createAgentAction = async (
     const suggestedActions = JSON.parse(validatedData.suggestedActions);
     await createAgent({
       name: validatedData.name,
-      avatar: validatedData.avatar,
+      avatar: validatedData.avatar.url,
       description: validatedData.description,
       intro: validatedData.intro,
       model: validatedData.model,
