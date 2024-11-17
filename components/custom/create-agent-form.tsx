@@ -1,6 +1,6 @@
-import { List, PlusCircle, Server, Trash2, X } from "lucide-react";
+import { List, PlusCircle, Server, Trash2, Upload, X } from "lucide-react";
 import Form from 'next/form';
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { DEFAULT_MODEL_NAME, models } from '@/ai/models';
 
@@ -11,6 +11,8 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectItem, SelectContent, SelectGroup, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
 import { Textarea } from '../ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { agent } from "@/db/schema";
 
 
 interface SuggestedActions {
@@ -27,6 +29,7 @@ export function CreateAgentForm({
   children: React.ReactNode;
 }) {
   const [selectedFrameworks, setSelectedFrameworks] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const frameworksList = [
     { value: "tool1", label: "Tool 1", icon: List },
@@ -36,6 +39,7 @@ export function CreateAgentForm({
 
   const [actions, setActions] = useState<SuggestedActions[]>([])
   const [actionsValue, setActionsValue] = useState<string>('')
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
 
   const [newAction, setNewAction] = useState<Omit<SuggestedActions, "id">>({ label: "", action: "", title: "" })
 
@@ -56,6 +60,21 @@ export function CreateAgentForm({
     setActions([])
     setActionsValue('')
   }
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      //setAgent((prev) => ({ ...prev, avatar: file }))
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click()
+  }
 
   return (
     <Card >
@@ -66,88 +85,74 @@ export function CreateAgentForm({
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
+
         <Form action={action} className="flex flex-col gap-4 px-4 sm:px-16" >
-          <div className="flex flex-col gap-2">
-            <Label
-              htmlFor="text"
-              className="text-zinc-600 font-normal dark:text-zinc-400"
-            >
-              Avatar
-            </Label>
-
-            <Input
-              id="avatar"
-              name="avatar"
-              className="bg-muted text-md md:text-sm"
-              type="file" 
-              placeholder="Avatar"
-              autoComplete="text"
-              required
-              autoFocus
-            />
+          <div className="space-y-2">
+            <Label htmlFor="avatar">Avatar</Label>
+            <div className="flex items-center space-x-4">
+              <Avatar className="size-20 cursor-pointer" onClick={handleAvatarClick}>
+                {avatarPreview ? (
+                  <AvatarImage src={avatarPreview} alt="Agent avatar" />
+                ) : (
+                  <AvatarFallback>
+                    <Upload className="size-8 text-muted-foreground" />
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <Input
+                id="avatar"
+                name="avatar"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarUpload}
+                ref={fileInputRef}
+              />
+              <Button type="button" variant="outline" onClick={handleAvatarClick}>
+                Upload Avatar
+              </Button>
+            </div>
           </div>
-          <div className="flex flex-col gap-2">
-            <Label
-              htmlFor="text"
-              className="text-zinc-600 font-normal dark:text-zinc-400"
-            >
-              Name Agent
-            </Label>
-
-            <Input
-              id="name"
-              name="name"
-              className="bg-muted text-md md:text-sm"
-              type="text"
-              placeholder="Super Agent"
-              autoComplete="text"
-              required
-              autoFocus
-              defaultValue={''}
-            />
+          <div className="space-y-2">
+            <Label htmlFor="name">Name</Label>
+            <Input id="name" name="name" defaultValue={''} placeholder="Agent Name" required />
           </div>
-
-          <div className="flex flex-col gap-2">
-            <Label
-              htmlFor="password"
-              className="text-zinc-600 font-normal dark:text-zinc-400"
-            >
-              Description
-            </Label>
-
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               name="description"
-              className="bg-muted text-md md:text-sm"
+              placeholder="Describe the agent's capabilities"
               required
             />
           </div>
-
-          <div className="flex flex-col gap-2">
-            <Label
-              htmlFor="text"
-              className="text-zinc-600 font-normal dark:text-zinc-400"
-            >
-              Intro
-            </Label>
-
+          <div className="space-y-2">
+            <Label htmlFor="prompt">Prompt</Label>
+            <Textarea
+              id="prompt"
+              name="prompt"
+              placeholder="Enter the agent's initial prompt"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="prompt">Intro</Label>
             <Input
               id="intro"
               name="intro"
-              className="bg-muted text-md md:text-sm"
               type="text"
+              placeholder="Enter the agent's initial intro"
               required
             />
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="space-y-2">
             <Label
               htmlFor="text"
-              className="text-zinc-600 font-normal dark:text-zinc-400"
             >
               Model
             </Label>
             <Select name="model">
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger >
                 <SelectValue placeholder="Select Model" />
               </SelectTrigger>
               <SelectContent>
@@ -159,26 +164,10 @@ export function CreateAgentForm({
               </SelectContent>
             </Select>
           </div>
-          <div className="flex flex-col gap-2">
-            <Label
-              htmlFor="text"
-              className="text-zinc-600 font-normal dark:text-zinc-400"
-            >
-              Prompt
-            </Label>
 
-            <Textarea
-              id="prompt"
-              name="prompt"
-              className="bg-muted text-md md:text-sm"
-              required
-            />
-          </div>
-          <div className="flex flex-col gap-2">
+          <div className="space-y-2">
             <Label
-              htmlFor="text"
-              className="text-zinc-600 font-normal dark:text-zinc-400"
-            >
+              htmlFor="text"            >
               Tool
             </Label>
             <MultiSelect
@@ -199,74 +188,60 @@ export function CreateAgentForm({
               defaultValue={selectedFrameworks}
             />
           </div>
-          {/* create suggestedActions */}
-          <div className="flex flex-col gap-2">
-            <Card className="w-full  mx-auto">
-              <CardHeader>
-                <CardTitle>Suggested Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="title">Title</Label>
-                      <Input
-                        id="title"
-                        value={newAction.title}
-                        onChange={(e) => setNewAction({ ...newAction, title: e.target.value })}
-                        placeholder="Enter title"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="label">Label</Label>
-                      <Input
-                        id="label"
-                        value={newAction.label}
-                        onChange={(e) => setNewAction({ ...newAction, label: e.target.value })}
-                        placeholder="Enter label"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="action">Action</Label>
-                      <Input
-                        id="action"
-                        value={newAction.action}
-                        onChange={(e) => setNewAction({ ...newAction, action: e.target.value })}
-                        placeholder="Enter action"
-                      />
-                    </div>
-                  </div>
-                  <Button onClick={(e) => { e.preventDefault(); addAction(); }} className="w-full">
-                    <PlusCircle className="mr-2 size-4" /> Add Item
-                  </Button>
-                </div>
-                <div className="mt-6 space-y-2">
-                  {actions.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-2 bg-secondary rounded-md">
-                      <div className="grow mr-2">
-                        <span className="font-semibold">{item.label}</span> -
-                        <span className="text-muted-foreground"> {item.action}</span> -
-                        <span className="italic">{item.title}</span>
-                      </div>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => removeAction(item.id)}
-                        aria-label={`Remove ${item.label}`}
-                      >
-                        <X className="size-4" />
-                        <span className="sr-only">Remove</span>
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button variant="destructive" onClick={deleteAllActions} className="w-full">
-                  <Trash2 className="mr-2 size-4" /> Delete All Actions
-                </Button>
-              </CardFooter>
-            </Card>
+          <div className="space-y-2">
+            <div className="space-y-2">
+              <Label>Suggested Actions</Label>
+              <div className="grid grid-cols-3 gap-2">
+                <Input
+                  id="title"
+                  value={newAction.title}
+                  onChange={(e) => setNewAction({ ...newAction, title: e.target.value })}
+                  placeholder="Enter title"
+                />
+                <Input
+                  id="label"
+                  value={newAction.label}
+                  onChange={(e) => setNewAction({ ...newAction, label: e.target.value })}
+                  placeholder="Enter label"
+                />
+                <Input
+                  id="action"
+                  value={newAction.action}
+                  onChange={(e) => setNewAction({ ...newAction, action: e.target.value })}
+                  placeholder="Enter action"
+                />
+              </div>
+            </div>
+            <Button type="button" onClick={(e) => { e.preventDefault(); addAction(); }} className="mt-2">
+              Add Suggested Action
+            </Button>
+
+            <div className="mt-4 grid gap-4 sm:grid-cols-4">
+              {actions.map((item, index) => (
+                <Card key={index} className="bg-secondary">
+                  <CardHeader className="p-4">
+                    <CardTitle className="text-lg">{item.title}</CardTitle>
+                    <CardDescription>{item.label}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    <p className="text-sm text-muted-foreground">{item.action}</p>
+                  </CardContent>
+                  <CardFooter className="p-4 pt-0 flex justify-between">
+                    <Button variant="ghost" size="sm" className="text-blue-500 hover:text-blue-700">
+                      Try it
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-500 hover:text-red-700"
+                      onClick={() => removeAction(item.id)}
+                    >
+                      Remove
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
             <Input
               name="suggestedActions"
               className="hidden"
