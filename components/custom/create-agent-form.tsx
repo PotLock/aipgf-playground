@@ -3,16 +3,17 @@ import Form from 'next/form';
 import { useRef, useState } from "react";
 
 import { DEFAULT_MODEL_NAME, models } from '@/ai/models';
+import { agent } from "@/db/schema";
 
 import { MultiSelect } from '../custom/multi-select';
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectItem, SelectContent, SelectGroup, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
 import { Textarea } from '../ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { agent } from "@/db/schema";
+
 
 
 interface SuggestedActions {
