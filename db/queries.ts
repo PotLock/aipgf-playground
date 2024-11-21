@@ -349,6 +349,7 @@ export async function getAgentByUserId({ userId }: { userId: string }) {
 
 export async function createTool({
   name,
+  avatar,
   description,
   userId,
   data,
@@ -359,6 +360,7 @@ export async function createTool({
       .insert(tool)
       .values({
         name,
+        avatar,
         description,
         data,
         typeName,
@@ -366,6 +368,7 @@ export async function createTool({
       })
       .returning({
         id: tool.id,
+        avatar: tool.avatar,
         name: tool.name,
         description: tool.description,
         data: tool.data,
@@ -373,7 +376,8 @@ export async function createTool({
         createdAt: tool.createdAt,
       });
   } catch (error) {
-    console.error('Failed to create agent in database');
+    console.log(error);
+    console.error('Failed to create tool in database');
     throw error;
   }
 }

@@ -27,6 +27,7 @@ export const createToolAction = async (
   _: CreateToolActionState,
   formData: FormData
 ): Promise<CreateToolActionState> => {
+  console.log(formData.get('avatar'));
   try {
     const session = await auth();
     const imageFile = formData.get('avatar') as File;
@@ -34,11 +35,11 @@ export const createToolAction = async (
     const blob = await put(imageFile.name, imageFile, {
       access: 'public',
     });
+
     const validatedData = createToolFormSchema.parse({
       avatar: blob,
       name: formData.get('name'),
       description: formData.get('description'),
-      intro: formData.get('intro'),
       data: formData.get('data'),
       typeName: formData.get('typeName'),
     });
@@ -54,6 +55,7 @@ export const createToolAction = async (
 
     return { status: 'success' };
   } catch (error) {
+    console.log(error);
     if (error instanceof z.ZodError) {
       return { status: 'invalid_data' };
     }

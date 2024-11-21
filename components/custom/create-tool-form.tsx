@@ -39,7 +39,15 @@ export function CreateToolForm({
   const [contractAddress, setContractAddress] = useState('')
   const [contractMethods, setContractMethods] = useState<any[]>([])
   const [selectedMethods, setSelectedMethods] = useState<string[]>([])
+  const [data, setData] = useState<string>()
+  const [widgetCode, setWidgetCode] = useState('')
 
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click()
+  }
 
   // API Form state
   const [apiTitle, setApiTitle] = useState('')
@@ -159,6 +167,14 @@ export function CreateToolForm({
     }
   }, [contractAddress]);
 
+  useEffect(() => {
+    const data = {
+      code: widgetCode, // Updated to use widgetCode
+      args: widgetArgs
+    }
+    setData(JSON.stringify(data))
+  }, [widgetCode, widgetArgs])
+
   const chains = ['Ethereum', 'Binance Smart Chain', 'Polygon', 'Avalanche']
   const networks = ['Mainnet', 'Testnet']
 
@@ -201,7 +217,12 @@ export function CreateToolForm({
 
             <div>
               <Label htmlFor="widget-template">Template</Label>
-              <Textarea id="widget-template" name="widget-template" placeholder="Enter widget size" />
+              <Textarea
+                id="widget-code"
+                name="widget-code"
+                value={widgetCode}
+                onChange={(e) => setWidgetCode(e.target.value)}
+                placeholder="Enter Template Code" />
             </div>
             <div className="space-y-4">
               <Label>Widget Arguments</Label>
@@ -216,7 +237,7 @@ export function CreateToolForm({
                         onClick={() => removeWidgetArg(index)}
                         aria-label={`Remove argument ${index + 1}`}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="size-4" />
                       </Button>
                     </div>
                     <div>
@@ -422,7 +443,7 @@ export function CreateToolForm({
                                     onClick={() => removeApiPath(pathIndex)}
                                     aria-label={`Remove path ${pathIndex + 1}`}
                                   >
-                                    <Trash2 className="h-4 w-4" />
+                                    <Trash2 className="size--4" />
                                   </Button>
                                 </div>
                                 <div>
@@ -483,7 +504,7 @@ export function CreateToolForm({
                                             onClick={() => removeApiParameter(pathIndex, paramIndex)}
                                             aria-label={`Remove parameter ${paramIndex + 1}`}
                                           >
-                                            <Trash2 className="h-4 w-4" />
+                                            <Trash2 className="size--4" />
                                           </Button>
                                         </div>
                                         <div>
@@ -557,7 +578,7 @@ export function CreateToolForm({
                                     </Card>
                                   ))}
                                   <Button onClick={() => addApiParameter(pathIndex)} className="w-full">
-                                    <Plus className="mr-2 h-4 w-4" /> Add Parameter
+                                    <Plus className="mr-2 size-4" /> Add Parameter
                                   </Button>
                                 </div>
                               </CardContent>
@@ -567,7 +588,7 @@ export function CreateToolForm({
                       </Accordion>
                     ))}
                     <Button onClick={addApiPath} className="w-full">
-                      <Plus className="mr-2 h-4 w-4" /> Add Path
+                      <Plus className="mr-2 size-4" /> Add Path
                     </Button>
                   </div>
                 </div>
@@ -609,22 +630,24 @@ export function CreateToolForm({
         <CardDescription>Fill in the details and select tool type</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <form onSubmit={(e) => e.preventDefault()}>
+        <Form action={action}>
           <div className="space-y-4">
             <div className="flex items-center space-x-4">
-              <Avatar className="w-20 h-20">
+              <Avatar className="size-20" onClick={handleAvatarClick}>
                 <AvatarImage src={avatar || '/placeholder.svg?height=80&width=80'} alt="Avatar" />
                 <AvatarFallback>Avatar</AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <Label htmlFor="avatar-upload" className="cursor-pointer inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
-                  <Upload className="mr-2 h-4 w-4" />
+                  <Upload className="mr-2 size-4" />
                   Upload Avatar
                 </Label>
                 <Input
-                  id="avatar-upload"
+                  id="avatar"
+                  name="avatar"
                   type="file"
                   accept="image/*"
+                  ref={fileInputRef}
                   onChange={handleAvatarChange}
                   className="hidden"
                 />
@@ -656,7 +679,7 @@ export function CreateToolForm({
             <Label htmlFor="form-type">Select Type Tool</Label>
             <RadioGroup
               name="form-type"
-              onValueChange={(value) => setSelectedForm(value)}
+              onValueChange={(value) => { setSelectedForm(value); console.log(value) }}
               className="grid grid-cols-3 gap-4"
               aria-describedby="form-type-description"
             >
@@ -682,9 +705,20 @@ export function CreateToolForm({
               </CardContent>
             </Card>
           )}
-
-          <Button type="submit" className="w-full mt-6">Submit</Button>
-        </form>
+          <Input
+            name="typeName"
+            className="hidden"
+            type="text"
+            defaultValue={selectedForm || ''}
+          />
+          <Input
+            name="data"
+            className="hidden"
+            type="text"
+            defaultValue={data}
+          />
+          {children}
+        </Form>
       </CardContent>
     </Card>
   );

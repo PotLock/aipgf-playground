@@ -34,13 +34,14 @@ export default function Page() {
   }, [state, router]);
 
   const handleSubmit = (formData: FormData) => {
-    formAction(formData);
+    //console.log("formData", formData)
+     formAction(formData);
   };
 
   return (
     <div className="flex flex-col min-w-0 h-dvh bg-background">
       <CreateToolForm action={handleSubmit} >
-        <SubmitButton>Create</SubmitButton>
+        <SubmitButton >Create</SubmitButton>
       </CreateToolForm>
     </div>
   );
