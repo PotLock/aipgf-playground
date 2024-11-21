@@ -114,6 +114,7 @@ export type Suggestion = InferSelectModel<typeof Suggestion>;
 export const tool = pgTable('Tool', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
+  avatar: text('avatar'),
   name: text('name').notNull(),
   typeName: varchar('typeName', { length: 64 }).notNull(),
   description: text('description'),
@@ -121,15 +122,15 @@ export const tool = pgTable('Tool', {
   // args: json('args'),
   // typeMethod: varchar('typeMethod', { length: 64 }),
   // methods: varchar('methods', { length: 256 }),
+  // network: varchar('network', { length: 64 }),
+  // chain: varchar('chain', { length: 64 }),
   // // Tool API
   // accessToken: text('accessToken'),
   // spec: json('spec'),
-  // network: varchar('network', { length: 64 }),
-  // chain: varchar('chain', { length: 64 }),
   // // Tool Widget
-  // prompt: text('prompt'),
   // code: text('code'),
-  // toolWidget: json('toolWidget'),
+  // args :  json('args') 
+  // toolWidget: json('toolWidget') ?  tool for widget
   data: json('toolWidget'),
   //UserId
   userId: uuid('userId')
@@ -144,7 +145,7 @@ export const agent = pgTable('Agent', {
   name: varchar('name', { length: 64 }).notNull(),
   model: varchar('model', { length: 64 }).notNull(),
   description: varchar('description', { length: 256 }).notNull(),
-  avatar: varchar('avatar', { length: 256 }).notNull(),
+  avatar: text('avatar'),
   intro: varchar('intro', { length: 256 }),
   prompt: text('prompt').notNull(),
   tool: json('tool'),

@@ -16,6 +16,8 @@ import {
   vote,
   agent,
   Agent,
+  Tool,
+  tool,
 } from './schema';
 
 // Optionally, if not using username/pass login, you can
@@ -341,6 +343,41 @@ export async function getAgentByUserId({ userId }: { userId: string }) {
   } catch (error) {
     console.log(error);
     console.error('Failed to get agents by userId from database');
+    throw error;
+  }
+}
+
+export async function createTool({
+  name,
+  avatar,
+  description,
+  userId,
+  data,
+  typeName,
+}: Tool) {
+  try {
+    return await db
+      .insert(tool)
+      .values({
+        name,
+        avatar,
+        description,
+        data,
+        typeName,
+        userId,
+      })
+      .returning({
+        id: tool.id,
+        avatar: tool.avatar,
+        name: tool.name,
+        description: tool.description,
+        data: tool.data,
+        userId: tool.userId,
+        createdAt: tool.createdAt,
+      });
+  } catch (error) {
+    console.log(error);
+    console.error('Failed to create tool in database');
     throw error;
   }
 }

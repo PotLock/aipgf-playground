@@ -14,7 +14,7 @@ export function SubmitButton({ children }: { children: React.ReactNode }) {
       type={pending ? 'button' : 'submit'}
       aria-disabled={pending}
       disabled={pending}
-      className="relative"
+      className="w-full mt-6"
     >
       {children}
       {pending && (

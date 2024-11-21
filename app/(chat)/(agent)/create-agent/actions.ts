@@ -37,7 +37,6 @@ export const createAgentAction = async (
     const blob = await put(imageFile.name, imageFile, {
       access: 'public',
     });
-    console.log(blob);
     const validatedData = createAgentFormSchema.parse({
       avatar: blob,
       name: formData.get('name'),
@@ -65,7 +64,6 @@ export const createAgentAction = async (
 
     return { status: 'success' };
   } catch (error) {
-    console.log(error);
     if (error instanceof z.ZodError) {
       return { status: 'invalid_data' };
     }
