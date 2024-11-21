@@ -34,7 +34,6 @@ export default function Page() {
   }, [state, router]);
 
   const handleSubmit = (formData: FormData) => {
-    //console.log("formData", formData)
      formAction(formData);
   };
 

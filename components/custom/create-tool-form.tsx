@@ -78,28 +78,33 @@ export function CreateToolForm({
       description: '',
       parameters: [{ name: '', in: 'query', description: '', required: false, type: 'string' }]
     }])
+    updateApiJsonInput()
   }
 
   const removeApiPath = (index: number) => {
     setApiPaths(apiPaths.filter((_, i) => i !== index))
+    updateApiJsonInput()
   }
 
   const updateApiPath = (index: number, field: string, value: string) => {
     const newPaths = [...apiPaths]
     newPaths[index] = { ...newPaths[index], [field]: value }
     setApiPaths(newPaths)
+    updateApiJsonInput()
   }
 
   const addApiParameter = (pathIndex: number) => {
     const newPaths = [...apiPaths]
     newPaths[pathIndex].parameters.push({ name: '', in: 'query', description: '', required: false, type: 'string' })
     setApiPaths(newPaths)
+    updateApiJsonInput()
   }
 
   const removeApiParameter = (pathIndex: number, paramIndex: number) => {
     const newPaths = [...apiPaths]
     newPaths[pathIndex].parameters = newPaths[pathIndex].parameters.filter((_, i) => i !== paramIndex)
     setApiPaths(newPaths)
+    updateApiJsonInput()
   }
 
   const updateApiParameter = (pathIndex: number, paramIndex: number, field: string, value: string | boolean) => {
@@ -109,6 +114,7 @@ export function CreateToolForm({
       [field]: value
     }
     setApiPaths(newPaths)
+    updateApiJsonInput()
   }
 
   const httpMethods = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head']
@@ -163,9 +169,11 @@ export function CreateToolForm({
     if (contractAddress) {
       fetchContractMethods(contractAddress).then(methods => {
         setContractMethods(methods);
+        updateContractJsonInput();
       });
     }
   }, [contractAddress]);
+
 
   useEffect(() => {
     const data = {
@@ -207,6 +215,45 @@ export function CreateToolForm({
         ? prev.filter(name => name !== methodName)
         : [...prev, methodName]
     )
+    updateContractJsonInput()
+  }
+
+  const updateContractJsonInput = () => {
+    const jsonData = {
+      chain,
+      network,
+      contractAddress,
+      methods: contractMethods.filter(method => selectedMethods.includes(method.name))
+    };
+    setData(JSON.stringify(jsonData));
+  }
+
+
+  const updateApiJsonInput = () => {
+    const jsonData = {
+      title: apiTitle,
+      version: apiVersion,
+      description: apiDescription,
+      endpoint: apiEndpoint,
+      key: apiKey,
+      paths: apiPaths
+    };
+    setData(JSON.stringify(jsonData, null, 2));
+  }
+
+  const parseApiJson = (jsonString: string) => {
+    try {
+      const data = JSON.parse(jsonString)
+      if (data.title) setApiTitle(data.title)
+      if (data.version) setApiVersion(data.version)
+      if (data.description) setApiDescription(data.description)
+      if (data.endpoint) setApiEndpoint(data.endpoint)
+      if (data.key) setApiKey(data.key)
+      if (data.paths) setApiPaths(data.paths)
+    } catch (error) {
+      console.error('Error parsing JSON:', error)
+      alert('Error parsing JSON. Please check the format and try again.')
+    }
   }
   const renderForm = () => {
     switch (selectedForm) {
@@ -291,7 +338,12 @@ export function CreateToolForm({
             <h3 className="text-lg font-semibold">Smart Contract Form</h3>
             <div>
               <Label htmlFor="chain">Chain</Label>
-              <Select value={chain} onValueChange={setChain}>
+              <Select value={chain}
+                onValueChange={(value) => {
+                  setChain(value)
+                  updateContractJsonInput()
+                }}
+              >
                 <SelectTrigger id="chain">
                   <SelectValue placeholder="Select chain" />
                 </SelectTrigger>
@@ -304,7 +356,11 @@ export function CreateToolForm({
             </div>
             <div>
               <Label htmlFor="network">Network</Label>
-              <Select value={network} onValueChange={setNetwork}>
+              <Select value={network}
+                onValueChange={(value) => {
+                  setNetwork(value)
+                  updateContractJsonInput()
+                }}>
                 <SelectTrigger id="network">
                   <SelectValue placeholder="Select network" />
                 </SelectTrigger>
@@ -322,7 +378,10 @@ export function CreateToolForm({
                 name="contract-address"
                 placeholder="Enter contract address"
                 value={contractAddress}
-                onChange={(e) => setContractAddress(e.target.value)}
+                onChange={(e) => {
+                  setContractAddress(e.target.value)
+                  updateContractJsonInput()
+                }}
               />
             </div>
             {contractMethods.length > 0 && (
@@ -352,7 +411,17 @@ export function CreateToolForm({
                               <p className="text-sm font-medium">{arg.name}</p>
                               <p className="text-sm text-muted-foreground">{arg.description}</p>
                               <p className="text-sm">Type: {arg.type}</p>
-                              <Input className="mt-2" placeholder={`Enter ${arg.name}`} />
+                              <Input
+                                className="mt-2"
+                                placeholder={`Enter ${arg.name}`}
+                                value={arg.value || ''}
+                                onChange={(e) => {
+                                  const updatedMethods = [...contractMethods];
+                                  updatedMethods[contractMethods.findIndex(m => m.name === method.name)].args[index].value = e.target.value;
+                                  setContractMethods(updatedMethods);
+                                  updateContractJsonInput();
+                                }}
+                              />
                             </div>
                           ))}
                         </div>
@@ -382,7 +451,10 @@ export function CreateToolForm({
                       name="api-title"
                       placeholder="Enter API title"
                       value={apiTitle}
-                      onChange={(e) => setApiTitle(e.target.value)}
+                      onChange={(e) => {
+                        setApiTitle(e.target.value)
+                        updateApiJsonInput()
+                      }}
                     />
                   </div>
                   <div>
