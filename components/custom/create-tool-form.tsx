@@ -1,4 +1,4 @@
-import { List, Plus, PlusCircle, Server, Trash2, Upload, X, LayoutDashboard } from "lucide-react";
+import { List, Plus, PlusCircle, Server, Trash2, Upload, X, LayoutDashboard, Loader2 } from "lucide-react";
 import { FileCode2, Webhook } from 'lucide-react'
 import Form from 'next/form';
 import { ChangeEvent, useEffect, useRef, useState } from "react";
@@ -38,8 +38,12 @@ export function CreateToolForm({
   const [network, setNetwork] = useState('')
   const [contractAddress, setContractAddress] = useState('')
   const [contractMethods, setContractMethods] = useState<any[]>([])
+  const [loadingMethods, setLoadingMethods] = useState<string[]>([])
   const [selectedMethods, setSelectedMethods] = useState<string[]>([])
   const [data, setData] = useState<string>()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
   const [widgetCode, setWidgetCode] = useState('')
 
 
@@ -155,24 +159,66 @@ export function CreateToolForm({
       reader.readAsText(file)
     }
   }
-  const fetchContractMethods = async (address: string) => {
-    // In a real scenario, this would make an API call to fetch the contract ABI
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
-    return [
-      { name: 'transfer', args: [{ name: 'to', type: 'address', description: 'Recipient address' }, { name: 'amount', type: 'uint256', description: 'Amount to transfer' }] },
-      { name: 'balanceOf', args: [{ name: 'account', type: 'address', description: 'Account to check balance' }] },
-      { name: 'approve', args: [{ name: 'spender', type: 'address', description: 'Spender address' }, { name: 'amount', type: 'uint256', description: 'Amount to approve' }] },
-    ];
-  };
+  const fetchContractMethods = async (chain: string, network: string, address: string) => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_METADATA_URL}/api/abi?chain=${chain}&network=${network}&account=${address}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch contract methods')
+      }
+      const data = await response.json()
+      const methods = data.body.functions.map((func: any) => ({
+        name: func.name,
+        kind: func.kind,
+        args: func.params?.args || []
+      }))
+      setContractMethods(methods)
+    } catch (err) {
+      setError('Error fetching contract methods. Please check your inputs and try again.')
+      console.error(err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  const fetchMethodDetails = async (methodName: string) => {
+    setLoadingMethods(prev => [...prev, methodName])
+    setError(null)
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_METADATA_URL}/api/near?account=${contractAddress}&network=${network.toLowerCase()}&methods=${methodName}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch method details')
+      }
+      const data = await response.json()
+      const updatedMethods = contractMethods.map(method => {
+        if (method.name === methodName) {
+          return {
+            ...method,
+            description: data.returns[0].description,
+            args: data.returns[0].args.map((arg: any) => ({
+              ...arg,
+              type_schema: { type: arg.type },
+              description: arg.description
+            })),
+            isLoaded: true
+          }
+        }
+        return method
+      })
+      setContractMethods(updatedMethods)
+    } catch (err) {
+      setError('Error fetching method details. Please try again.')
+      console.error(err)
+    } finally {
+      setLoadingMethods(prev => prev.filter(m => m !== methodName))
+    }
+  }
 
   useEffect(() => {
-    if (contractAddress) {
-      fetchContractMethods(contractAddress).then(methods => {
-        setContractMethods(methods);
-        updateContractJsonInput();
-      });
+    if (chain && network && contractAddress) {
+      fetchContractMethods(chain, network, contractAddress)
     }
-  }, [contractAddress]);
+  }, [chain, network, contractAddress])
 
 
   useEffect(() => {
@@ -183,8 +229,11 @@ export function CreateToolForm({
     setData(JSON.stringify(data))
   }, [widgetCode, widgetArgs])
 
-  const chains = ['Ethereum', 'Binance Smart Chain', 'Polygon', 'Avalanche']
-  const networks = ['Mainnet', 'Testnet']
+
+  const chains = ['near', 'ethereum', 'polygon', 'bsc'] // Add more chains as needed
+  const networks = ['mainnet', 'testnet'] // Add more networks as needed
+
+
 
   const addWidgetArg = () => {
     setWidgetArgs([...widgetArgs, { name: '', description: '', type: '' }])
@@ -209,12 +258,17 @@ export function CreateToolForm({
       reader.readAsDataURL(file)
     }
   }
-  const handleMethodSelection = (methodName: string) => {
-    setSelectedMethods(prev =>
-      prev.includes(methodName)
-        ? prev.filter(name => name !== methodName)
-        : [...prev, methodName]
-    )
+  const handleMethodSelection = async (methodName: string) => {
+    const newSelectedMethods = selectedMethods.includes(methodName)
+      ? selectedMethods.filter(name => name !== methodName)
+      : [...selectedMethods, methodName]
+
+    setSelectedMethods(newSelectedMethods)
+
+    if (newSelectedMethods.includes(methodName) && !contractMethods.find(m => m.name === methodName)?.isLoaded) {
+      await fetchMethodDetails(methodName)
+    }
+
     updateContractJsonInput()
   }
 
@@ -338,7 +392,8 @@ export function CreateToolForm({
             <h3 className="text-lg font-semibold">Smart Contract Form</h3>
             <div>
               <Label htmlFor="chain">Chain</Label>
-              <Select value={chain}
+              <Select
+                value={chain}
                 onValueChange={(value) => {
                   setChain(value)
                   updateContractJsonInput()
@@ -356,11 +411,13 @@ export function CreateToolForm({
             </div>
             <div>
               <Label htmlFor="network">Network</Label>
-              <Select value={network}
+              <Select
+                value={network}
                 onValueChange={(value) => {
                   setNetwork(value)
                   updateContractJsonInput()
-                }}>
+                }}
+              >
                 <SelectTrigger id="network">
                   <SelectValue placeholder="Select network" />
                 </SelectTrigger>
@@ -384,6 +441,8 @@ export function CreateToolForm({
                 }}
               />
             </div>
+            {isLoading && <p>Loading contract methods...</p>}
+            {error && <p className="text-red-500">{error}</p>}
             {contractMethods.length > 0 && (
               <div className="space-y-4">
                 <Label>Contract Methods</Label>
@@ -400,17 +459,25 @@ export function CreateToolForm({
                           htmlFor={`method-${method.name}`}
                           className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                         >
-                          {method.name}
+                          {method.name} ({method.kind})
                         </Label>
+                        {loadingMethods.includes(method.name) && (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        )}
                       </div>
-                      {selectedMethods.includes(method.name) && (
+                      {selectedMethods.includes(method.name) && method.isLoaded && (
                         <div className="mt-4 space-y-4">
+                          {method.description && (
+                            <p className="text-sm text-muted-foreground">{method.description}</p>
+                          )}
                           <h5 className="text-sm font-medium">Arguments:</h5>
                           {method.args.map((arg: any, index: number) => (
                             <div key={index} className="pl-6 border-l-2 border-gray-200">
                               <p className="text-sm font-medium">{arg.name}</p>
-                              <p className="text-sm text-muted-foreground">{arg.description}</p>
-                              <p className="text-sm">Type: {arg.type}</p>
+                              <p className="text-sm text-muted-foreground">{arg.type_schema.type}</p>
+                              {arg.description && (
+                                <p className="text-sm text-muted-foreground">{arg.description}</p>
+                              )}
                               <Input
                                 className="mt-2"
                                 placeholder={`Enter ${arg.name}`}
@@ -464,8 +531,10 @@ export function CreateToolForm({
                       name="api-version"
                       placeholder="Enter API version"
                       value={apiVersion}
-                      onChange={(e) => setApiVersion(e.target.value)}
-                    />
+                      onChange={(e) => {
+                        setApiVersion(e.target.value)
+                        updateApiJsonInput()
+                      }} />
                   </div>
                   <div>
                     <Label htmlFor="api-description">API Description</Label>
@@ -474,8 +543,10 @@ export function CreateToolForm({
                       name="api-description"
                       placeholder="Enter API description"
                       value={apiDescription}
-                      onChange={(e) => setApiDescription(e.target.value)}
-                    />
+                      onChange={(e) => {
+                        setApiDescription(e.target.value)
+                        updateApiJsonInput()
+                      }} />
                   </div>
                   <div>
                     <Label htmlFor="api-endpoint">API Endpoint</Label>
@@ -484,7 +555,10 @@ export function CreateToolForm({
                       name="api-endpoint"
                       placeholder="Enter API endpoint"
                       value={apiEndpoint}
-                      onChange={(e) => setApiEndpoint(e.target.value)}
+                      onChange={(e) => {
+                        setApiEndpoint(e.target.value)
+                        updateApiJsonInput()
+                      }}
                     />
                   </div>
                   <div>
@@ -495,7 +569,10 @@ export function CreateToolForm({
                       type="password"
                       placeholder="Enter API key"
                       value={apiKey}
-                      onChange={(e) => setApiKey(e.target.value)}
+                      onChange={(e) => {
+                        setApiKey(e.target.value)
+                        updateApiJsonInput()
+                      }}
                     />
                   </div>
                   <div className="space-y-4">
