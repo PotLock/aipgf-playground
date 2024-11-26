@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+import { ChatHeader } from '@/components/custom/chat-header';
 import { CreateAgentForm } from '@/components/custom/create-agent-form';
 import { SubmitButton } from '@/components/custom/submit-button';
 
@@ -38,6 +39,7 @@ export default function Page() {
 
   return (
     <div className="flex flex-col min-w-0 h-dvh bg-background">
+      <ChatHeader />
       <CreateAgentForm action={handleSubmit} >
         <SubmitButton>Create</SubmitButton>
       </CreateAgentForm>

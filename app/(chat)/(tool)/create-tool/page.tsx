@@ -3,10 +3,12 @@ import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+import { ChatHeader } from '@/components/custom/chat-header';
 import { CreateToolForm } from '@/components/custom/create-tool-form';
 import { SubmitButton } from '@/components/custom/submit-button';
 
 import { createToolAction, CreateToolActionState } from './actions';
+
 
 
 export default function Page() {
@@ -34,11 +36,12 @@ export default function Page() {
   }, [state, router]);
 
   const handleSubmit = (formData: FormData) => {
-     formAction(formData);
+    formAction(formData);
   };
 
   return (
     <div className="flex flex-col min-w-0 h-dvh bg-background">
+      <ChatHeader />
       <CreateToolForm action={handleSubmit} >
         <SubmitButton >Create</SubmitButton>
       </CreateToolForm>
