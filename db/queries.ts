@@ -381,3 +381,17 @@ export async function createTool({
     throw error;
   }
 }
+
+export async function getToolByUserId({ userId }: { userId: string }) {
+  try {
+    return await db
+      .select()
+      .from(tool)
+      .where(eq(tool.userId, userId))
+      .orderBy(desc(tool.createdAt));
+  } catch (error) {
+    console.log(error);
+    console.error('Failed to get tools by userId from database');
+    throw error;
+  }
+}
