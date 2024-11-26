@@ -37,11 +37,9 @@ export default async function Page(props: { searchParams: Promise<any> }) {
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card className="flex flex-col items-center justify-center h-full">
             <CardContent className="pt-6 text-center">
-              <PlusCircle className="w-12 h-12 mb-4 mx-auto text-gray-400" />
+              <PlusCircle className="size-12 mb-4 mx-auto text-gray-400" />
               <CardTitle className="text-xl mb-2">Create New Tool</CardTitle>
               <CardDescription className="mb-4">Add a new tool to your collection</CardDescription>
-
-              <Button className="w-full">Create Tool</Button>
               <Button asChild>
                 <Link className='w-full'
                   href={`/create-tool`}>
