@@ -1,5 +1,4 @@
-import { List, Plus, PlusCircle, Server, Trash2, Upload, X, LayoutDashboard, Loader2 } from "lucide-react";
-import { FileCode2, Webhook } from 'lucide-react'
+import { List, Plus, PlusCircle, Server, Trash2, Upload, X, LayoutDashboard, Loader2, FileCode2, Webhook } from "lucide-react";
 import Form from 'next/form';
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 
@@ -462,7 +461,7 @@ export function CreateToolForm({
                           {method.name} ({method.kind})
                         </Label>
                         {loadingMethods.includes(method.name) && (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <Loader2 className="size-4 animate-spin" />
                         )}
                       </div>
                       {selectedMethods.includes(method.name) && method.isLoaded && (

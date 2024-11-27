@@ -30,6 +30,7 @@ export const createAgentAction = async (
   _: CreateAgentActionState,
   formData: FormData
 ): Promise<CreateAgentActionState> => {
+  console.log(formData.get('tools'));
   try {
     const session = await auth();
     const imageFile = formData.get('avatar') as File;
@@ -44,10 +45,10 @@ export const createAgentAction = async (
       intro: formData.get('intro'),
       model: formData.get('model'),
       prompt: formData.get('prompt'),
-      tool: formData.get('tool'),
+      tools: formData.get('tools'),
       suggestedActions: formData.get('suggestedActions'),
     });
-    const tool = validatedData.tool.split(',');
+    const tools = JSON.parse(validatedData.tool);
     const suggestedActions = JSON.parse(validatedData.suggestedActions);
     await createAgent({
       name: validatedData.name,
@@ -57,7 +58,7 @@ export const createAgentAction = async (
       model: validatedData.model,
       prompt: validatedData.prompt,
       createdAt: new Date(),
-      tool: tool,
+      tools: tools,
       suggestedActions: suggestedActions,
       userId: session?.user?.id,
     } as any);

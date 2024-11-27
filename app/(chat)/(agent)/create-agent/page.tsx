@@ -1,48 +1,16 @@
-'use client';
-import { useRouter } from 'next/navigation';
-import { useActionState, useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { auth } from '@/app/(auth)/auth';
+import { getToolByUserId } from '@/db/queries';
 
-import { ChatHeader } from '@/components/custom/chat-header';
-import { CreateAgentForm } from '@/components/custom/create-agent-form';
-import { SubmitButton } from '@/components/custom/submit-button';
+import CreateAgent from './create-agent-form'; './create-agent-form'
 
-import { createAgentAction, CreateAgentActionState } from './actions';
 
-export default function Page() {
-  const router = useRouter();
+export default async function Page() {
+  const session = await auth();
 
-  const [state, formAction] = useActionState<CreateAgentActionState, FormData>(
-    createAgentAction,
-    {
-      status: 'idle',
-    }
-  );
+  if (!session || !session.user) {
+    return Response.json('Unauthorized!', { status: 401 });
+  }
 
-  useEffect(() => {
-    if (state.status === 'agent_exists') {
-      toast.error('Agent already exists');
-    } else if (state.status === 'failed') {
-      toast.error('Failed to create agent');
-    } else if (state.status === 'invalid_data') {
-      toast.error('Failed validating your submission!');
-    } else if (state.status === 'success') {
-      toast.success('Agent created successfully');
-      router.push('/agent')
-      router.refresh();
-    }
-  }, [state, router]);
-
-  const handleSubmit = (formData: FormData) => {
-    formAction(formData);
-  };
-
-  return (
-    <div className="flex flex-col min-w-0 h-dvh bg-background">
-      <ChatHeader />
-      <CreateAgentForm action={handleSubmit} >
-        <SubmitButton>Create</SubmitButton>
-      </CreateAgentForm>
-    </div>
-  );
+  const tools = await getToolByUserId({ userId: session.user.id! });
+  return <CreateAgent tools={tools as any} />;
 }
