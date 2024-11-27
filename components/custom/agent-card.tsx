@@ -13,7 +13,7 @@ type Agent = {
     modelName: string
     model: string
     prompt: string
-    tool: string[]
+    tools: any[]
     suggestedActions: any[]
 }
 
@@ -52,7 +52,7 @@ function AgentCard({ agent }: AgentCardProps) {
                 <div>
                     <span className="text-sm font-medium text-muted-foreground">Tools</span>
                     <div className="mt-2 flex flex-wrap gap-2">
-                        {agent.tool.map((tool,index) => (
+                        {agent.tools.map((tool, index) => (
                             <Badge key={index} variant="secondary">
                                 {tool}
                             </Badge>
