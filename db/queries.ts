@@ -295,7 +295,7 @@ export async function createAgent({
   avatar,
   intro,
   model,
-  tool,
+  tools,
   userId,
   prompt,
   suggestedActions,
@@ -306,7 +306,7 @@ export async function createAgent({
       .values({
         name,
         description,
-        tool,
+        tools,
         prompt,
         avatar,
         intro,
@@ -318,7 +318,7 @@ export async function createAgent({
         id: agent.id,
         name: agent.name,
         description: agent.description,
-        tool: agent.tool,
+        tools: agent.tools,
         prompt: agent.prompt,
         avatar: agent.avatar,
         intro: agent.intro,
@@ -378,6 +378,20 @@ export async function createTool({
   } catch (error) {
     console.log(error);
     console.error('Failed to create tool in database');
+    throw error;
+  }
+}
+
+export async function getToolByUserId({ userId }: { userId: string }) {
+  try {
+    return await db
+      .select()
+      .from(tool)
+      .where(eq(tool.userId, userId))
+      .orderBy(desc(tool.createdAt));
+  } catch (error) {
+    console.log(error);
+    console.error('Failed to get tools by userId from database');
     throw error;
   }
 }

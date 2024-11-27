@@ -148,7 +148,7 @@ export const agent = pgTable('Agent', {
   avatar: text('avatar'),
   intro: varchar('intro', { length: 256 }),
   prompt: text('prompt').notNull(),
-  tool: json('tool'),
+  tools: json('tools'),
   suggestedActions: json('suggestedActions'),
   userId: uuid('userId')
     .notNull()

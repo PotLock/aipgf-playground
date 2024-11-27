@@ -2,8 +2,7 @@ import { List, PlusCircle, Server, Trash2, Upload, X } from "lucide-react";
 import Form from 'next/form';
 import { useRef, useState } from "react";
 
-import { DEFAULT_MODEL_NAME, models } from '@/ai/models';
-import { agent } from "@/db/schema";
+import { models } from '@/ai/models';
 
 import { MultiSelect } from '../custom/multi-select';
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -13,6 +12,8 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectItem, SelectContent, SelectGroup, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
 import { Textarea } from '../ui/textarea';
+import { ToolCard } from "./tool-selector/tool-card";
+import { ToolSelectorModal } from "./tool-selector/tool-selector-modal";
 
 
 
@@ -22,26 +23,44 @@ interface SuggestedActions {
   action: string
   title: string
 }
+interface Tool {
+  id: string
+  name: string
+  description: string
+  isFavorite: boolean
+  avatar?: string
+}
 export function CreateAgentForm({
   action,
-  children
+  children,
+  tools
 }: {
   action: any;
   children: React.ReactNode;
+  tools: any
+
 }) {
-  const [selectedFrameworks, setSelectedFrameworks] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const frameworksList = [
-    { value: "tool1", label: "Tool 1", icon: List },
-    { value: "tool2", label: "Tool 2", icon: Server },
-  ];
 
 
   const [actions, setActions] = useState<SuggestedActions[]>([])
   const [actionsValue, setActionsValue] = useState<string>('')
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [selectedTools, setSelectedTools] = useState<Tool[]>([])
+  const [selectedToolsInput, setSelectedToolsInput] = useState<string>('')
 
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const handleToolsSelect = (tools: Tool[]) => {
+    const ids = tools.map(item => item.id);
+    setSelectedToolsInput(JSON.stringify(ids));
+    setSelectedTools(tools)
+  }
+
+  const handleToolRemove = (toolId: string) => {
+    setSelectedTools((prev) => prev.filter((tool) => tool.id !== toolId))
+  }
   const [newAction, setNewAction] = useState<Omit<SuggestedActions, "id">>({ label: "", action: "", title: "" })
 
   const addAction = () => {
@@ -171,14 +190,26 @@ export function CreateAgentForm({
               htmlFor="text"            >
               Tool
             </Label>
-            <MultiSelect
-              options={frameworksList}
-              onValueChange={setSelectedFrameworks}
-              defaultValue={selectedFrameworks}
-              placeholder="Select tools"
-              variant="inverted"
-              animation={0}
-              maxCount={3}
+            <div className="flex items-center space-x-2">
+              <Button onClick={() => setIsModalOpen(true)}>Add Tools</Button>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {selectedTools.map((tool) => (
+                <ToolCard
+                  key={tool.id}
+                  tool={tool}
+                  isSelected={true}
+                  onRemove={() => handleToolRemove(tool.id)}
+                  showSwitch={false}
+                />
+              ))}
+            </div>
+            <ToolSelectorModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              onToolsSelect={handleToolsSelect}
+              selectedTools={selectedTools}
+              tools={tools}
             />
             <Input
               id="tool"
@@ -186,7 +217,8 @@ export function CreateAgentForm({
               hidden
               className="hidden"
               type="text"
-              defaultValue={selectedFrameworks}
+              required
+              defaultValue={selectedToolsInput}
             />
           </div>
           <div className="space-y-2">
@@ -247,6 +279,7 @@ export function CreateAgentForm({
               name="suggestedActions"
               className="hidden"
               type="text"
+              required
               defaultValue={actionsValue}
             />
           </div>
