@@ -192,10 +192,10 @@ export function CreateAgentForm({
           </div>
 
           <div className="space-y-2">
-            <Label
+            {/* <Label
               htmlFor="text"            >
               Tool
-            </Label>
+            </Label> */}
             <div className="flex items-center space-x-2">
               <Button onClick={(e) => { e.preventDefault(); setIsModalToolOpen(true) }}>Add Tools</Button>
             </div>
@@ -218,18 +218,17 @@ export function CreateAgentForm({
               tools={tools}
             />
             <Input
-              id="tool"
-              name="tool"
+              id="tools"
+              name="tools"
               hidden
               className="hidden"
               type="text"
-              required
               defaultValue={selectedToolsInput}
             />
           </div>
           <div className="space-y-2">
             <div className="space-y-2">
-              <Label>Suggested Actions</Label>
+              {/* <Label>Suggested Actions</Label> */}
               <div className="flex items-center space-x-2">
                 <Button onClick={(e) => { e.preventDefault(); setIsModalActionOpen(true) }} >
                   <Plus className="mr-2 size-4" /> Create Suggested Action
@@ -250,7 +249,6 @@ export function CreateAgentForm({
               name="suggestedActions"
               className="hidden"
               type="text"
-              required
               defaultValue={actionsValue}
             />
           </div>
