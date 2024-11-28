@@ -1,4 +1,4 @@
-import { List, PlusCircle, Server, Trash2, Upload, X } from "lucide-react";
+import { List, Plus, PlusCircle, Server, Trash2, Upload, X } from "lucide-react";
 import Form from 'next/form';
 import { useRef, useState } from "react";
 
@@ -12,17 +12,13 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectItem, SelectContent, SelectGroup, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
 import { Textarea } from '../ui/textarea';
+import ActionCard from "./suggest-action/action-card";
+import CreateActionModal from "./suggest-action/create-action-modal";
 import { ToolCard } from "./tool-selector/tool-card";
 import { ToolSelectorModal } from "./tool-selector/tool-selector-modal";
 
 
 
-interface SuggestedActions {
-  id: number
-  label: string
-  action: string
-  title: string
-}
 interface Tool {
   id: string
   name: string
@@ -30,6 +26,13 @@ interface Tool {
   isFavorite: boolean
   avatar?: string
 }
+interface SuggestedAction {
+  id: string
+  title: string
+  label: string
+  action: string
+}
+
 export function CreateAgentForm({
   action,
   children,
@@ -44,13 +47,14 @@ export function CreateAgentForm({
 
 
 
-  const [actions, setActions] = useState<SuggestedActions[]>([])
+  const [actions, setActions] = useState<SuggestedAction[]>([])
   const [actionsValue, setActionsValue] = useState<string>('')
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [selectedTools, setSelectedTools] = useState<Tool[]>([])
   const [selectedToolsInput, setSelectedToolsInput] = useState<string>('')
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isModalToolOpen, setIsModalToolOpen] = useState(false)
+  const [isModalActionOpen, setIsModalActionOpen] = useState(false)
 
   const handleToolsSelect = (tools: Tool[]) => {
     const ids = tools.map(item => item.id);
@@ -61,20 +65,22 @@ export function CreateAgentForm({
   const handleToolRemove = (toolId: string) => {
     setSelectedTools((prev) => prev.filter((tool) => tool.id !== toolId))
   }
-  const [newAction, setNewAction] = useState<Omit<SuggestedActions, "id">>({ label: "", action: "", title: "" })
 
-  const addAction = () => {
-    if (newAction.label && newAction.action && newAction.title) {
-      setActions([...actions, { ...newAction, id: Date.now() }])
-      setNewAction({ label: "", action: "", title: "" })
-      setActionsValue(JSON.stringify([...actions, { ...newAction, id: Date.now() }]))
+
+  const handleCreateAction = (newAction: Omit<SuggestedAction, 'id'>) => {
+    const actionWithId = {
+      ...newAction,
+      id: Date.now().toString() // Simple ID generation
     }
+    setActions([...actions, actionWithId])
+    setActionsValue(JSON.stringify([...actions, actionWithId]))
+    setIsModalActionOpen(false)
   }
 
-  const removeAction = (id: number) => {
-    setActions(actions.filter(item => item.id !== id))
-    setActionsValue(JSON.stringify(actions.filter(item => item.id !== id)))
+  const handleRemoveAction = (id: string) => {
+    setActions(actions.filter(action => action.id !== id))
   }
+
 
   const deleteAllActions = () => {
     setActions([])
@@ -186,12 +192,12 @@ export function CreateAgentForm({
           </div>
 
           <div className="space-y-2">
-            <Label
+            {/* <Label
               htmlFor="text"            >
               Tool
-            </Label>
+            </Label> */}
             <div className="flex items-center space-x-2">
-              <Button onClick={() => setIsModalOpen(true)}>Add Tools</Button>
+              <Button onClick={(e) => { e.preventDefault(); setIsModalToolOpen(true) }}>Add Tools</Button>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {selectedTools.map((tool) => (
@@ -205,81 +211,44 @@ export function CreateAgentForm({
               ))}
             </div>
             <ToolSelectorModal
-              isOpen={isModalOpen}
-              onClose={() => setIsModalOpen(false)}
+              isOpen={isModalToolOpen}
+              onClose={() => setIsModalToolOpen(false)}
               onToolsSelect={handleToolsSelect}
               selectedTools={selectedTools}
               tools={tools}
             />
             <Input
-              id="tool"
-              name="tool"
+              id="tools"
+              name="tools"
               hidden
               className="hidden"
               type="text"
-              required
               defaultValue={selectedToolsInput}
             />
           </div>
           <div className="space-y-2">
             <div className="space-y-2">
-              <Label>Suggested Actions</Label>
-              <div className="grid grid-cols-3 gap-2">
-                <Input
-                  id="title"
-                  value={newAction.title}
-                  onChange={(e) => setNewAction({ ...newAction, title: e.target.value })}
-                  placeholder="Enter title"
-                />
-                <Input
-                  id="label"
-                  value={newAction.label}
-                  onChange={(e) => setNewAction({ ...newAction, label: e.target.value })}
-                  placeholder="Enter label"
-                />
-                <Input
-                  id="action"
-                  value={newAction.action}
-                  onChange={(e) => setNewAction({ ...newAction, action: e.target.value })}
-                  placeholder="Enter action"
+              {/* <Label>Suggested Actions</Label> */}
+              <div className="flex items-center space-x-2">
+                <Button onClick={(e) => { e.preventDefault(); setIsModalActionOpen(true) }} >
+                  <Plus className="mr-2 size-4" /> Create Suggested Action
+                </Button>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {actions.map((action) => (
+                  <ActionCard key={action.id} action={action} onRemove={handleRemoveAction} />
+                ))}
+                <CreateActionModal
+                  isOpen={isModalActionOpen}
+                  onClose={() => setIsModalActionOpen(false)}
+                  onCreateAction={handleCreateAction}
                 />
               </div>
-            </div>
-            <Button type="button" onClick={(e) => { e.preventDefault(); addAction(); }} className="mt-2">
-              Add Suggested Action
-            </Button>
-
-            <div className="mt-4 grid gap-4 sm:grid-cols-4">
-              {actions.map((item, index) => (
-                <Card key={index} className="bg-secondary">
-                  <CardHeader className="p-4">
-                    <CardTitle className="text-lg">{item.title}</CardTitle>
-                    <CardDescription>{item.label}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-0">
-                    <p className="text-sm text-muted-foreground">{item.action}</p>
-                  </CardContent>
-                  <CardFooter className="p-4 pt-0 flex justify-between">
-                    <Button variant="ghost" size="sm" className="text-blue-500 hover:text-blue-700">
-                      Try it
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-500 hover:text-red-700"
-                      onClick={() => removeAction(item.id)}
-                    >
-                      Remove
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
             </div>
             <Input
               name="suggestedActions"
               className="hidden"
               type="text"
-              required
               defaultValue={actionsValue}
             />
           </div>

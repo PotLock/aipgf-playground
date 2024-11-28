@@ -52,14 +52,14 @@ function AgentCard({ agent }: AgentCardProps) {
                 <div>
                     <span className="text-sm font-medium text-muted-foreground">Tools</span>
                     <div className="mt-2 flex flex-wrap gap-2">
-                        {agent.tools.map((tool, index) => (
+                        {agent.tools && agent.tools.map((tool, index) => (
                             <Badge key={index} variant="secondary">
                                 {tool}
                             </Badge>
                         ))}
                     </div>
                 </div>
-                <div>
+                {/* <div>
                     <span className="text-sm font-medium text-muted-foreground">Suggested Actions : </span>
                     <div className="mt-2 flex flex-wrap gap-2">
                         {agent.suggestedActions && agent.suggestedActions.map((action, index) => (
@@ -68,7 +68,7 @@ function AgentCard({ agent }: AgentCardProps) {
                             </Badge>
                         ))}
                     </div>
-                </div>
+                </div> */}
 
             </CardContent>
             <CardFooter>
