@@ -5,9 +5,7 @@ import { notFound } from 'next/navigation';
 import { DEFAULT_MODEL_NAME, models } from '@/ai/models';
 import { auth } from '@/app/(auth)/auth';
 import { Chat as PreviewChat } from '@/components/custom/chat';
-import { getChatById, getMessagesByChatId , getAgentById
-  
-} from '@/db/queries';
+import { getChatById, getMessagesByChatId, getAgentById, getToolsByIds } from '@/db/queries';
 import { convertToUIMessages } from '@/lib/utils';
 
 
@@ -16,7 +14,7 @@ export default async function Page(props: { params: Promise<any> }) {
   const { id } = params;
   const chat = await getChatById({ id });
   const agent = await getAgentById(chat.agentId)
-  
+
   if (!chat && agent) {
     notFound();
   }
@@ -40,7 +38,7 @@ export default async function Page(props: { params: Promise<any> }) {
   const selectedModelId =
     models.find((model) => model.id === modelIdFromCookie)?.id ||
     DEFAULT_MODEL_NAME;
-
+  const tools = await getToolsByIds(agent.tools as any);
   return (
     <PreviewChat
       id={chat.id}
@@ -48,6 +46,7 @@ export default async function Page(props: { params: Promise<any> }) {
       selectedModelId={selectedModelId}
       agent={agent}
       user={session.user as any}
+      tools={tools}
     />
   );
 }
