@@ -1,7 +1,7 @@
 'server-only';
 
 import { genSaltSync, hashSync } from 'bcrypt-ts';
-import { and, asc, desc, eq, gt } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
@@ -392,6 +392,15 @@ export async function getToolByUserId({ userId }: { userId: string }) {
   } catch (error) {
     console.log(error);
     console.error('Failed to get tools by userId from database');
+    throw error;
+  }
+}
+
+export async function getToolsByIds(ids: any[]): Promise<Array<Tool>> {
+  try {
+    return await db.select().from(tool).where(inArray(tool.id, ids));
+  } catch (error) {
+    console.error('Failed to get user from database');
     throw error;
   }
 }
