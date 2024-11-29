@@ -116,13 +116,13 @@ export async function POST(request: Request) {
   });
   // if tools = smartcontract pls create more tools by methods. smartcontract here
 
-  const toolData = tools.reduce((tool: any, item: any) => {
+  const toolsData = tools.reduce((tool: any, item: any) => {
     if (item.typeName == 'smartcontract') {
       tool = item.data.methods.reduce((method: any, itemMethod: any) => {
         // get args
         let params = {};
-        if (method.args) {
-          params = method.args.reduce(
+        if (itemMethod.args) {
+          params = itemMethod.args.reduce(
             (acc: any, { name, type, description }: any) => {
               acc[name] = { type, description };
               return acc;
@@ -130,21 +130,20 @@ export async function POST(request: Request) {
             {}
           );
         }
-
         const filteredObj: any = convertParamsToZod(params);
         const ParametersSchema: any = Object.fromEntries(
           Object.entries(filteredObj).filter(
             ([key, value]) => value !== undefined
           )
         );
-        tool[itemMethod.name + generateId()] = {
+        tool[itemMethod.name + '_' + generateId()] = {
           description: itemMethod.description || '',
           parameters: z.object(ParametersSchema),
           execute: async (ParametersData: ParametersData) => {
-            if (item.chain == 'near' && item.kind == 'view') {
+            if (item.data.chain == 'near' && itemMethod.kind == 'view') {
               try {
                 const provider = new providers.JsonRpcProvider({
-                  url: `https://rpc.${item.network}.near.org`,
+                  url: `https://rpc.${item.data.network}.near.org`,
                 });
                 const res: any = await provider.query({
                   request_type: 'call_function',
@@ -164,14 +163,24 @@ export async function POST(request: Request) {
                   convertString = data;
                 }
                 console.log(convertString);
-                return `data : ${convertString}`;
+                return `${convertString}`;
               } catch (error) {
-                console.log(error);
                 return `Error calling contract method:${error}`;
               }
             }
-            // if call
-            // if view
+            if (item.data.chain == 'near' && itemMethod.kind == 'call') {
+              const data = {
+                request_type: 'call_function',
+                account_id: item.data.contractAddress,
+                method_name: itemMethod.name,
+                args_base64: Buffer.from(
+                  JSON.stringify(ParametersData)
+                ).toString('base64'),
+                finality: 'final',
+              };
+              console.log(data);
+              return `${JSON.stringify(data)}`;
+            }
           },
         };
         return tool;
@@ -252,7 +261,7 @@ export async function POST(request: Request) {
       // };
       // //if view return data
     }
-    if (item.typeName == 'widgetTool') {
+    if (item.typeName == 'widget') {
       const filteredObj: any = item.data.args
         ? convertParamsToZod(item.data.args)
         : {};
@@ -387,38 +396,25 @@ export async function POST(request: Request) {
     }
     return tool;
   }, {});
-  //console.log(toolData);
   const streamingData = new StreamData();
-
+  console.log(Object.keys(toolsData));
   const result = await streamText({
     model: customModel(model.apiIdentifier),
     system: `Your name are ${agent.name} \n\n ${agent.prompt}`, //modelId === 'gpt-4o-canvas' ? canvasPrompt : regularPrompt,
     messages: coreMessages,
     maxSteps: 5,
     experimental_activeTools:
-      modelId === 'gpt-4o-canvas' ? canvasTools : weatherTools,
+      modelId === 'gpt-4o-canvas'
+        ? canvasTools
+        : (Object.keys(toolsData) as any),
     tools: {
-      getWeather: {
-        description: 'Get the current weather at a location',
-        parameters: z.object({
-          latitude: z.number(),
-          longitude: z.number(),
-        }),
-        execute: async ({ latitude, longitude }) => {
-          const response = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`
-          );
-
-          const weatherData = await response.json();
-          return weatherData;
-        },
-      },
+      ...toolsData,
       createDocument: {
         description: 'Create a document for a writing activity',
         parameters: z.object({
           title: z.string(),
         }),
-        execute: async ({ title }) => {
+        execute: async ({ title }: any) => {
           const id = generateUUID();
           let draftText: string = '';
 
@@ -484,7 +480,7 @@ export async function POST(request: Request) {
             .string()
             .describe('The description of changes that need to be made'),
         }),
-        execute: async ({ id, description }) => {
+        execute: async ({ id, description }: any) => {
           const document = await getDocumentById({ id });
 
           if (!document) {
@@ -561,7 +557,7 @@ export async function POST(request: Request) {
             .string()
             .describe('The ID of the document to request edits'),
         }),
-        execute: async ({ documentId }) => {
+        execute: async ({ documentId }: any) => {
           const document = await getDocumentById({ id: documentId });
 
           if (!document || !document.content) {

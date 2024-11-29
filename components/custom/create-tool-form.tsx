@@ -194,11 +194,11 @@ export function CreateToolForm({
           return {
             ...method,
             description: data.returns[0].description,
-            args: data.returns[0].args.map((arg: any) => ({
+            args: data.returns[0].args ? data.returns[0].args.map((arg: any) => ({
               ...arg,
               type_schema: { type: arg.type },
               description: arg.description
-            })),
+            })) : [],
             isLoaded: true
           }
         }

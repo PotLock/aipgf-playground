@@ -163,6 +163,8 @@ export const zodExtract = (type: any, describe: any) => {
   if (type == 'vector<address>') return z.array(z.string()).describe(describe);
   if (type == 'vector<string::String>')
     return z.array(z.string()).describe(describe);
+  if (type == 'String')
+    return z.array(z.string()).describe(describe);
   if (type == '0x1::string::String')
     return z.array(z.string()).describe(describe);
   if (type == 'generic')
