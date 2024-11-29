@@ -1,5 +1,6 @@
 import {
   convertToCoreMessages,
+  generateId,
   Message,
   StreamData,
   streamObject,
@@ -113,95 +114,143 @@ export async function POST(request: Request) {
       { ...userMessage, id: generateUUID(), createdAt: new Date(), chatId: id },
     ],
   });
+  // if tools = smartcontract pls create more tools by methods. smartcontract here
+
   const toolData = tools.reduce((tool: any, item: any) => {
     if (item.typeName == 'smartcontract') {
-      const params = item.data.args.reduce(
-        (acc: any, { name, type, description }: any) => {
-          acc[name] = { type, description };
-          return acc;
-        },
-        {}
-      );
-      const filteredObj: any = convertParamsToZod(params);
-      const ParametersSchema: any = Object.fromEntries(
-        Object.entries(filteredObj).filter(
-          ([key, value]) => value !== undefined
-        )
-      );
-      const [account] = item.name.split('::');
-      tool[tool.id] = {
-        description: item.description,
-        parameters: z.object(ParametersSchema),
-        execute: async (ParametersData: ParametersData) => {
-          if (item.chain == 'near' && item.typeMethod == 'view') {
-            try {
-              const provider = new providers.JsonRpcProvider({
-                url: `https://rpc.${item.network}.near.org`,
-              });
-              const res: any = await provider.query({
-                request_type: 'call_function',
-                account_id: account,
-                method_name: item.methods,
-                args_base64: Buffer.from(
-                  JSON.stringify(ParametersData)
-                ).toString('base64'),
-                finality: 'final',
-              });
-              const data = JSON.parse(Buffer.from(res.result).toString());
+      tool = item.data.methods.reduce((method: any, itemMethod: any) => {
+        // get args
+        let params = {};
+        if (method.args) {
+          params = method.args.reduce(
+            (acc: any, { name, type, description }: any) => {
+              acc[name] = { type, description };
+              return acc;
+            },
+            {}
+          );
+        }
 
-              let convertString;
-              if (typeof data == 'object') {
-                convertString = JSON.stringify(data);
-              } else {
-                convertString = data;
-              }
-              return `data : ${convertString}`;
-            } catch (error) {
-              console.log(error);
-              return `Error calling contract method:${error}`;
-            }
-          }
+        const filteredObj: any = convertParamsToZod(params);
+        const ParametersSchema: any = Object.fromEntries(
+          Object.entries(filteredObj).filter(
+            ([key, value]) => value !== undefined
+          )
+        );
+        tool[itemMethod.name + generateId()] = {
+          description: itemMethod.description || '',
+          parameters: z.object(ParametersSchema),
+          execute: async (ParametersData: ParametersData) => {
+            if (item.chain == 'near' && item.kind == 'view') {
+              try {
+                const provider = new providers.JsonRpcProvider({
+                  url: `https://rpc.${item.network}.near.org`,
+                });
+                const res: any = await provider.query({
+                  request_type: 'call_function',
+                  account_id: item.data.contractAddress,
+                  method_name: itemMethod.name,
+                  args_base64: Buffer.from(
+                    JSON.stringify(ParametersData)
+                  ).toString('base64'),
+                  finality: 'final',
+                });
+                const data = JSON.parse(Buffer.from(res.result).toString());
 
-          if (item.chain == 'near' && item.typeMethod == 'call') {
-            const data = {
-              request_type: 'call_function',
-              account_id: account,
-              method_name: item.methods,
-              args_base64: Buffer.from(JSON.stringify(ParametersData)).toString(
-                'base64'
-              ),
-              finality: 'final',
-            };
-            return `data: ${JSON.stringify(data)}`;
-          }
-          if (item.chain == 'eth' && item.typeMethod == 'call') {
-            return `ETH calliing`;
-          }
-          if (item.chain == 'eth' && item.typeMethod == 'view') {
-            try {
-              const web3 = new Web3('https://1rpc.io/eth');
-              const response = await fetch(
-                `https://api.etherscan.io/api?module=contract&action=getabi&address=${account}&apikey=${process.env.ETH_SCAN_API}`
-              );
-              const data = await response.json();
-              const abi = JSON.parse(data.result);
-              const contract = new web3.eth.Contract(abi, account);
-              const result = await contract.methods[item.methods]().call();
-              let convertString;
-              if (typeof result == 'object') {
-                convertString = JSON.stringify(result);
-              } else {
-                convertString = result;
+                let convertString;
+                if (typeof data == 'object') {
+                  convertString = JSON.stringify(data);
+                } else {
+                  convertString = data;
+                }
+                console.log(convertString);
+                return `data : ${convertString}`;
+              } catch (error) {
+                console.log(error);
+                return `Error calling contract method:${error}`;
               }
-              return `data: ${convertString}`;
-            } catch (error) {
-              return `Error calling contract method:${error}`;
             }
-          }
-          return 'i dont userstand . pls explain';
-        },
-      };
-      //if view return data
+            // if call
+            // if view
+          },
+        };
+        return tool;
+      });
+      //console.log('toolSmartcontract', toolSmartcontract);
+      // const [account] = item.name.split('::');
+      // tool[tool.id] = {
+      //   description: item.description,
+      //   parameters: z.object(ParametersSchema),
+      //   execute: async (ParametersData: ParametersData) => {
+      //     if (item.chain == 'near' && item.typeMethod == 'view') {
+      //       try {
+      //         const provider = new providers.JsonRpcProvider({
+      //           url: `https://rpc.${item.network}.near.org`,
+      //         });
+      //         const res: any = await provider.query({
+      //           request_type: 'call_function',
+      //           account_id: account,
+      //           method_name: item.methods,
+      //           args_base64: Buffer.from(
+      //             JSON.stringify(ParametersData)
+      //           ).toString('base64'),
+      //           finality: 'final',
+      //         });
+      //         const data = JSON.parse(Buffer.from(res.result).toString());
+
+      //         let convertString;
+      //         if (typeof data == 'object') {
+      //           convertString = JSON.stringify(data);
+      //         } else {
+      //           convertString = data;
+      //         }
+      //         return `data : ${convertString}`;
+      //       } catch (error) {
+      //         console.log(error);
+      //         return `Error calling contract method:${error}`;
+      //       }
+      //     }
+
+      //     if (item.chain == 'near' && item.typeMethod == 'call') {
+      //       const data = {
+      //         request_type: 'call_function',
+      //         account_id: account,
+      //         method_name: item.methods,
+      //         args_base64: Buffer.from(JSON.stringify(ParametersData)).toString(
+      //           'base64'
+      //         ),
+      //         finality: 'final',
+      //       };
+      //       return `data: ${JSON.stringify(data)}`;
+      //     }
+      //     if (item.chain == 'eth' && item.typeMethod == 'call') {
+      //       return `ETH calliing`;
+      //     }
+      //     if (item.chain == 'eth' && item.typeMethod == 'view') {
+      //       try {
+      //         const web3 = new Web3('https://1rpc.io/eth');
+      //         const response = await fetch(
+      //           `https://api.etherscan.io/api?module=contract&action=getabi&address=${account}&apikey=${process.env.ETH_SCAN_API}`
+      //         );
+      //         const data = await response.json();
+      //         const abi = JSON.parse(data.result);
+      //         const contract = new web3.eth.Contract(abi, account);
+      //         const result = await contract.methods[item.methods]().call();
+      //         let convertString;
+      //         if (typeof result == 'object') {
+      //           convertString = JSON.stringify(result);
+      //         } else {
+      //           convertString = result;
+      //         }
+      //         return `data: ${convertString}`;
+      //       } catch (error) {
+      //         return `Error calling contract method:${error}`;
+      //       }
+      //     }
+      //     return 'i dont userstand . pls explain';
+      //   },
+      // };
+      // //if view return data
     }
     if (item.typeName == 'widgetTool') {
       const filteredObj: any = item.data.args
@@ -221,7 +270,7 @@ export async function POST(request: Request) {
         },
       };
     }
-    if (item.typeName == 'apiTool') {
+    if (item.typeName == 'api') {
       const spec = item.spec;
       const baseUrl = spec.servers[0].url;
       for (const path in spec.paths) {
@@ -338,7 +387,7 @@ export async function POST(request: Request) {
     }
     return tool;
   }, {});
-
+  //console.log(toolData);
   const streamingData = new StreamData();
 
   const result = await streamText({

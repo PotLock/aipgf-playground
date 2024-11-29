@@ -14,7 +14,6 @@ export default async function Page(props: { params: Promise<any> }) {
   const { id } = params;
   const chat = await getChatById({ id });
   const agent = await getAgentById(chat.agentId)
-
   if (!chat && agent) {
     notFound();
   }
