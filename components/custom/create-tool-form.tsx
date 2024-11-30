@@ -63,6 +63,8 @@ export function CreateToolForm({
     method: 'get',
     summary: '',
     description: '',
+    operationId: '',
+    requestBody: null,
     parameters: [{ name: '', in: 'query', description: '', required: false, type: 'string' }]
   }])
   const [apiSpecFile, setApiSpecFile] = useState<File | null>(null)
@@ -79,6 +81,8 @@ export function CreateToolForm({
       method: 'get',
       summary: '',
       description: '',
+      operationId: '',
+      requestBody: null,
       parameters: [{ name: '', in: 'query', description: '', required: false, type: 'string' }]
     }])
     updateApiJsonInput()
@@ -144,12 +148,23 @@ export function CreateToolForm({
             return {
               path,
               method,
+              operationId: methodDetails.operationId || '',
               summary: methodDetails.summary || '',
               description: methodDetails.description || '',
-              parameters: methodDetails.parameters || []
+              requestBody: methodDetails.requestBody || null,
+              parameters: methodDetails.parameters || [],
             }
           })
           setApiPaths(paths)
+          const jsonData = {
+            title: json.info?.title || '',
+            version: json.info?.version || '',
+            description: json.info?.description || '',
+            endpoint: json.servers?.[0]?.url || '',
+            key: apiKey,
+            paths: paths
+          };
+          setData(JSON.stringify(jsonData, null, 2));
         } catch (error) {
           console.error('Error parsing JSON:', error)
           alert('Error parsing JSON file. Please make sure it\'s a valid OpenAPI v3 specification.')
@@ -637,6 +652,33 @@ export function CreateToolForm({
                                     value={path.description}
                                     onChange={(e) => updateApiPath(pathIndex, 'description', e.target.value)}
                                     placeholder="Enter path description"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor={`operationId-${pathIndex}`}>Operation ID</Label>
+                                  <Input
+                                    id={`operationId-${pathIndex}`}
+                                    value={path.operationId}
+                                    onChange={(e) => updateApiPath(pathIndex, 'operationId', e.target.value)}
+                                    placeholder="Enter operation ID"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor={`requestBody-${pathIndex}`}>Request Body</Label>
+                                  <Textarea
+                                    id={`requestBody-${pathIndex}`}
+                                    value={path.requestBody ? JSON.stringify(path.requestBody, null, 2) : ''}
+                                    onChange={(e) => {
+                                      try {
+                                        const parsedBody = JSON.parse(e.target.value);
+                                        updateApiPath(pathIndex, 'requestBody', parsedBody);
+                                      } catch (error) {
+                                        // If parsing fails, store as string
+                                        updateApiPath(pathIndex, 'requestBody', e.target.value);
+                                      }
+                                    }}
+                                    placeholder="Enter request body (JSON format)"
+                                    rows={5}
                                   />
                                 </div>
                                 <div className="space-y-4">

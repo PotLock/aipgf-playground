@@ -191,47 +191,6 @@ export async function POST(request: Request) {
       //   description: item.description,
       //   parameters: z.object(ParametersSchema),
       //   execute: async (ParametersData: ParametersData) => {
-      //     if (item.chain == 'near' && item.typeMethod == 'view') {
-      //       try {
-      //         const provider = new providers.JsonRpcProvider({
-      //           url: `https://rpc.${item.network}.near.org`,
-      //         });
-      //         const res: any = await provider.query({
-      //           request_type: 'call_function',
-      //           account_id: account,
-      //           method_name: item.methods,
-      //           args_base64: Buffer.from(
-      //             JSON.stringify(ParametersData)
-      //           ).toString('base64'),
-      //           finality: 'final',
-      //         });
-      //         const data = JSON.parse(Buffer.from(res.result).toString());
-
-      //         let convertString;
-      //         if (typeof data == 'object') {
-      //           convertString = JSON.stringify(data);
-      //         } else {
-      //           convertString = data;
-      //         }
-      //         return `data : ${convertString}`;
-      //       } catch (error) {
-      //         console.log(error);
-      //         return `Error calling contract method:${error}`;
-      //       }
-      //     }
-
-      //     if (item.chain == 'near' && item.typeMethod == 'call') {
-      //       const data = {
-      //         request_type: 'call_function',
-      //         account_id: account,
-      //         method_name: item.methods,
-      //         args_base64: Buffer.from(JSON.stringify(ParametersData)).toString(
-      //           'base64'
-      //         ),
-      //         finality: 'final',
-      //       };
-      //       return `data: ${JSON.stringify(data)}`;
-      //     }
       //     if (item.chain == 'eth' && item.typeMethod == 'call') {
       //       return `ETH calliing`;
       //     }
@@ -280,8 +239,8 @@ export async function POST(request: Request) {
       };
     }
     if (item.typeName == 'api') {
-      const spec = item.spec;
-      const baseUrl = spec.servers[0].url;
+      const spec = item.data;
+      const baseUrl = spec.endpoint;
       for (const path in spec.paths) {
         // example of path: "/engines"
         const methods = spec.paths[path];
@@ -357,7 +316,7 @@ export async function POST(request: Request) {
             };
           }
 
-          tool[tool.id] = {
+          tool['api_' + generateId()] = {
             description: toolDesc,
             parameters: z.object(zodObj),
             execute: async (arg: any) => {
