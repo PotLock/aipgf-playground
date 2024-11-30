@@ -239,45 +239,40 @@ export async function POST(request: Request) {
       };
     }
     if (item.typeName == 'api') {
-      const spec = item.data;
-      const baseUrl = spec.endpoint;
-      for (const path in spec.paths) {
-        // example of path: "/engines"
-        const methods = spec.paths[path];
-        for (const method in methods) {
-          // example of method: "get"
-          const spec = methods[method];
-          const toolName = spec.operationId;
-          const toolDesc = spec.description || spec.summary || toolName;
+      const baseUrl = item.data.endpoint;
 
-          let zodObj: any = {};
-          if (spec.parameters) {
-            // Get parameters with in = path
-            let paramZodObjPath: any = {};
-            for (const param of spec.parameters.filter(
-              (param: any) => param.in === 'path'
-            )) {
-              paramZodObjPath = extractParameters(param, paramZodObjPath);
-            }
+      for (const path of item.data.paths) {
+        const spec: any = path;
+        const toolDesc = spec.summary || spec.description || spec.operationId;
 
-            // Get parameters with in = query
-            let paramZodObjQuery: any = {};
-            for (const param of spec.parameters.filter(
-              (param: any) => param.in === 'query'
-            )) {
-              paramZodObjQuery = extractParameters(param, paramZodObjQuery);
-            }
-
-            // Combine path and query parameters
-            zodObj = {
-              ...zodObj,
-              PathParameters: z.object(paramZodObjPath),
-              QueryParameters: z.object(paramZodObjQuery),
-            };
+        let zodObj: any = {};
+        if (spec.parameters) {
+          let paramZodObjPath: any = {};
+          for (const param of spec.parameters.filter(
+            (param: any) => param.in === 'path'
+          )) {
+            paramZodObjPath = extractParameters(param, paramZodObjPath);
           }
 
-          if (spec.requestBody) {
-            let content: any = {};
+          // Get parameters with in = query
+          let paramZodObjQuery: any = {};
+          for (const param of spec.parameters.filter(
+            (param: any) => param.in === 'query'
+          )) {
+            paramZodObjQuery = extractParameters(param, paramZodObjQuery);
+          }
+
+          // Combine path and query parameters
+          zodObj = {
+            ...zodObj,
+            PathParameters: z.object(paramZodObjPath),
+            QueryParameters: z.object(paramZodObjQuery),
+          };
+        }
+
+        if (spec.requestBody) {
+          let content: any = {};
+          if (spec.requestBody.content) {
             if (spec.requestBody.content['application/json']) {
               content = spec.requestBody.content['application/json'];
             } else if (
@@ -290,67 +285,67 @@ export async function POST(request: Request) {
             } else if (spec.requestBody.content['text/plain']) {
               content = spec.requestBody.content['text/plain'];
             }
-            const requestBodySchema = content.schema;
-            if (requestBodySchema) {
-              const requiredList = requestBodySchema.required || [];
-              const requestBodyZodObj = jsonSchemaToZodSchema(
-                requestBodySchema,
-                requiredList,
-                'properties'
-              );
-              zodObj = {
-                ...zodObj,
-                RequestBody: requestBodyZodObj,
-              };
-            } else {
-              zodObj = {
-                ...zodObj,
-                input: z.string().describe('Query input').optional(),
-              };
-            }
           }
-
-          if (!spec.parameters && !spec.requestBody) {
+          const requestBodySchema = content.schema;
+          if (requestBodySchema) {
+            const requiredList = requestBodySchema.required || [];
+            const requestBodyZodObj = jsonSchemaToZodSchema(
+              requestBodySchema,
+              requiredList,
+              'properties'
+            );
             zodObj = {
+              ...zodObj,
+              RequestBody: requestBodyZodObj,
+            };
+          } else {
+            zodObj = {
+              ...zodObj,
               input: z.string().describe('Query input').optional(),
             };
           }
+        }
 
-          tool['api_' + generateId()] = {
-            description: toolDesc,
-            parameters: z.object(zodObj),
-            execute: async (arg: any) => {
-              const headers: any = {
-                Accept: 'application/json',
-              };
-
-              if (item.accessToken) {
-                headers.Authorization = `Bearer ${item.accessToken}`;
-              }
-              const callOptions: RequestInit = {
-                method: method,
-                headers: {
-                  'Content-Type': 'application/json',
-                  ...headers,
-                },
-              };
-              if (arg.RequestBody && method.toUpperCase() !== 'GET') {
-                callOptions.body = JSON.stringify(arg.RequestBody);
-              }
-              const completeUrl = getUrl(`${baseUrl}${path}`, arg);
-              console.log(completeUrl);
-
-              try {
-                const response = await fetch(completeUrl, callOptions);
-                const data = await response.json();
-                return data;
-              } catch (error) {
-                console.error('Failed to make API request:', error);
-                return `Failed to make API request: ${error}`;
-              }
-            },
+        if (!spec.parameters && !spec.requestBody) {
+          zodObj = {
+            input: z.string().describe('Query input').optional(),
           };
         }
+
+        tool['api_' + path.operationId + generateId()] = {
+          description: toolDesc,
+          parameters: z.object(zodObj),
+          execute: async (arg: any) => {
+            const headers: any = {
+              Accept: 'application/json',
+            };
+
+            if (item.accessToken) {
+              headers.Authorization = `Bearer ${item.accessToken}`;
+            }
+            const callOptions: RequestInit = {
+              method: path.method,
+              headers: {
+                'Content-Type': 'application/json',
+                ...headers,
+              },
+            };
+            if (arg.RequestBody && path.method.toUpperCase() !== 'GET') {
+              callOptions.body = JSON.stringify(arg.RequestBody);
+            }
+            const completeUrl = getUrl(`${baseUrl}${path}`, arg);
+            console.log(completeUrl);
+
+            try {
+              const response = await fetch(completeUrl, callOptions);
+              const data = await response.json();
+              return data;
+            } catch (error) {
+              console.error('Failed to make API request:', error);
+              return `Failed to make API request: ${error}`;
+            }
+          },
+        };
       }
     }
     return tool;
