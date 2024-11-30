@@ -312,7 +312,7 @@ export async function POST(request: Request) {
           };
         }
 
-        tool['api_' + path.operationId + generateId()] = {
+        tool['api_' + path.operationId + '_' + generateId()] = {
           description: toolDesc,
           parameters: z.object(zodObj),
           execute: async (arg: any) => {
@@ -333,7 +333,9 @@ export async function POST(request: Request) {
             if (arg.RequestBody && path.method.toUpperCase() !== 'GET') {
               callOptions.body = JSON.stringify(arg.RequestBody);
             }
-            const completeUrl = getUrl(`${baseUrl}${path}`, arg);
+            console.log(arg)
+            //Bugggggggggggggggggggggggggggggggggggggggggggggggggggg
+            const completeUrl = getUrl(`${baseUrl}${path.path}`, arg);
             console.log(completeUrl);
 
             try {
