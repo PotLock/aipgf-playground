@@ -16,9 +16,7 @@ import { canvasPrompt, regularPrompt } from '@/ai/prompts';
 import { auth } from '@/app/(auth)/auth';
 import {
   convertParamsToZod,
-  extractParameters,
-  getUrl,
-  jsonSchemaToZodSchema,
+  createParametersSchema,
 } from '@/components/utils/tool.util';
 import {
   deleteChatById,
@@ -162,7 +160,6 @@ export async function POST(request: Request) {
                 } else {
                   convertString = data;
                 }
-                console.log(convertString);
                 return `${convertString}`;
               } catch (error) {
                 return `Error calling contract method:${error}`;
@@ -178,7 +175,6 @@ export async function POST(request: Request) {
                 ).toString('base64'),
                 finality: 'final',
               };
-              console.log(data);
               return `${JSON.stringify(data)}`;
             }
           },
@@ -239,107 +235,157 @@ export async function POST(request: Request) {
       };
     }
     if (item.typeName == 'api') {
-      const baseUrl = item.data.endpoint;
+      const spec = item.data;
+      console.log(spec);
+      for (const pathItem of spec.paths) {
+        const {
+          path,
+          method,
+          operationId,
+          summary,
+          description,
+          requestBody,
+          parameters,
+        } = pathItem;
 
-      for (const path of item.data.paths) {
-        const spec: any = path;
-        const toolDesc = spec.summary || spec.description || spec.operationId;
+        tool[operationId] = {
+          description:
+            summary || description || `${method.toUpperCase()} ${path}`,
+          parameters: createParametersSchema(parameters, requestBody),
+          execute: async (params: any) => {
+            // Parse the endpoint URL
+            console.log(params);
+            const endpointUrl = new URL(spec.endpoint);
 
-        let zodObj: any = {};
-        if (spec.parameters) {
-          let paramZodObjPath: any = {};
-          for (const param of spec.parameters.filter(
-            (param: any) => param.in === 'path'
-          )) {
-            paramZodObjPath = extractParameters(param, paramZodObjPath);
-          }
-
-          // Get parameters with in = query
-          let paramZodObjQuery: any = {};
-          for (const param of spec.parameters.filter(
-            (param: any) => param.in === 'query'
-          )) {
-            paramZodObjQuery = extractParameters(param, paramZodObjQuery);
-          }
-
-          // Combine path and query parameters
-          zodObj = {
-            ...zodObj,
-            PathParameters: z.object(paramZodObjPath),
-            QueryParameters: z.object(paramZodObjQuery),
-          };
-        }
-
-        if (spec.requestBody) {
-          let content: any = {};
-          if (spec.requestBody.content) {
-            if (spec.requestBody.content['application/json']) {
-              content = spec.requestBody.content['application/json'];
-            } else if (
-              spec.requestBody.content['application/x-www-form-urlencoded']
-            ) {
-              content =
-                spec.requestBody.content['application/x-www-form-urlencoded'];
-            } else if (spec.requestBody.content['multipart/form-data']) {
-              content = spec.requestBody.content['multipart/form-data'];
-            } else if (spec.requestBody.content['text/plain']) {
-              content = spec.requestBody.content['text/plain'];
-            }
-          }
-          const requestBodySchema = content.schema;
-          if (requestBodySchema) {
-            const requiredList = requestBodySchema.required || [];
-            const requestBodyZodObj = jsonSchemaToZodSchema(
-              requestBodySchema,
-              requiredList,
-              'properties'
+            // Combine the endpoint's pathname with the path, ensuring we don't lose any parts
+            let fullPath = `${endpointUrl.pathname}${path}`.replace(
+              /\/+/g,
+              '/'
             );
-            zodObj = {
-              ...zodObj,
-              RequestBody: requestBodyZodObj,
-            };
-          } else {
-            zodObj = {
-              ...zodObj,
-              input: z.string().describe('Query input').optional(),
-            };
-          }
-        }
-
-        if (!spec.parameters && !spec.requestBody) {
-          zodObj = {
-            input: z.string().describe('Query input').optional(),
-          };
-        }
-
-        tool['api_' + path.operationId + generateId()] = {
-          description: toolDesc,
-          parameters: z.object(zodObj),
-          execute: async (arg: any) => {
-            const headers: any = {
-              Accept: 'application/json',
-            };
-
-            if (item.accessToken) {
-              headers.Authorization = `Bearer ${item.accessToken}`;
+            if (!fullPath.startsWith('/')) {
+              fullPath = '/' + fullPath;
             }
-            const callOptions: RequestInit = {
-              method: path.method,
-              headers: {
-                'Content-Type': 'application/json',
-                ...headers,
-              },
-            };
-            if (arg.RequestBody && path.method.toUpperCase() !== 'GET') {
-              callOptions.body = JSON.stringify(arg.RequestBody);
-            }
-            const completeUrl = getUrl(`${baseUrl}${path}`, arg);
-            console.log(completeUrl);
 
+            // Handle path parameters
+            for (const [key, value] of Object.entries(params)) {
+              const param = parameters.find((p: any) => p.name === key);
+              if (param && param.in === 'path') {
+                fullPath = fullPath.replace(
+                  `{${key}}`,
+                  encodeURIComponent(String(value))
+                );
+              }
+            }
+
+            // Construct the final URL
+            const url = new URL(fullPath, endpointUrl.origin);
+            const queryParams = new URLSearchParams();
+            const headers = new Headers();
+            let body: any;
+
+            const contentType = requestBody?.content
+              ? Object.keys(requestBody.content)[0]
+              : 'application/json';
+            if (contentType === 'application/x-www-form-urlencoded') {
+              body = new URLSearchParams();
+            } else if (contentType === 'multipart/form-data') {
+              body = new FormData();
+            }
+
+            for (const [key, value] of Object.entries(params) as any) {
+              const param = parameters.find((p: any) => p.name === key);
+              if (param) {
+                if (param.in === 'query') {
+                  if (Array.isArray(value)) {
+                    value.forEach((v) => queryParams.append(key, String(v)));
+                  } else {
+                    queryParams.append(key, String(value));
+                  }
+                } else if (param.in === 'header') {
+                  headers.append(key, String(value));
+                }
+              } else if (key === 'body') {
+                if (contentType === 'application/octet-stream') {
+                  console.log(value);
+                  if (value instanceof Blob) {
+                    body = value;
+                  } else if (typeof value === 'string') {
+                    if (value.startsWith('data:')) {
+                      // Handle base64 encoded data URLs
+                      const res = await fetch(value);
+                      body = await res.blob();
+                    } else if (
+                      value.startsWith('http://') ||
+                      value.startsWith('https://')
+                    ) {
+                      // Handle image URLs
+                      const res = await fetch(value);
+                      const blob = await res.blob();
+
+                      body = new FormData();
+                      body.append('file', blob, 'filename.jpg');
+                    } else {
+                      console.log(
+                        'Invalid image data. Must be a Blob, data URL, or image URL.'
+                      );
+                    }
+                  } else {
+                    console.log(
+                      'Binary data must be provided as a Blob, data URL, or image URL for application/octet-stream'
+                    );
+                  }
+                } else if (
+                  contentType === 'application/x-www-form-urlencoded'
+                ) {
+                  for (const [formKey, formValue] of Object.entries(
+                    value
+                  ) as any) {
+                    console.log('hello');
+                    body.append(formKey, String(formValue));
+                  }
+                } else if (contentType === 'multipart/form-data') {
+                  for (const [formKey, formValue] of Object.entries(
+                    value
+                  ) as any) {
+                    if ((formValue instanceof Blob) as any) {
+                      body.append(formKey, formValue, formValue.name);
+                    } else {
+                      body.append(formKey, String(formValue));
+                    }
+                  }
+                } else {
+                  body = JSON.stringify(value);
+                }
+              }
+            }
+
+            if (queryParams.toString()) {
+              url.search = queryParams.toString();
+            }
+
+            headers.append('Content-Type', contentType);
+
+            if (
+              contentType === 'application/json' ||
+              contentType === 'application/octet-stream'
+            ) {
+              headers.append('Accept', 'application/json');
+            }
+            console.log(url.toString(), body);
             try {
-              const response = await fetch(completeUrl, callOptions);
+              const response = await fetch(url.toString(), {
+                method: method.toUpperCase(),
+                headers,
+                body:
+                  contentType === 'application/json'
+                    ? body
+                    : body instanceof Blob
+                      ? body
+                      : body?.toString(),
+              });
               const data = await response.json();
-              return data;
+              console.log(data);
+              return JSON.stringify(data);
             } catch (error) {
               console.error('Failed to make API request:', error);
               return `Failed to make API request: ${error}`;
@@ -351,7 +397,6 @@ export async function POST(request: Request) {
     return tool;
   }, {});
   const streamingData = new StreamData();
-  console.log(Object.keys(toolsData));
   const result = await streamText({
     model: customModel(model.apiIdentifier),
     system: `Your name are ${agent.name} \n\n ${agent.prompt}`, //modelId === 'gpt-4o-canvas' ? canvasPrompt : regularPrompt,
