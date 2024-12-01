@@ -16,9 +16,7 @@ import { canvasPrompt, regularPrompt } from '@/ai/prompts';
 import { auth } from '@/app/(auth)/auth';
 import {
   convertParamsToZod,
-  extractParameters,
-  getUrl,
-  jsonSchemaToZodSchema,
+  createParametersSchema,
 } from '@/components/utils/tool.util';
 import {
   deleteChatById,
@@ -115,63 +113,7 @@ export async function POST(request: Request) {
     ],
   });
   // if tools = smartcontract pls create more tools by methods. smartcontract here
-  function createParametersSchema(parameters: any[], requestBody: any = null) {
-    const schema: Record<string, z.ZodTypeAny> = {};
 
-    parameters.forEach((param) => {
-      if (param && param.name && param.schema) {
-        schema[param.name] = zodTypeFromOpenApiType(
-          param.schema.type,
-          param.schema
-        );
-      }
-    });
-
-    if (requestBody && requestBody.content) {
-      const contentTypes = Object.keys(requestBody.content);
-      if (contentTypes.length > 0) {
-        const firstContentType = contentTypes[0];
-        const bodySchema = requestBody.content[firstContentType].schema;
-        if (bodySchema) {
-          schema.body = zodTypeFromOpenApiType(bodySchema.type, bodySchema);
-        }
-      }
-    }
-
-    return z.object(schema);
-  }
-
-  function zodTypeFromOpenApiType(
-    type: string,
-    schema: any = {}
-  ): z.ZodTypeAny {
-    switch (type) {
-      case 'string':
-        return z.string();
-      case 'integer':
-      case 'number':
-        return z.number();
-      case 'boolean':
-        return z.boolean();
-      case 'array':
-        return z.array(
-          zodTypeFromOpenApiType(schema.items?.type, schema.items)
-        );
-      case 'object':
-        const objectSchema: Record<string, z.ZodTypeAny> = {};
-        for (const [prop, propSchema] of Object.entries(
-          schema.properties || {}
-        ) as any) {
-          objectSchema[prop] = zodTypeFromOpenApiType(
-            propSchema.type,
-            propSchema
-          );
-        }
-        return z.object(objectSchema);
-      default:
-        return z.any();
-    }
-  }
   const toolsData = tools.reduce((tool: any, item: any) => {
     if (item.typeName == 'smartcontract') {
       tool = item.data.methods.reduce((method: any, itemMethod: any) => {
@@ -337,12 +279,11 @@ export async function POST(request: Request) {
             const url = new URL(fullPath, endpointUrl.origin);
             const queryParams = new URLSearchParams();
             const headers = new Headers();
-            let body;
+            let body: any;
 
             const contentType = requestBody?.content
               ? Object.keys(requestBody.content)[0]
               : 'application/json';
-
             if (contentType === 'application/x-www-form-urlencoded') {
               body = new URLSearchParams();
             } else if (contentType === 'multipart/form-data') {
@@ -363,11 +304,19 @@ export async function POST(request: Request) {
                 }
               } else if (key === 'body') {
                 if (contentType === 'application/octet-stream') {
-                  if ((value instanceof Blob) as any) {
+                  console.log(body);
+                  if (value instanceof Blob) {
                     body = value;
+                  } else if (
+                    typeof value === 'string' &&
+                    value.startsWith('data:')
+                  ) {
+                    // Handle base64 encoded data URLs
+                    const res = await fetch(value);
+                    body = await res.blob();
                   } else {
-                    throw new Error(
-                      'Binary data must be provided as a Blob for application/octet-stream'
+                    console.log(
+                      'Binary data must be provided as a Blob, File, or data URL for application/octet-stream'
                     );
                   }
                 } else if (
@@ -403,6 +352,7 @@ export async function POST(request: Request) {
             if (contentType === 'application/json') {
               headers.append('Accept', 'application/json');
             }
+            console.log(url.toString(), body);
             try {
               const response = await fetch(url.toString(), {
                 method: method.toUpperCase(),
@@ -415,6 +365,7 @@ export async function POST(request: Request) {
                       : body?.toString(),
               });
               const data = await response.json();
+              console.log(data);
               return JSON.stringify(data);
             } catch (error) {
               console.error('Failed to make API request:', error);

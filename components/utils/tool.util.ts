@@ -98,69 +98,59 @@ export const getUrl = (baseUrl: string, requestObject: any) => {
 
   return url;
 };
-export const jsonSchemaToZodSchema = (
-  schema: any,
-  requiredList: string[],
-  keyName: string
-): ZodSchema<any> => {
-  if (schema.properties) {
-    // Handle object types by recursively processing properties
-    const zodShape: Record<string, ZodTypeAny> = {};
-    for (const key in schema.properties) {
-      zodShape[key] = jsonSchemaToZodSchema(
-        schema.properties[key],
-        requiredList,
-        key
+function zodTypeFromOpenApiType(type: string, schema: any = {}): z.ZodTypeAny {
+  switch (type) {
+    case 'string':
+      return z.string();
+    case 'integer':
+    case 'number':
+      return z.number();
+    case 'boolean':
+      return z.boolean();
+    case 'array':
+      return z.array(zodTypeFromOpenApiType(schema.items?.type, schema.items));
+    case 'object':
+      const objectSchema: Record<string, z.ZodTypeAny> = {};
+      for (const [prop, propSchema] of Object.entries(
+        schema.properties || {}
+      ) as any) {
+        objectSchema[prop] = zodTypeFromOpenApiType(
+          propSchema.type,
+          propSchema
+        );
+      }
+      return z.object(objectSchema);
+    default:
+      return z.any();
+  }
+}
+export const createParametersSchema = (
+  parameters: any[],
+  requestBody: any = null
+) => {
+  const schema: Record<string, z.ZodTypeAny> = {};
+
+  parameters.forEach((param) => {
+    if (param && param.name && param.schema) {
+      schema[param.name] = zodTypeFromOpenApiType(
+        param.schema.type,
+        param.schema
       );
     }
-    return z.object(zodShape);
-  } else if (schema.oneOf) {
-    // Handle oneOf by mapping each option to a Zod schema
-    const zodSchemas = schema.oneOf.map((subSchema: any) =>
-      jsonSchemaToZodSchema(subSchema, requiredList, keyName)
-    );
-    return z.union(zodSchemas);
-  } else if (schema.enum) {
-    // Handle enum types
-    return requiredList.includes(keyName)
-      ? z.enum(schema.enum).describe(schema?.description ?? keyName)
-      : z
-          .enum(schema.enum)
-          .describe(schema?.description ?? keyName)
-          .optional();
-  } else if (schema.type === 'string') {
-    return requiredList.includes(keyName)
-      ? z
-          .string({ required_error: `${keyName} required` })
-          .describe(schema?.description ?? keyName)
-      : z
-          .string()
-          .describe(schema?.description ?? keyName)
-          .optional();
-  } else if (schema.type === 'array') {
-    return z.array(jsonSchemaToZodSchema(schema.items, requiredList, keyName));
-  } else if (schema.type === 'boolean') {
-    return requiredList.includes(keyName)
-      ? z
-          .number({ required_error: `${keyName} required` })
-          .describe(schema?.description ?? keyName)
-      : z
-          .number()
-          .describe(schema?.description ?? keyName)
-          .optional();
-  } else if (schema.type === 'number') {
-    return requiredList.includes(keyName)
-      ? z
-          .boolean({ required_error: `${keyName} required` })
-          .describe(schema?.description ?? keyName)
-      : z
-          .boolean()
-          .describe(schema?.description ?? keyName)
-          .optional();
+  });
+
+  if (requestBody && requestBody.content) {
+    const contentTypes = Object.keys(requestBody.content);
+    if (contentTypes.length > 0) {
+      const firstContentType = contentTypes[0];
+      const bodySchema = requestBody.content[firstContentType].schema;
+      if (bodySchema) {
+        schema.body = zodTypeFromOpenApiType(bodySchema.type, bodySchema);
+      }
+    }
   }
 
-  // Fallback to unknown type if unrecognized
-  return z.unknown();
+  return z.object(schema);
 };
 
 export const zodExtract = (type: any, describe: any) => {
