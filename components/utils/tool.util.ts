@@ -1,4 +1,3 @@
-
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { z, ZodSchema, ZodTypeAny } from 'zod';
@@ -61,6 +60,18 @@ export const extractParameters = (param: any, paramZodObj: any) => {
       paramZodObj[paramName] = z
         .boolean({ required_error: `${paramName} required` })
         .describe(paramDesc);
+    } else {
+      paramZodObj[paramName] = z.boolean().describe(paramDesc).optional();
+    }
+  } else if (paramSchema.type === 'array') {
+    if (param.required) {
+      console.log(param.schema.items.enum);
+      paramZodObj[paramName] = paramSchema.items.enum
+        ? z
+            .array(z.enum(paramSchema.items.enum))
+            .default(paramSchema.items.default || paramSchema.items[0])
+            .describe(paramDesc)
+        : z.array(z.string());
     } else {
       paramZodObj[paramName] = z.boolean().describe(paramDesc).optional();
     }
@@ -163,8 +174,7 @@ export const zodExtract = (type: any, describe: any) => {
   if (type == 'vector<address>') return z.array(z.string()).describe(describe);
   if (type == 'vector<string::String>')
     return z.array(z.string()).describe(describe);
-  if (type == 'String')
-    return z.array(z.string()).describe(describe);
+  if (type == 'String') return z.array(z.string()).describe(describe);
   if (type == '0x1::string::String')
     return z.array(z.string()).describe(describe);
   if (type == 'generic')

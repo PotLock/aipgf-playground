@@ -259,10 +259,12 @@ export async function POST(request: Request) {
           for (const param of spec.parameters.filter(
             (param: any) => param.in === 'query'
           )) {
+            console.log(param, paramZodObjQuery);
             paramZodObjQuery = extractParameters(param, paramZodObjQuery);
           }
 
           // Combine path and query parameters
+
           zodObj = {
             ...zodObj,
             PathParameters: z.object(paramZodObjPath),
@@ -311,6 +313,7 @@ export async function POST(request: Request) {
             input: z.string().describe('Query input').optional(),
           };
         }
+        // console.log('zodObj', zodObj);
 
         tool['api_' + path.operationId + '_' + generateId()] = {
           description: toolDesc,
@@ -333,7 +336,7 @@ export async function POST(request: Request) {
             if (arg.RequestBody && path.method.toUpperCase() !== 'GET') {
               callOptions.body = JSON.stringify(arg.RequestBody);
             }
-            console.log(arg)
+            console.log(JSON.stringify(arg));
             //Bugggggggggggggggggggggggggggggggggggggggggggggggggggg
             const completeUrl = getUrl(`${baseUrl}${path.path}`, arg);
             console.log(completeUrl);
@@ -353,7 +356,7 @@ export async function POST(request: Request) {
     return tool;
   }, {});
   const streamingData = new StreamData();
-  console.log(Object.keys(toolsData));
+  // console.log(Object.keys(toolsData));
   const result = await streamText({
     model: customModel(model.apiIdentifier),
     system: `Your name are ${agent.name} \n\n ${agent.prompt}`, //modelId === 'gpt-4o-canvas' ? canvasPrompt : regularPrompt,
