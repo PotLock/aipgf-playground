@@ -162,7 +162,6 @@ export async function POST(request: Request) {
                 } else {
                   convertString = data;
                 }
-                console.log(convertString);
                 return `${convertString}`;
               } catch (error) {
                 return `Error calling contract method:${error}`;
@@ -178,7 +177,6 @@ export async function POST(request: Request) {
                 ).toString('base64'),
                 finality: 'final',
               };
-              console.log(data);
               return `${JSON.stringify(data)}`;
             }
           },
@@ -251,6 +249,7 @@ export async function POST(request: Request) {
           for (const param of spec.parameters.filter(
             (param: any) => param.in === 'path'
           )) {
+            console.log(param);
             paramZodObjPath = extractParameters(param, paramZodObjPath);
           }
 
@@ -259,7 +258,6 @@ export async function POST(request: Request) {
           for (const param of spec.parameters.filter(
             (param: any) => param.in === 'query'
           )) {
-            console.log(param, paramZodObjQuery);
             paramZodObjQuery = extractParameters(param, paramZodObjQuery);
           }
 
@@ -313,7 +311,6 @@ export async function POST(request: Request) {
             input: z.string().describe('Query input').optional(),
           };
         }
-        // console.log('zodObj', zodObj);
 
         tool['api_' + path.operationId + '_' + generateId()] = {
           description: toolDesc,
@@ -336,15 +333,13 @@ export async function POST(request: Request) {
             if (arg.RequestBody && path.method.toUpperCase() !== 'GET') {
               callOptions.body = JSON.stringify(arg.RequestBody);
             }
-            console.log(JSON.stringify(arg));
-            //Bugggggggggggggggggggggggggggggggggggggggggggggggggggg
             const completeUrl = getUrl(`${baseUrl}${path.path}`, arg);
-            console.log(completeUrl);
+            console.log(completeUrl, JSON.stringify(arg));
+            const response = await fetch(completeUrl, callOptions);
+            const data = await response.json();
 
             try {
-              const response = await fetch(completeUrl, callOptions);
-              const data = await response.json();
-              return data;
+              return JSON.stringify(data);
             } catch (error) {
               console.error('Failed to make API request:', error);
               return `Failed to make API request: ${error}`;
@@ -356,7 +351,6 @@ export async function POST(request: Request) {
     return tool;
   }, {});
   const streamingData = new StreamData();
-  // console.log(Object.keys(toolsData));
   const result = await streamText({
     model: customModel(model.apiIdentifier),
     system: `Your name are ${agent.name} \n\n ${agent.prompt}`, //modelId === 'gpt-4o-canvas' ? canvasPrompt : regularPrompt,

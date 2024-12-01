@@ -47,7 +47,7 @@ export const extractParameters = (param: any, paramZodObj: any) => {
     } else {
       paramZodObj[paramName] = z.string().describe(paramDesc).optional();
     }
-  } else if (paramSchema.type === 'number') {
+  } else if (paramSchema.type === 'number' || paramSchema.type === 'integer') {
     if (param.required) {
       paramZodObj[paramName] = z
         .number({ required_error: `${paramName} required` })
@@ -65,7 +65,6 @@ export const extractParameters = (param: any, paramZodObj: any) => {
     }
   } else if (paramSchema.type === 'array') {
     if (param.required) {
-      console.log(param.schema.items.enum);
       paramZodObj[paramName] = paramSchema.items.enum
         ? z
             .array(z.enum(paramSchema.items.enum))
