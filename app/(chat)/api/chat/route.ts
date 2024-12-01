@@ -294,7 +294,6 @@ export async function POST(request: Request) {
     }
     if (item.typeName == 'api') {
       const spec = item.data;
-      console.log(spec);
       for (const pathItem of spec.paths) {
         const {
           path,
@@ -325,7 +324,7 @@ export async function POST(request: Request) {
 
             // Handle path parameters
             for (const [key, value] of Object.entries(params)) {
-              const param = parameters.find((p) => p.name === key);
+              const param = parameters.find((p: any) => p.name === key);
               if (param && param.in === 'path') {
                 fullPath = fullPath.replace(
                   `{${key}}`,
@@ -350,8 +349,8 @@ export async function POST(request: Request) {
               body = new FormData();
             }
 
-            for (const [key, value] of Object.entries(params)) {
-              const param = parameters.find((p) => p.name === key);
+            for (const [key, value] of Object.entries(params) as any) {
+              const param = parameters.find((p: any) => p.name === key);
               if (param) {
                 if (param.in === 'query') {
                   if (Array.isArray(value)) {
@@ -364,7 +363,7 @@ export async function POST(request: Request) {
                 }
               } else if (key === 'body') {
                 if (contentType === 'application/octet-stream') {
-                  if (value instanceof Blob) {
+                  if ((value instanceof Blob) as any) {
                     body = value;
                   } else {
                     throw new Error(
@@ -374,12 +373,16 @@ export async function POST(request: Request) {
                 } else if (
                   contentType === 'application/x-www-form-urlencoded'
                 ) {
-                  for (const [formKey, formValue] of Object.entries(value)) {
+                  for (const [formKey, formValue] of Object.entries(
+                    value
+                  ) as any) {
                     body.append(formKey, String(formValue));
                   }
                 } else if (contentType === 'multipart/form-data') {
-                  for (const [formKey, formValue] of Object.entries(value)) {
-                    if (formValue instanceof Blob) {
+                  for (const [formKey, formValue] of Object.entries(
+                    value
+                  ) as any) {
+                    if ((formValue instanceof Blob) as any) {
                       body.append(formKey, formValue, formValue.name);
                     } else {
                       body.append(formKey, String(formValue));
@@ -396,15 +399,10 @@ export async function POST(request: Request) {
             }
 
             headers.append('Content-Type', contentType);
-            console.log(
-              body,
-              method,
-              contentType === 'application/json'
-                ? body
-                : body instanceof Blob
-                  ? body
-                  : body?.toString()
-            );
+
+            if (contentType === 'application/json') {
+              headers.append('Accept', 'application/json');
+            }
             try {
               const response = await fetch(url.toString(), {
                 method: method.toUpperCase(),
