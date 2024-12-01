@@ -253,6 +253,7 @@ export async function POST(request: Request) {
           parameters: createParametersSchema(parameters, requestBody),
           execute: async (params: any) => {
             // Parse the endpoint URL
+            console.log(params)
             const endpointUrl = new URL(spec.endpoint);
 
             // Combine the endpoint's pathname with the path, ensuring we don't lose any parts
@@ -304,19 +305,29 @@ export async function POST(request: Request) {
                 }
               } else if (key === 'body') {
                 if (contentType === 'application/octet-stream') {
-                  console.log(body);
+                  console.log(value);
                   if (value instanceof Blob) {
                     body = value;
-                  } else if (
-                    typeof value === 'string' &&
-                    value.startsWith('data:')
-                  ) {
-                    // Handle base64 encoded data URLs
-                    const res = await fetch(value);
-                    body = await res.blob();
+                  } else if (typeof value === 'string') {
+                    if (value.startsWith('data:')) {
+                      // Handle base64 encoded data URLs
+                      const res = await fetch(value);
+                      body = await res.blob();
+                    } else if (
+                      value.startsWith('http://') ||
+                      value.startsWith('https://')
+                    ) {
+                      // Handle image URLs
+                      const res = await fetch(value);
+                      body = await res.blob();
+                    } else {
+                      console.log(
+                        'Invalid image data. Must be a Blob, data URL, or image URL.'
+                      );
+                    }
                   } else {
                     console.log(
-                      'Binary data must be provided as a Blob, File, or data URL for application/octet-stream'
+                      'Binary data must be provided as a Blob, data URL, or image URL for application/octet-stream'
                     );
                   }
                 } else if (
