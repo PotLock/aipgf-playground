@@ -236,6 +236,7 @@ export async function POST(request: Request) {
     }
     if (item.typeName == 'api') {
       const spec = item.data;
+      console.log(spec);
       for (const pathItem of spec.paths) {
         const {
           path,
@@ -253,7 +254,7 @@ export async function POST(request: Request) {
           parameters: createParametersSchema(parameters, requestBody),
           execute: async (params: any) => {
             // Parse the endpoint URL
-            console.log(params)
+            console.log(params);
             const endpointUrl = new URL(spec.endpoint);
 
             // Combine the endpoint's pathname with the path, ensuring we don't lose any parts
@@ -319,7 +320,10 @@ export async function POST(request: Request) {
                     ) {
                       // Handle image URLs
                       const res = await fetch(value);
-                      body = await res.blob();
+                      const blob = await res.blob();
+
+                      body = new FormData();
+                      body.append('file', blob, 'filename.jpg');
                     } else {
                       console.log(
                         'Invalid image data. Must be a Blob, data URL, or image URL.'
@@ -336,6 +340,7 @@ export async function POST(request: Request) {
                   for (const [formKey, formValue] of Object.entries(
                     value
                   ) as any) {
+                    console.log('hello');
                     body.append(formKey, String(formValue));
                   }
                 } else if (contentType === 'multipart/form-data') {
@@ -360,7 +365,10 @@ export async function POST(request: Request) {
 
             headers.append('Content-Type', contentType);
 
-            if (contentType === 'application/json') {
+            if (
+              contentType === 'application/json' ||
+              contentType === 'application/octet-stream'
+            ) {
               headers.append('Accept', 'application/json');
             }
             console.log(url.toString(), body);

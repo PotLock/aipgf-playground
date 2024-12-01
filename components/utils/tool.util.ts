@@ -124,7 +124,6 @@ function zodTypeFromOpenApiType(type: string, schema: any = {}): z.ZodTypeAny {
       return z.any();
   }
 }
-
 export const createParametersSchema = (
   parameters: any[],
   requestBody: any = null
@@ -146,17 +145,14 @@ export const createParametersSchema = (
       const firstContentType = contentTypes[0];
       const bodySchema = requestBody.content[firstContentType].schema;
       if (bodySchema) {
-        if (firstContentType === 'application/octet-stream') {
-          schema.body = z.instanceof(Blob);
-        } else {
-          schema.body = zodTypeFromOpenApiType(bodySchema.type, bodySchema);
-        }
+        schema.body = zodTypeFromOpenApiType(bodySchema.type, bodySchema);
       }
     }
   }
 
   return z.object(schema);
 };
+
 export const zodExtract = (type: any, describe: any) => {
   if (type == 'u128') return z.number().describe(describe);
   if (type == 'u64') return z.number().describe(describe);
