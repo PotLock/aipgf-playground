@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import { DEFAULT_MODEL_NAME, models } from '@/ai/models';
 import { auth } from '@/app/(auth)/auth';
 import { Chat } from '@/components/custom/chat';
-import { getAgentById } from '@/db/queries';
+import { getAgentById, getToolsByIds } from '@/db/queries';
 import { generateUUID } from '@/lib/utils';
 
 export default async function Page(props: { searchParams: Promise<any> }) {
@@ -33,6 +33,8 @@ export default async function Page(props: { searchParams: Promise<any> }) {
         models.find((model) => model.id === modelIdFromCookie)?.id ||
         DEFAULT_MODEL_NAME;
     const id = generateUUID();
+    const tools = await getToolsByIds(agent.tools as any);
+
     return (
         <Chat
             key={id}
@@ -41,6 +43,7 @@ export default async function Page(props: { searchParams: Promise<any> }) {
             selectedModelId={selectedModelId}
             agent={agent as any}
             user={session.user as any}
+            tools={tools}
         />
     );
 }
