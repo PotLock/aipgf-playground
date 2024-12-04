@@ -154,7 +154,9 @@ export function MultimodalInput({
       if (response.ok) {
         const data = await response.json();
         const { url, pathname, contentType } = data;
-
+        if (textareaRef.current) {
+          setInput(textareaRef.current.value + `\n![Alt text](${url})`);
+        }
         return {
           url,
           name: pathname,

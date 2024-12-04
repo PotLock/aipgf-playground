@@ -388,7 +388,7 @@ export async function POST(request: Request) {
                 return data;
               }
             } catch (error) {
-              console.error('Failed to make API request:', error);
+              console.error('Failed to make API request:', error, params);
               if (error && typeof error === 'object') {
                 return `Failed to make API request: ${JSON.stringify(error)}`;
               } else {
