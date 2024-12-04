@@ -75,43 +75,43 @@ export function CreateToolForm({
     { value: 'api', label: 'API', icon: Webhook },
   ]
 
+  const httpMethods = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head']
+  const parameterLocations = ['query', 'path', 'header', 'cookie']
+  const parameterTypes = ['string', 'number', 'integer', 'boolean', 'array', 'object']
+
+
   const addApiPath = () => {
     setApiPaths([...apiPaths, {
       path: '',
       method: 'get',
       summary: '',
       description: '',
-      operationId: '',
-      requestBody: null,
+      operationId: '', // Add this line
+      requestBody: null, // Add this line
       parameters: [{ name: '', in: 'query', description: '', required: false, type: 'string' }]
     }])
-    updateApiJsonInput()
   }
 
   const removeApiPath = (index: number) => {
     setApiPaths(apiPaths.filter((_, i) => i !== index))
-    updateApiJsonInput()
   }
 
-  const updateApiPath = (index: number, field: string, value: string) => {
+  const updateApiPath = (index: number, field: string, value: string | any) => {
     const newPaths = [...apiPaths]
     newPaths[index] = { ...newPaths[index], [field]: value }
     setApiPaths(newPaths)
-    updateApiJsonInput()
   }
 
   const addApiParameter = (pathIndex: number) => {
     const newPaths = [...apiPaths]
     newPaths[pathIndex].parameters.push({ name: '', in: 'query', description: '', required: false, type: 'string' })
     setApiPaths(newPaths)
-    updateApiJsonInput()
   }
 
   const removeApiParameter = (pathIndex: number, paramIndex: number) => {
     const newPaths = [...apiPaths]
     newPaths[pathIndex].parameters = newPaths[pathIndex].parameters.filter((_, i) => i !== paramIndex)
     setApiPaths(newPaths)
-    updateApiJsonInput()
   }
 
   const updateApiParameter = (pathIndex: number, paramIndex: number, field: string, value: string | boolean) => {
@@ -121,13 +121,7 @@ export function CreateToolForm({
       [field]: value
     }
     setApiPaths(newPaths)
-    updateApiJsonInput()
   }
-
-  const httpMethods = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head']
-  const parameterLocations = ['query', 'path', 'header', 'cookie']
-  const parameterTypes = ['string', 'number', 'integer', 'boolean', 'array', 'object']
-
 
   const handleApiSpecFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -143,28 +137,17 @@ export function CreateToolForm({
           setApiEndpoint(json.servers?.[0]?.url || '')
           // Parse paths
           const paths = Object.entries(json.paths || {}).map(([path, methods]: [string, any]) => {
-            const method = Object.keys(methods)[0]
-            const methodDetails = methods[method]
-            return {
+            return Object.entries(methods).map(([method, details]: [string, any]) => ({
               path,
               method,
-              operationId: methodDetails.operationId || '',
-              summary: methodDetails.summary || '',
-              description: methodDetails.description || '',
-              requestBody: methodDetails.requestBody || null,
-              parameters: methodDetails.parameters || [],
-            }
-          })
+              summary: details.summary || '',
+              description: details.description || '',
+              operationId: details.operationId || '',
+              requestBody: details.requestBody || null,
+              parameters: details.parameters || []
+            }))
+          }).flat()
           setApiPaths(paths)
-          const jsonData = {
-            title: json.info?.title || '',
-            version: json.info?.version || '',
-            description: json.info?.description || '',
-            endpoint: json.servers?.[0]?.url || '',
-            key: apiKey,
-            paths: paths
-          };
-          setData(JSON.stringify(jsonData, null, 2));
         } catch (error) {
           console.error('Error parsing JSON:', error)
           alert('Error parsing JSON file. Please make sure it\'s a valid OpenAPI v3 specification.')
@@ -244,6 +227,21 @@ export function CreateToolForm({
   }, [widgetCode, widgetArgs])
 
 
+
+  useEffect(() => {
+    const data = {
+      title: apiTitle,
+      version: apiVersion,
+      description: apiDescription,
+      endpoint: apiEndpoint,
+      apiKey: apiKey,
+      key: apiKey,
+      paths: apiPaths
+    };
+    setData(JSON.stringify(data));
+  }, [apiTitle, apiVersion, apiDescription, apiEndpoint, apiKey, apiPaths])
+
+
   const chains = ['near', 'ethereum', 'polygon', 'bsc'] // Add more chains as needed
   const networks = ['mainnet', 'testnet'] // Add more networks as needed
 
@@ -298,15 +296,7 @@ export function CreateToolForm({
 
 
   const updateApiJsonInput = () => {
-    const jsonData = {
-      title: apiTitle,
-      version: apiVersion,
-      description: apiDescription,
-      endpoint: apiEndpoint,
-      key: apiKey,
-      paths: apiPaths
-    };
-    setData(JSON.stringify(jsonData, null, 2));
+
   }
 
   const parseApiJson = (jsonString: string) => {
@@ -532,10 +522,7 @@ export function CreateToolForm({
                       name="api-title"
                       placeholder="Enter API title"
                       value={apiTitle}
-                      onChange={(e) => {
-                        setApiTitle(e.target.value)
-                        updateApiJsonInput()
-                      }}
+                      onChange={(e) => setApiTitle(e.target.value)}
                     />
                   </div>
                   <div>
@@ -545,10 +532,8 @@ export function CreateToolForm({
                       name="api-version"
                       placeholder="Enter API version"
                       value={apiVersion}
-                      onChange={(e) => {
-                        setApiVersion(e.target.value)
-                        updateApiJsonInput()
-                      }} />
+                      onChange={(e) => setApiVersion(e.target.value)}
+                    />
                   </div>
                   <div>
                     <Label htmlFor="api-description">API Description</Label>
@@ -557,10 +542,8 @@ export function CreateToolForm({
                       name="api-description"
                       placeholder="Enter API description"
                       value={apiDescription}
-                      onChange={(e) => {
-                        setApiDescription(e.target.value)
-                        updateApiJsonInput()
-                      }} />
+                      onChange={(e) => setApiDescription(e.target.value)}
+                    />
                   </div>
                   <div>
                     <Label htmlFor="api-endpoint">API Endpoint</Label>
@@ -569,10 +552,7 @@ export function CreateToolForm({
                       name="api-endpoint"
                       placeholder="Enter API endpoint"
                       value={apiEndpoint}
-                      onChange={(e) => {
-                        setApiEndpoint(e.target.value)
-                        updateApiJsonInput()
-                      }}
+                      onChange={(e) => setApiEndpoint(e.target.value)}
                     />
                   </div>
                   <div>
@@ -583,10 +563,7 @@ export function CreateToolForm({
                       type="password"
                       placeholder="Enter API key"
                       value={apiKey}
-                      onChange={(e) => {
-                        setApiKey(e.target.value)
-                        updateApiJsonInput()
-                      }}
+                      onChange={(e) => setApiKey(e.target.value)}
                     />
                   </div>
                   <div className="space-y-4">
@@ -606,7 +583,7 @@ export function CreateToolForm({
                                     onClick={() => removeApiPath(pathIndex)}
                                     aria-label={`Remove path ${pathIndex + 1}`}
                                   >
-                                    <Trash2 className="size--4" />
+                                    <X className="size-4" />
                                   </Button>
                                 </div>
                                 <div>
@@ -694,7 +671,7 @@ export function CreateToolForm({
                                             onClick={() => removeApiParameter(pathIndex, paramIndex)}
                                             aria-label={`Remove parameter ${paramIndex + 1}`}
                                           >
-                                            <Trash2 className="size--4" />
+                                            <X className="size-4" />
                                           </Button>
                                         </div>
                                         <div>
@@ -795,13 +772,24 @@ export function CreateToolForm({
                     />
                   </div>
                   {apiSpecFile && (
-                    <div>
+                    <div className="space-y-2">
                       <p>File uploaded: {apiSpecFile.name}</p>
                       <p>API Title: {apiTitle}</p>
                       <p>API Version: {apiVersion}</p>
                       <p>API Description: {apiDescription}</p>
                       <p>API Endpoint: {apiEndpoint}</p>
                       <p>Paths: {apiPaths.length}</p>
+                      <div className="mt-4">
+                        <h4 className="text-md font-semibold mb-2">API Paths:</h4>
+                        {apiPaths.map((path, index) => (
+                          <div key={index} className="border p-2 rounded mb-2">
+                            <p><strong>Path:</strong> {path.path}</p>
+                            <p><strong>Method:</strong> {path.method.toUpperCase()}</p>
+                            <p><strong>Summary:</strong> {path.summary}</p>
+                            <p><strong>Operation ID:</strong> {path.operationId}</p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

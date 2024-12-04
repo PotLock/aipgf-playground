@@ -8,11 +8,7 @@ import './globals.css';
 export const metadata: Metadata = {
   metadataBase: new URL('https://playground.aipgf.com/'),
   title: 'AIPGF - Playground',
-  description: 'AIPGF - Playground build agent on multichain.',
-  icons: {
-    icon: "/Logo.svg",
-    apple: "/Logo.svg",
-  },
+  description: 'AIPGF - Playground build agent onchain for low dev.'
 };
 
 export const viewport = {

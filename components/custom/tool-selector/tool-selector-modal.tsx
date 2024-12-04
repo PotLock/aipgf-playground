@@ -83,26 +83,28 @@ export function ToolSelectorModal({
                         <TabsTrigger value="user">Your created Tools</TabsTrigger>
                         <TabsTrigger value="favorite">Favorite Tools</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="user">
-                        {userTools.map((tool) => (
-                            <ToolCard
-                                key={tool.id}
-                                tool={tool}
-                                isSelected={tempSelectedTools.some((t) => t.id === tool.id)}
-                                onSelect={() => handleToolToggle(tool)}
-                            />
-                        ))}
-                    </TabsContent>
-                    <TabsContent value="favorite">
-                        {favoriteTools.map((tool) => (
-                            <ToolCard
-                                key={tool.id}
-                                tool={tool}
-                                isSelected={tempSelectedTools.some((t) => t.id === tool.id)}
-                                onSelect={() => handleToolToggle(tool)}
-                            />
-                        ))}
-                    </TabsContent>
+                    <div className="h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                        <TabsContent value="user">
+                            {userTools.map((tool) => (
+                                <ToolCard
+                                    key={tool.id}
+                                    tool={tool}
+                                    isSelected={tempSelectedTools.some((t) => t.id === tool.id)}
+                                    onSelect={() => handleToolToggle(tool)}
+                                />
+                            ))}
+                        </TabsContent>
+                        <TabsContent value="favorite">
+                            {favoriteTools.map((tool) => (
+                                <ToolCard
+                                    key={tool.id}
+                                    tool={tool}
+                                    isSelected={tempSelectedTools.some((t) => t.id === tool.id)}
+                                    onSelect={() => handleToolToggle(tool)}
+                                />
+                            ))}
+                        </TabsContent>
+                    </div>
                 </Tabs>
                 <div className="mt-4 flex justify-end">
                     <Button onClick={handleSave}>Save Selection</Button>

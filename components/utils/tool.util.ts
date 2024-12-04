@@ -108,7 +108,7 @@ function zodTypeFromOpenApiType(type: string, schema: any = {}): z.ZodTypeAny {
     case 'boolean':
       return z.boolean();
     case 'array':
-      return z.array(zodTypeFromOpenApiType(schema.items?.type, schema.items));
+      return z.any();
     case 'object':
       const objectSchema: Record<string, z.ZodTypeAny> = {};
       for (const [prop, propSchema] of Object.entries(
