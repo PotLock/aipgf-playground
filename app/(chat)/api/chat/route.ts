@@ -247,130 +247,130 @@ export async function POST(request: Request) {
           requestBody,
           parameters,
         } = pathItem;
-
         tool[operationId] = {
           description:
             summary || description || `${method.toUpperCase()} ${path}`,
           parameters: createParametersSchema(parameters, requestBody),
           execute: async (params: any) => {
             // Parse the endpoint URL
-            const endpointUrl = new URL(spec.endpoint);
+            try {
+              const endpointUrl = new URL(spec.endpoint);
 
-            // Combine the endpoint's pathname with the path, ensuring we don't lose any parts
-            let fullPath = `${endpointUrl.pathname}${path}`.replace(
-              /\/+/g,
-              '/'
-            );
-            if (!fullPath.startsWith('/')) {
-              fullPath = '/' + fullPath;
-            }
-
-            // Handle path parameters
-            for (const [key, value] of Object.entries(params)) {
-              const param = parameters.find((p: any) => p.name === key);
-              if (param && param.in === 'path') {
-                fullPath = fullPath.replace(
-                  `{${key}}`,
-                  encodeURIComponent(String(value))
-                );
+              // Combine the endpoint's pathname with the path, ensuring we don't lose any parts
+              let fullPath = `${endpointUrl.pathname}${path}`.replace(
+                /\/+/g,
+                '/'
+              );
+              if (!fullPath.startsWith('/')) {
+                fullPath = '/' + fullPath;
               }
-            }
 
-            // Construct the final URL
-            const url = new URL(fullPath, endpointUrl.origin);
-            const queryParams = new URLSearchParams();
-            const headers = new Headers();
-            let body: any;
-
-            const contentType = requestBody?.content
-              ? Object.keys(requestBody.content)[0]
-              : 'application/json';
-            if (contentType === 'application/x-www-form-urlencoded') {
-              body = new URLSearchParams();
-            } else if (contentType === 'multipart/form-data') {
-              body = new FormData();
-            }
-
-            for (const [key, value] of Object.entries(params) as any) {
-              const param = parameters.find((p: any) => p.name === key);
-              if (param) {
-                if (param.in === 'query') {
-                  if (Array.isArray(value)) {
-                    value.forEach((v) => queryParams.append(key, String(v)));
-                  } else {
-                    queryParams.append(key, String(value));
-                  }
-                } else if (param.in === 'header') {
-                  headers.append(key, String(value));
+              // Handle path parameters
+              for (const [key, value] of Object.entries(params)) {
+                const param = parameters.find((p: any) => p.name === key);
+                if (param && param.in === 'path') {
+                  fullPath = fullPath.replace(
+                    `{${key}}`,
+                    encodeURIComponent(String(value))
+                  );
                 }
-              } else if (key === 'body') {
-                if (contentType === 'application/octet-stream') {
-                  if (value instanceof Blob) {
-                    body = value;
-                  } else if (typeof value === 'string') {
-                    if (value.startsWith('data:')) {
-                      // Handle base64 encoded data URLs
-                      const res = await fetch(value);
-                      body = await res.blob();
-                    } else if (
-                      value.startsWith('http://') ||
-                      value.startsWith('https://')
-                    ) {
-                      // Handle image URLs
-                      const res = await fetch(value);
-                      const blob = await res.blob();
+              }
 
-                      body = new FormData();
-                      body.append('file', blob, 'filename.jpg');
+              // Construct the final URL
+              const url = new URL(fullPath, endpointUrl.origin);
+              const queryParams = new URLSearchParams();
+              const headers = new Headers();
+              let body: any;
+
+              const contentType = requestBody?.content
+                ? Object.keys(requestBody.content)[0]
+                : 'application/json';
+              if (contentType === 'application/x-www-form-urlencoded') {
+                body = new URLSearchParams();
+              } else if (contentType === 'multipart/form-data') {
+                body = new FormData();
+              }
+
+              for (const [key, value] of Object.entries(params) as any) {
+                const param = parameters.find((p: any) => p.name === key);
+                if (param) {
+                  if (param.in === 'query') {
+                    if (Array.isArray(value)) {
+                      value.forEach((v) => queryParams.append(key, String(v)));
+                    } else {
+                      queryParams.append(key, String(value));
+                    }
+                  } else if (param.in === 'header') {
+                    headers.append(key, String(value));
+                  }
+                } else if (key === 'body') {
+                  if (contentType === 'application/octet-stream') {
+                    if (value instanceof Blob) {
+                      body = value;
+                    } else if (typeof value === 'string') {
+                      if (value.startsWith('data:')) {
+                        // Handle base64 encoded data URLs
+                        const res = await fetch(value);
+                        body = await res.blob();
+                      } else if (
+                        value.startsWith('http://') ||
+                        value.startsWith('https://')
+                      ) {
+                        // Handle image URLs
+                        const res = await fetch(value);
+                        const blob = await res.blob();
+
+                        body = new FormData();
+                        body.append('file', blob, 'filename.jpg');
+                      } else {
+                        console.log(
+                          'Invalid image data. Must be a Blob, data URL, or image URL.'
+                        );
+                      }
                     } else {
                       console.log(
-                        'Invalid image data. Must be a Blob, data URL, or image URL.'
+                        'Binary data must be provided as a Blob, data URL, or image URL for application/octet-stream'
                       );
                     }
-                  } else {
-                    console.log(
-                      'Binary data must be provided as a Blob, data URL, or image URL for application/octet-stream'
-                    );
-                  }
-                } else if (
-                  contentType === 'application/x-www-form-urlencoded'
-                ) {
-                  for (const [formKey, formValue] of Object.entries(
-                    value
-                  ) as any) {
-                    body.append(formKey, String(formValue));
-                  }
-                } else if (contentType === 'multipart/form-data') {
-                  for (const [formKey, formValue] of Object.entries(
-                    value
-                  ) as any) {
-                    if ((formValue instanceof Blob) as any) {
-                      body.append(formKey, formValue, formValue.name);
-                    } else {
+                  } else if (
+                    contentType === 'application/x-www-form-urlencoded'
+                  ) {
+                    for (const [formKey, formValue] of Object.entries(
+                      value
+                    ) as any) {
                       body.append(formKey, String(formValue));
                     }
+                  } else if (contentType === 'multipart/form-data') {
+                    for (const [formKey, formValue] of Object.entries(
+                      value
+                    ) as any) {
+                      if ((formValue instanceof Blob) as any) {
+                        body.append(formKey, formValue, formValue.name);
+                      } else {
+                        body.append(formKey, String(formValue));
+                      }
+                    }
+                  } else {
+                    body = JSON.stringify(value);
                   }
-                } else {
-                  body = JSON.stringify(value);
                 }
               }
-            }
 
-            if (queryParams.toString()) {
-              url.search = queryParams.toString();
-            }
-            if (item.accessToken) {
-              headers.append('Authorization', `Bearer ${item.apiKey}`);
-            }
-            headers.append('Content-Type', contentType);
-            headers.append('Accept', 'application/json');
-            // if (
-            //   contentType === 'application/json' ||
-            //   contentType === 'application/octet-stream'
-            // ) {
-            //   headers.append('Accept', 'application/json');
-            // }
-            try {
+              if (queryParams.toString()) {
+                url.search = queryParams.toString();
+              }
+              if (item.accessToken) {
+                headers.append('Authorization', `Bearer ${item.apiKey}`);
+              }
+              headers.append('Content-Type', contentType);
+              headers.append('Accept', 'application/json');
+              // if (
+              //   contentType === 'application/json' ||
+              //   contentType === 'application/octet-stream'
+              // ) {
+              //   headers.append('Accept', 'application/json');
+              // }
+
               const response = await fetch(url.toString(), {
                 method: method.toUpperCase(),
                 headers,
@@ -382,11 +382,18 @@ export async function POST(request: Request) {
                       : body?.toString(),
               });
               const data = await response.json();
-
-              return JSON.stringify(data);
+              if (data && typeof data === 'object') {
+                return JSON.stringify(data);
+              } else {
+                return data;
+              }
             } catch (error) {
               console.error('Failed to make API request:', error);
-              return `Failed to make API request: ${error}`;
+              if (error && typeof error === 'object') {
+                return `Failed to make API request: ${JSON.stringify(error)}`;
+              } else {
+                return `Failed to make API request: ${error}`;
+              }
             }
           },
         };
