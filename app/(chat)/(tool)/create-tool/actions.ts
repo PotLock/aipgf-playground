@@ -29,14 +29,17 @@ export const createToolAction = async (
 ): Promise<CreateToolActionState> => {
   try {
     const session = await auth();
-    const imageFile = formData.get('avatar') as File;
-
-    const blob = await put(imageFile.name, imageFile, {
-      access: 'public',
-    });
+    let avatarUrl: string | undefined;
+    const imageFile = formData.get('avatar') as File | null;
+    if (imageFile && imageFile.size > 0) {
+      const blob = await put(imageFile.name, imageFile, {
+        access: 'public',
+      });
+      avatarUrl = blob.url;
+    }
 
     const validatedData = createToolFormSchema.parse({
-      avatar: blob,
+      avatar: avatarUrl,
       name: formData.get('name'),
       description: formData.get('description'),
       data: formData.get('data'),
@@ -44,7 +47,7 @@ export const createToolAction = async (
     });
     await createTool({
       name: validatedData.name,
-      avatar: validatedData.avatar.url,
+      avatar: validatedData.avatar,
       description: validatedData.description,
       data: validatedData.data,
       typeName: validatedData.typeName,

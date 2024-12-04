@@ -32,26 +32,29 @@ export const createAgentAction = async (
 ): Promise<CreateAgentActionState> => {
   try {
     const session = await auth();
-    const imageFile = formData.get('avatar') as File;
-
-    const blob = await put(imageFile.name, imageFile, {
-      access: 'public',
-    });
+    let avatarUrl: string | undefined;
+    const imageFile = formData.get('avatar') as File | null;
+    if (imageFile && imageFile.size > 0) {
+      const blob = await put(imageFile.name, imageFile, {
+        access: 'public',
+      });
+      avatarUrl = blob.url;
+    }
     const validatedData = createAgentFormSchema.parse({
-      avatar: blob,
+      avatar: avatarUrl,
       name: formData.get('name'),
       description: formData.get('description'),
       intro: formData.get('intro'),
       model: formData.get('model'),
       prompt: formData.get('prompt'),
-      tools: formData.get('tools'),
-      suggestedActions: formData.get('suggestedActions'),
+      tools: formData.get('tools') || '[]',
+      suggestedActions: formData.get('suggestedActions') || '[]',
     });
     const tools = JSON.parse(validatedData.tools);
     const suggestedActions = JSON.parse(validatedData.suggestedActions);
     await createAgent({
       name: validatedData.name,
-      avatar: validatedData.avatar.url,
+      avatar: validatedData.avatar,
       description: validatedData.description,
       intro: validatedData.intro,
       model: validatedData.model,
@@ -64,7 +67,7 @@ export const createAgentAction = async (
 
     return { status: 'success' };
   } catch (error) {
-    console.log(error)
+    console.log(error);
     if (error instanceof z.ZodError) {
       return { status: 'invalid_data' };
     }

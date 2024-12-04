@@ -583,7 +583,7 @@ export function CreateToolForm({
                                     onClick={() => removeApiPath(pathIndex)}
                                     aria-label={`Remove path ${pathIndex + 1}`}
                                   >
-                                    <X className="h-4 w-4" />
+                                    <X className="size-4" />
                                   </Button>
                                 </div>
                                 <div>
@@ -671,7 +671,7 @@ export function CreateToolForm({
                                             onClick={() => removeApiParameter(pathIndex, paramIndex)}
                                             aria-label={`Remove parameter ${paramIndex + 1}`}
                                           >
-                                            <X className="h-4 w-4" />
+                                            <X className="size-4" />
                                           </Button>
                                         </div>
                                         <div>
@@ -745,7 +745,7 @@ export function CreateToolForm({
                                     </Card>
                                   ))}
                                   <Button onClick={() => addApiParameter(pathIndex)} className="w-full">
-                                    <Plus className="mr-2 h-4 w-4" /> Add Parameter
+                                    <Plus className="mr-2 size-4" /> Add Parameter
                                   </Button>
                                 </div>
                               </CardContent>
@@ -755,7 +755,7 @@ export function CreateToolForm({
                       </Accordion>
                     ))}
                     <Button onClick={addApiPath} className="w-full">
-                      <Plus className="mr-2 h-4 w-4" /> Add Path
+                      <Plus className="mr-2 size-4" /> Add Path
                     </Button>
                   </div>
                 </div>

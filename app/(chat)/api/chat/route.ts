@@ -140,6 +140,7 @@ export async function POST(request: Request) {
           execute: async (ParametersData: ParametersData) => {
             if (item.data.chain == 'near' && itemMethod.kind == 'view') {
               try {
+                // Should create relay server to get data
                 const provider = new providers.JsonRpcProvider({
                   url: `https://rpc.${item.data.network}.near.org`,
                 });
@@ -304,7 +305,6 @@ export async function POST(request: Request) {
                 }
               } else if (key === 'body') {
                 if (contentType === 'application/octet-stream') {
-                  
                   if (value instanceof Blob) {
                     body = value;
                   } else if (typeof value === 'string') {
@@ -359,7 +359,9 @@ export async function POST(request: Request) {
             if (queryParams.toString()) {
               url.search = queryParams.toString();
             }
-
+            if (item.accessToken) {
+              headers.append('Authorization', `Bearer ${item.apiKey}`);
+            }
             headers.append('Content-Type', contentType);
             headers.append('Accept', 'application/json');
             // if (
@@ -380,7 +382,7 @@ export async function POST(request: Request) {
                       : body?.toString(),
               });
               const data = await response.json();
-              
+
               return JSON.stringify(data);
             } catch (error) {
               console.error('Failed to make API request:', error);
