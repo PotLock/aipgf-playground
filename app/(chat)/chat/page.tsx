@@ -33,7 +33,6 @@ export default async function Page(props: { searchParams: Promise<any> }) {
         models.find((model) => model.id === modelIdFromCookie)?.id ||
         DEFAULT_MODEL_NAME;
     const id = generateUUID();
-    console.log(agent)
     const tools = await getToolsByIds(agent.tools as any);
     return (
         <Chat
