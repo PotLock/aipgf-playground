@@ -384,7 +384,7 @@ export function CreateToolForm({
                   </CardContent>
                 </Card>
               ))}
-              <Button onClick={addWidgetArg} className="w-full">
+              <Button onClick={(e) => { e.preventDefault(); addWidgetArg() }} className="w-full">
                 <Plus className="mr-2 size-4" /> Add Argument
               </Button>
             </div>

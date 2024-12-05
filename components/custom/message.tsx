@@ -71,12 +71,12 @@ export const PreviewMessage = ({
                 const { toolName, toolCallId, state, args } = toolInvocation;
 
                 if (state === 'result') {
-                  const { result } = toolInvocation;
+                  const { result, args } = toolInvocation;
 
                   return (
                     <div key={toolCallId}>
-                      {toolName === 'getWeather' ? (
-                        <Weather weatherAtLocation={result} />
+                      {toolName.includes('widget') ? (
+                        <p>{result} {JSON.stringify(args)}</p>
                       ) : toolName === 'createDocument' ? (
                         <DocumentToolResult
                           type="create"

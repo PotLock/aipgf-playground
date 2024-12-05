@@ -227,7 +227,7 @@ export async function POST(request: Request) {
         )
       );
 
-      tool[tool.id] = {
+      tool['widget' + '_' + generateId()] = {
         description: item.description,
         parameters: z.object(ParametersSchema),
         execute: async (ParametersSchema: ParametersData) => {
