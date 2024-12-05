@@ -122,9 +122,31 @@ export function MultimodalInput({
   const submitForm = useCallback(() => {
     window.history.replaceState({}, '', `/chat/${chatId}`);
 
-    handleSubmit(undefined, {
-      experimental_attachments: attachments,
-    });
+
+    if (attachments.length > 0) {
+      const photoLinks = attachments
+        .filter((attachment): attachment is Attachment & { contentType: string } =>
+          attachment.contentType !== undefined && attachment.contentType.startsWith('image/'))
+        .map(attachment => `![${attachment.name}](${attachment.url})`)
+        .join(' ');
+
+      const messageContent = photoLinks
+        ? `${input}\n\n image:\n ${photoLinks}`
+        : input;
+
+      append({
+        role: 'user',
+        content: messageContent,
+      }, {
+        experimental_attachments: attachments,
+      })
+      setInput('')
+    } else {
+
+      handleSubmit(undefined, {
+        experimental_attachments: attachments,
+      });
+    }
 
     setAttachments([]);
     setLocalStorageInput('');
@@ -133,6 +155,9 @@ export function MultimodalInput({
       textareaRef.current?.focus();
     }
   }, [
+    append,
+    input,
+    setInput,
     attachments,
     handleSubmit,
     setAttachments,
@@ -154,9 +179,7 @@ export function MultimodalInput({
       if (response.ok) {
         const data = await response.json();
         const { url, pathname, contentType } = data;
-        if (textareaRef.current) {
-          setInput(textareaRef.current.value + `\n![${pathname}](${url})`);
-        }
+
         return {
           url,
           name: pathname,
