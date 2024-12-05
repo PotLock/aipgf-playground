@@ -6,14 +6,14 @@ import { ErrorBoundary } from 'react-error-boundary';
 import StringToReactComponent from 'string-to-react-component';
 
 export const ViewFrame = ({ code, args }: { code: string, args: any }) => {
-    const nearProvider = new providers.JsonRpcProvider({
+    const near = new providers.JsonRpcProvider({
         url: `https://rpc.mainnet.near.org`,
     });
 
     return (
         <>
             <ErrorBoundary fallback={<div>Something went wrong</div>}>
-                <StringToReactComponent data={{ useEffect, useState, nearProvider }}>
+                <StringToReactComponent data={{ useEffect, useState, near }}>
                     {`(props)=>{
                         ${code}
                     }`}
