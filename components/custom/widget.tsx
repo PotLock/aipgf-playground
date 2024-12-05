@@ -15,6 +15,7 @@ export const ViewFrame = ({ code, args }: { code: string, args: any }) => {
             <ErrorBoundary fallback={<div>Something went wrong</div>}>
                 <StringToReactComponent data={{ useEffect, useState, near }}>
                     {`(props)=>{
+                       const { useEffect , useState , near } = props;
                         ${code}
                     }`}
                 </StringToReactComponent>
