@@ -10,13 +10,19 @@ export const ViewFrame = ({ code, args }: { code: string, args: any }) => {
         url: `https://rpc.mainnet.near.org`,
     });
 
+    function widget({ code }: any) {
+        return <p>{code}</p>;
+    }
+
+    const destructuringString = `const { ${Object.keys(args).join(', ')} } = args;`;
     return (
         <>
             <ErrorBoundary fallback={<div>Something went wrong</div>}>
-                <StringToReactComponent data={{ useEffect, useState, near }}>
+                <StringToReactComponent data={{ useEffect, useState, near, args, widget }}>
                     {`(props)=>{
                        const { useEffect , useState , near } = props;
-                        ${code}
+                       ${destructuringString}
+                       ${code}
                     }`}
                 </StringToReactComponent>
             </ErrorBoundary>
