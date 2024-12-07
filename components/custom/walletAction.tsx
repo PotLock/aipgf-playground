@@ -1,7 +1,5 @@
 'use client';
 
-
-import { providers, utils, transactions } from 'near-api-js';
 import React, { useEffect, useState } from 'react';
 
 import { useWalletSelector } from "@/components/context/wallet-selector-provider"

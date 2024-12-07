@@ -133,7 +133,7 @@ export async function POST(request: Request) {
             ([key, value]) => value !== undefined
           )
         );
-        toolMethod[ generateId()] = {
+        toolMethod[ itemMethod.name + '_' + generateId()] = {
           description: itemMethod.description || '',
           parameters: z.object(ParametersSchema),
           execute: async (ParametersData: ParametersData) => {

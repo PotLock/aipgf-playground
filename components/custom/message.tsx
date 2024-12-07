@@ -15,6 +15,7 @@ import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
 import { PreviewAttachment } from './preview-attachment';
 import { Weather } from './weather';
+import { Widget } from './widget';
 
 export const PreviewMessage = ({
   chatId,
@@ -76,8 +77,7 @@ export const PreviewMessage = ({
                   return (
                     <div key={toolCallId}>
                       {toolName.includes('widget') ? (
-                        <p>a</p>
-                      ) : toolName === 'createDocument' ? (
+                        <Widget code={result} args={args}/>                      ) : toolName === 'createDocument' ? (
                         <DocumentToolResult
                           type="create"
                           result={result}

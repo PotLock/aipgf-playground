@@ -2,9 +2,6 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  experimental: {
-    ppr: true,
-  },
   images: {
     remotePatterns: [
       {
@@ -12,6 +9,18 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  webpack: (config, { isServer }) => {
+    // Add fallback for 'fs' module
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      path: false,
+      'babel-runtime': false,
+    };
+
+    return config;
+  },
+  transpilePackages: ['@babel/standalone'],
 };
 
 export default nextConfig;
