@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react'
 import { providers } from 'near-api-js'
+import { useEffect, useState } from 'react'
 import StringToReactComponent from 'string-to-react-component'
 
 import { Transaction } from './walletAction'
