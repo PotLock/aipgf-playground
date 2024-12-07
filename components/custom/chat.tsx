@@ -79,7 +79,6 @@ export function Chat({
     useScrollToBottom<HTMLDivElement>();
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
-  console.log(messages)
   return (
     <>
       <div className="flex flex-col min-w-0 h-dvh bg-background">
