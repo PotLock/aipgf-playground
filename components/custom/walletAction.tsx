@@ -6,14 +6,13 @@ import React, { useEffect, useState } from 'react';
 
 import { useWalletSelector } from "@/components/context/wallet-selector-provider"
 
-export const SmartAction = ({ props: data, methods, receiverId }: { props: any, methods: string, receiverId: string }) => {
+export const Transaction = ({ transaction }: any) => {
 
     const { accountId, selector, modal } = useWalletSelector();
     const [isAccountAddress, setIsAccountAddress] = useState(null);
 
     useEffect(() => {
         if (accountId) {
-            console.log(accountId)
             setIsAccountAddress(accountId as any)
         }
     }, [accountId])
@@ -23,18 +22,7 @@ export const SmartAction = ({ props: data, methods, receiverId }: { props: any, 
             const wallet = await selector.wallet();
             await wallet.signAndSendTransaction({
                 signerId: accountId!,
-                receiverId,
-                actions: [
-                    {
-                        type: "FunctionCall",
-                        params: {
-                            methodName: methods,
-                            args: data,
-                            gas: "30000000000000",
-                            deposit: "10000000000000000000000",
-                        },
-                    },
-                ],
+                ...JSON.parse(transaction),
             });
         } catch (err) {
             console.error('Error', err);
@@ -44,10 +32,9 @@ export const SmartAction = ({ props: data, methods, receiverId }: { props: any, 
     return (
         <>
             <div className="flex flex-col gap-3 px-4 py-3 text-white">
-                <span>Function : {data.function}</span>
                 <p>
                     {JSON.stringify(
-                        data,
+                        transaction,
                         (key, value) => (typeof value === 'bigint' ? value.toString() : value) // return everything else unchanged
                     )}
                 </p>
@@ -69,33 +56,3 @@ export const SmartAction = ({ props: data, methods, receiverId }: { props: any, 
         </>
     );
 };
-
-export const ChainSignature = ({ props: data, methods, receiverId }: { props: any, methods: string, receiverId: string }) => {
-
-
-    const { accountId, selector, modal } = useWalletSelector();
-
-
-    const callMethod = async ({ contractId, method, args = {}, gas = '30000000000000', deposit = '0' }: { contractId: string, method: string, args?: Record<string, any>, gas?: string, deposit?: string }): Promise<any> => {
-        const selectedWallet = await selector.wallet();
-        const url = `https://rpc.mainnet.near.org`;
-        const provider = new providers.JsonRpcProvider({ url });
-
-        const outcome = await selectedWallet.signAndSendTransaction({
-            receiverId: contractId,
-            actions: [
-                {
-                    type: 'FunctionCall',
-                    params: {
-                        methodName: method,
-                        args,
-                        gas,
-                        deposit,
-                    },
-                },
-            ],
-        });
-
-        return providers.getTransactionLastResult(outcome as any);
-    };
-}

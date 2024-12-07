@@ -113,10 +113,9 @@ export async function POST(request: Request) {
     ],
   });
   // if tools = smartcontract pls create more tools by methods. smartcontract here
-
   const toolsData = tools.reduce((tool: any, item: any) => {
     if (item.typeName == 'smartcontract') {
-      tool = item.data.methods.reduce((method: any, itemMethod: any) => {
+      item.data.methods.reduce((toolMethod: any, itemMethod: any) => {
         // get args
         let params = {};
         if (itemMethod.args) {
@@ -134,7 +133,7 @@ export async function POST(request: Request) {
             ([key, value]) => value !== undefined
           )
         );
-        tool[itemMethod.name + '_' + generateId()] = {
+        toolMethod[ generateId()] = {
           description: itemMethod.description || '',
           parameters: z.object(ParametersSchema),
           execute: async (ParametersData: ParametersData) => {
@@ -167,21 +166,27 @@ export async function POST(request: Request) {
               }
             }
             if (item.data.chain == 'near' && itemMethod.kind == 'call') {
-              const data = {
-                request_type: 'call_function',
-                account_id: item.data.contractAddress,
-                method_name: itemMethod.name,
-                args_base64: Buffer.from(
-                  JSON.stringify(ParametersData)
-                ).toString('base64'),
-                finality: 'final',
+              const transaction = {
+                receiverId: item.data.contractAddress,
+                actions: [
+                  {
+                    type: 'FunctionCall',
+                    params: {
+                      methodName: itemMethod.name,
+                      args: ParametersData,
+                      gas: '30000000000000',
+                      deposit: '10000000000000000000000',
+                    },
+                  },
+                ],
               };
-              return `${JSON.stringify(data)}`;
+
+              return `transaction  ${JSON.stringify(transaction)}`;
             }
           },
         };
-        return tool;
-      });
+        return toolMethod;
+      }, tool);
       //console.log('toolSmartcontract', toolSmartcontract);
       // const [account] = item.name.split('::');
       // tool[tool.id] = {
@@ -401,6 +406,8 @@ export async function POST(request: Request) {
     }
     return tool;
   }, {});
+
+  console.log(toolsData);
   const streamingData = new StreamData();
   const result = await streamText({
     model: customModel(model.apiIdentifier),
