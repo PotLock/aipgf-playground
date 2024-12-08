@@ -2,6 +2,7 @@
 
 import { providers } from 'near-api-js'
 import { useEffect, useState } from 'react'
+import { ErrorBoundary } from 'react-error-boundary';
 import StringToReactComponent from 'string-to-react-component'
 
 import { Transaction } from './walletAction'
@@ -11,21 +12,32 @@ export const Widget = ({ code, args }: { code: string, args: any }) => {
         url: `https://rpc.mainnet.near.org`,
     });
 
-    const widget = ({ code }: any) => {
-        return <p>{code}</p>;
+
+    const generateDestructuring = (args: any) => { const keys = Object.keys(args); return keys.length ? `const { ${keys.join(', ')} } = args;` : ''; };
+    const Fallback = ({ error, resetErrorBoundary }: any) => {
+        // Call resetErrorBoundary() to reset the error boundary and retry the render.
+
+        return (
+            <div role="alert">
+                <p>Something went wrong:</p>
+                <pre style={{ color: "red" }}>{error.message}</pre>
+            </div>
+        );
     }
+    return (
 
+        <ErrorBoundary FallbackComponent={Fallback}>
 
-    return (<StringToReactComponent data={{ useEffect, useState, near, args, widget, Transaction }}>
-        {`(props)=>{
-                       const {useEffect, useState, near, args, widget, Transaction } = props;
-                           
-                          return (
-                        <Transaction transaction={args.transaction}/>
-                       )
-                    }`}
-    </StringToReactComponent>
-
+            <StringToReactComponent data={{ useEffect, useState, near, args, Transaction }}>
+                {`(props)=>{
+                    const {useEffect, useState, near, args, Transaction } = props;
+                    ${generateDestructuring(args)}
+                        return (
+                           ${code}
+                        )
+                }`}
+            </StringToReactComponent>
+        </ErrorBoundary>
     );
 
 };
