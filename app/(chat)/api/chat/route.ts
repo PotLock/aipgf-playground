@@ -127,13 +127,10 @@ export async function POST(request: Request) {
             {}
           );
         }
-        const filteredObj: any = convertParamsToZod(params);
-        const ParametersSchema: any = Object.fromEntries(
-          Object.entries(filteredObj).filter(
-            ([key, value]) => value !== undefined
-          )
-        );
-        toolMethod[ itemMethod.name + '_' + generateId()] = {
+        console.log(params);
+        const ParametersSchema: any = convertParamsToZod(params);
+
+        toolMethod[itemMethod.name + '_' + generateId()] = {
           description: itemMethod.description || '',
           parameters: z.object(ParametersSchema),
           execute: async (ParametersData: ParametersData) => {
@@ -223,19 +220,30 @@ export async function POST(request: Request) {
       // //if view return data
     }
     if (item.typeName == 'widget') {
-      const filteredObj: any = item.data.args
-        ? convertParamsToZod(item.data.args)
-        : {};
-      const ParametersSchema: any = Object.fromEntries(
-        Object.entries(filteredObj).filter(
-          ([key, value]) => value !== undefined
-        )
-      );
+      let params = {};
+      if (item.data.args) {
+        params = item.data.args.reduce(
+          (acc: any, { name, type, description }: any) => {
+            acc[name] = { type, description };
+            return acc;
+          },
+          {}
+        );
+      }
+
+      // const params ={
+      //   args: {
+      //     type: 'any',
+      //     description: 'transaction to create greeting.'
+      //   }
+      // }
+      const ParametersSchema: any = convertParamsToZod(params);
 
       tool['widget' + '_' + generateId()] = {
         description: item.description,
         parameters: z.object(ParametersSchema),
         execute: async (ParametersSchema: ParametersData) => {
+          //return <Transaction transaction={args}/>
           return item.data.code;
         },
       };
@@ -407,7 +415,6 @@ export async function POST(request: Request) {
     return tool;
   }, {});
 
-  console.log(toolsData);
   const streamingData = new StreamData();
   const result = await streamText({
     model: customModel(model.apiIdentifier),

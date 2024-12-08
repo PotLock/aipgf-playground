@@ -12,21 +12,30 @@ export const Widget = ({ code, args }: { code: string, args: any }) => {
         url: `https://rpc.mainnet.near.org`,
     });
 
-    const widget = ({ code }: any) => {
-        return <p>{code}</p>;
+
+    const generateDestructuring = (args: any) => { const keys = Object.keys(args); return keys.length ? `const { ${keys.join(', ')} } = args;` : ''; };
+    const Fallback = ({ error, resetErrorBoundary }: any) => {
+        // Call resetErrorBoundary() to reset the error boundary and retry the render.
+
+        return (
+            <div role="alert">
+                <p>Something went wrong:</p>
+                <pre style={{ color: "red" }}>{error.message}</pre>
+            </div>
+        );
     }
-
-
     return (
-        <ErrorBoundary fallback={<div>Something went wrong</div>}>
-            <StringToReactComponent data={{ useEffect, useState, near, args, widget, Transaction }}>
+
+        <ErrorBoundary FallbackComponent={Fallback}>
+
+            <StringToReactComponent data={{ useEffect, useState, near, args, Transaction }}>
                 {`(props)=>{
-                       const {useEffect, useState, near, args, widget, Transaction } = props;
-                           
-                          return (
-                        <Transaction transaction={args.transaction}/>
-                       )
-                    }`}
+                    const {useEffect, useState, near, args, Transaction } = props;
+                    ${generateDestructuring(args)}
+                        return (
+                           ${code}
+                        )
+                }`}
             </StringToReactComponent>
         </ErrorBoundary>
     );

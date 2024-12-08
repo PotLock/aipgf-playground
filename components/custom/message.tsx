@@ -77,28 +77,28 @@ export const PreviewMessage = ({
                   return (
                     <div key={toolCallId}>
                       {toolName.includes('widget') ? (
-                        <Widget code={result} args={args}/>                      ) : toolName === 'createDocument' ? (
-                        <DocumentToolResult
-                          type="create"
-                          result={result}
-                          canvas={canvas}
-                          setCanvas={setCanvas}
-                        />
-                      ) : toolName === 'updateDocument' ? (
-                        <DocumentToolResult
-                          type="update"
-                          result={result}
-                          canvas={canvas}
-                          setCanvas={setCanvas}
-                        />
-                      ) : toolName === 'requestSuggestions' ? (
-                        <DocumentToolResult
-                          type="request-suggestions"
-                          result={result}
-                          canvas={canvas}
-                          setCanvas={setCanvas}
-                        />
-                      ) : (
+                        <Widget code={result} args={args} />) : toolName === 'createDocument' ? (
+                          <DocumentToolResult
+                            type="create"
+                            result={result}
+                            canvas={canvas}
+                            setCanvas={setCanvas}
+                          />
+                        ) : toolName === 'updateDocument' ? (
+                          <DocumentToolResult
+                            type="update"
+                            result={result}
+                            canvas={canvas}
+                            setCanvas={setCanvas}
+                          />
+                        ) : toolName === 'requestSuggestions' ? (
+                          <DocumentToolResult
+                            type="request-suggestions"
+                            result={result}
+                            canvas={canvas}
+                            setCanvas={setCanvas}
+                          />
+                        ) : (
                         <pre>{JSON.stringify(result, null, 2)}</pre>
                       )}
                     </div>
