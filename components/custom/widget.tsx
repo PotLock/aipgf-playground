@@ -28,7 +28,7 @@ export const Widget = ({ code, args }: { code: string, args: any }) => {
 
         <ErrorBoundary FallbackComponent={Fallback}>
 
-            <StringToReactComponent data={{ useEffect, useState, near, args, TransactionFrame, Transaction }}>
+            <StringToReactComponent data={{ useEffect, useState, near, args, TransactionFrame, ButtonAction }}>
                 {`(props)=>{
                     const {useEffect, useState, near, args, Transaction } = props;
                     ${generateDestructuring(args)}
