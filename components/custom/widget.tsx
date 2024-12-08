@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { ErrorBoundary } from 'react-error-boundary';
 import StringToReactComponent from 'string-to-react-component'
 
-import { TransactionFrame } from './walletAction'
+import { TransactionFrame, ButtonAction } from './walletAction'
 
 export const Widget = ({ code, args }: { code: string, args: any }) => {
     const near = new providers.JsonRpcProvider({
@@ -28,7 +28,7 @@ export const Widget = ({ code, args }: { code: string, args: any }) => {
 
         <ErrorBoundary FallbackComponent={Fallback}>
 
-            <StringToReactComponent data={{ useEffect, useState, near, args, TransactionFrame }}>
+            <StringToReactComponent data={{ useEffect, useState, near, args, TransactionFrame, Transaction }}>
                 {`(props)=>{
                     const {useEffect, useState, near, args, Transaction } = props;
                     ${generateDestructuring(args)}
