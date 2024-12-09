@@ -32,9 +32,7 @@ export const Widget = ({ code, args }: { code: string, args: any }) => {
                 {`(props)=>{
                     const {useEffect, useState, near, args, Transaction } = props;
                     ${generateDestructuring(args)}
-                        return (
-                           ${code}
-                        )
+                        ${code}
                 }`}
             </StringToReactComponent>
         </ErrorBoundary>

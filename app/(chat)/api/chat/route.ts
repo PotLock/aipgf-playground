@@ -142,7 +142,6 @@ export async function POST(request: Request) {
               .default('10000000000000000000000'),
           };
         }
-        console.log(ParametersSchema);
         toolMethod[itemMethod.name + '_' + generateId()] = {
           description: itemMethod.description || '',
           parameters: z.object(ParametersSchema),
