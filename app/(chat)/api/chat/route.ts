@@ -127,13 +127,27 @@ export async function POST(request: Request) {
             {}
           );
         }
-        console.log(params);
-        const ParametersSchema: any = convertParamsToZod(params);
+        if (item.data.chain == 'near' && itemMethod.kind == 'view') {
+          console.log(params);
+        }
 
+        let ParametersSchema: any = convertParamsToZod(params);
+
+        if (item.data.chain == 'near' && itemMethod.kind == 'call') {
+          ParametersSchema = {
+            ...ParametersSchema,
+            deposit: z
+              .string()
+              .describe(' Amount of near to deposit by user.')
+              .default('10000000000000000000000'),
+          };
+        }
+        console.log(ParametersSchema);
         toolMethod[itemMethod.name + '_' + generateId()] = {
           description: itemMethod.description || '',
           parameters: z.object(ParametersSchema),
           execute: async (ParametersData: ParametersData) => {
+            console.log(ParametersData);
             if (item.data.chain == 'near' && itemMethod.kind == 'view') {
               try {
                 // Should create relay server to get data
@@ -163,6 +177,8 @@ export async function POST(request: Request) {
               }
             }
             if (item.data.chain == 'near' && itemMethod.kind == 'call') {
+              console.log(ParametersData);
+              const { deposit, ...args } = ParametersData;
               const transaction = {
                 receiverId: item.data.contractAddress,
                 actions: [
@@ -170,9 +186,9 @@ export async function POST(request: Request) {
                     type: 'FunctionCall',
                     params: {
                       methodName: itemMethod.name,
-                      args: ParametersData,
+                      args: args,
                       gas: '30000000000000',
-                      deposit: '10000000000000000000000',
+                      deposit: deposit,
                     },
                   },
                 ],
