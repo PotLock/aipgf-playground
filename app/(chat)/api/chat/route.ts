@@ -146,7 +146,6 @@ export async function POST(request: Request) {
           description: itemMethod.description || '',
           parameters: z.object(ParametersSchema),
           execute: async (ParametersData: ParametersData) => {
-            console.log(ParametersData);
             if (item.data.chain == 'near' && itemMethod.kind == 'view') {
               try {
                 // Should create relay server to get data
@@ -170,7 +169,7 @@ export async function POST(request: Request) {
                 } else {
                   convertString = data;
                 }
-                return `${convertString}`;
+                return `{result: ${convertString}}`;
               } catch (error) {
                 return `Error calling contract method:${error}`;
               }
@@ -193,7 +192,7 @@ export async function POST(request: Request) {
                 ],
               };
 
-              return `transaction  ${JSON.stringify(transaction)}`;
+              return `{ transaction:  ${JSON.stringify(transaction)}}`;
             }
           },
         };
@@ -239,6 +238,9 @@ export async function POST(request: Request) {
       if (item.data.args) {
         params = item.data.args.reduce(
           (acc: any, { name, type, description }: any) => {
+            if (name === '') {
+              return {};
+            }
             acc[name] = { type, description };
             return acc;
           },
@@ -252,16 +254,41 @@ export async function POST(request: Request) {
       //     description: 'transaction to create greeting.'
       //   }
       // }
-      const ParametersSchema: any = convertParamsToZod(params);
 
+      const ParametersSchema: any = convertParamsToZod(params);
       tool['widget' + '_' + generateId()] = {
         description: item.description,
         parameters: z.object(ParametersSchema),
         execute: async (ParametersSchema: ParametersData) => {
-          //return <Transaction transaction={args}/>
-          return item.data.code;
+          //return <TransactionFrame transaction={args}/>
+          console.log(item.data.code);
+          return JSON.stringify({
+            result: item.data.code,
+            args: ParametersSchema,
+          });
         },
       };
+
+      if (item.typeName == 'step') {
+        tool['step' + '_' + generateId()] = {
+          description: 'Add a step to the reasoning process.',
+          parameters: z.object({
+            title: z.string().describe(item.data.title),
+            content: z.string().describe(item.data.content),
+            nextStep: z
+              .enum(['continue', 'finalAnswer'])
+              .describe(item.data.next),
+            toolName: z.string().describe(item.data.toolName),
+            toolResult: z.string().describe(item.data.toolResult),
+            toolArgs: z.string().describe(item.data.toolArgs),
+          }),
+          execute: async (ParametersSchema: ParametersData) => {
+            //return <TransactionFrame transaction={args}/>
+            console.log(ParametersSchema);
+            return JSON.stringify(ParametersSchema);
+          },
+        };
+      }
     }
     if (item.typeName == 'api') {
       const spec = item.data;
@@ -429,19 +456,36 @@ export async function POST(request: Request) {
     }
     return tool;
   }, {});
-
   const streamingData = new StreamData();
   const result = await streamText({
     model: customModel(model.apiIdentifier),
     system: `Your name are ${agent.name} \n\n ${agent.prompt}`, //modelId === 'gpt-4o-canvas' ? canvasPrompt : regularPrompt,
     messages: coreMessages,
-    maxSteps: 5,
+    maxSteps: 10,
+    experimental_toolCallStreaming: true,
     experimental_activeTools:
       modelId === 'gpt-4o-canvas'
         ? canvasTools
         : (Object.keys(toolsData) as any),
     tools: {
       ...toolsData,
+      addAReasoningStep: {
+        description: 'Add a step to the reasoning process.',
+        parameters: z.object({
+          title: z.string().describe('The title of the reasoning step'),
+          content: z
+            .string()
+            .describe(
+              'The content of the reasoning step. WRITE OUT ALL OF YOUR WORK. Where relevant, prove things mathematically.'
+            ),
+          nextStep: z
+            .enum(['continue', 'finalAnswer'])
+            .describe(
+              'Whether to continue with another step or provide the final answer'
+            ),
+        }),
+        execute: async (params: any) => JSON.stringify(params),
+      },
       createDocument: {
         description: 'Create a document for a writing activity',
         parameters: z.object({
@@ -701,7 +745,6 @@ export async function POST(request: Request) {
     data: streamingData,
   });
 }
-
 export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');

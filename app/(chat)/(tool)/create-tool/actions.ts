@@ -27,6 +27,7 @@ export const createToolAction = async (
   _: CreateToolActionState,
   formData: FormData
 ): Promise<CreateToolActionState> => {
+  console.log(formData.get('data'))
   try {
     const session = await auth();
     let avatarUrl: string | undefined;

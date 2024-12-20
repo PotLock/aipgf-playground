@@ -14,6 +14,7 @@ import { SparklesIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
 import { PreviewAttachment } from './preview-attachment';
+import { ReasoningStep } from './reasoning-step';
 import { Weather } from './weather';
 import { Widget } from './widget';
 
@@ -73,34 +74,46 @@ export const PreviewMessage = ({
 
                 if (state === 'result') {
                   const { result } = toolInvocation;
-
+                  console.log(toolCallId, toolName, result)
                   return (
                     <div key={toolCallId}>
                       {toolName.includes('widget') ? (
-                        <Widget code={result} args={args} />) : toolName === 'createDocument' ? (
-                          <DocumentToolResult
-                            type="create"
-                            result={result}
-                            canvas={canvas}
-                            setCanvas={setCanvas}
-                          />
-                        ) : toolName === 'updateDocument' ? (
-                          <DocumentToolResult
-                            type="update"
-                            result={result}
-                            canvas={canvas}
-                            setCanvas={setCanvas}
-                          />
-                        ) : toolName === 'requestSuggestions' ? (
-                          <DocumentToolResult
-                            type="request-suggestions"
-                            result={result}
-                            canvas={canvas}
-                            setCanvas={setCanvas}
-                          />
-                        ) : (
-                        <pre>{JSON.stringify(result, null, 2)}</pre>
-                      )}
+                        <Widget code={JSON.parse(result).result} args={JSON.parse(result).args} />
+                      ) : toolName.includes('step') ? (
+                        <ReasoningStep step={args} >
+                          {(() => {
+                            try {
+                              const toolResult = JSON.parse(args.toolResult);
+                              if (toolResult && typeof toolResult === 'object') {
+                                return <Widget code={toolResult.result} args={toolResult.args} />;
+                              }
+                            } catch (e) { console.error('Invalid JSON:', e); } return null;
+                          })()}                        </ReasoningStep>
+                      ) : toolName === 'createDocument' ? (
+                        <DocumentToolResult
+                          type="create"
+                          result={result}
+                          canvas={canvas}
+                          setCanvas={setCanvas}
+                        />
+                      ) : toolName === 'updateDocument' ? (
+                        <DocumentToolResult
+                          type="update"
+                          result={result}
+                          canvas={canvas}
+                          setCanvas={setCanvas}
+                        />
+                      ) : toolName === 'requestSuggestions' ? (
+                        <DocumentToolResult
+                          type="request-suggestions"
+                          result={result}
+                          canvas={canvas}
+                          setCanvas={setCanvas}
+                        />
+                      )
+                        : (
+                          <pre>{JSON.stringify(result, null, 2)}</pre>
+                        )}
                     </div>
                   );
                 } else {
@@ -111,18 +124,19 @@ export const PreviewMessage = ({
                         skeleton: ['getWeather'].includes(toolName),
                       })}
                     >
-                      {toolName === 'getWeather' ? (
-                        <Weather />
-                      ) : toolName === 'createDocument' ? (
-                        <DocumentToolCall type="create" args={args} />
-                      ) : toolName === 'updateDocument' ? (
-                        <DocumentToolCall type="update" args={args} />
-                      ) : toolName === 'requestSuggestions' ? (
-                        <DocumentToolCall
-                          type="request-suggestions"
-                          args={args}
-                        />
-                      ) : null}
+                      {
+                        toolName === 'addAReasoningStep' ? (
+                          <ReasoningStep step={args} />
+                        ) : toolName === 'createDocument' ? (
+                          <DocumentToolCall type="create" args={args} />
+                        ) : toolName === 'updateDocument' ? (
+                          <DocumentToolCall type="update" args={args} />
+                        ) : toolName === 'requestSuggestions' ? (
+                          <DocumentToolCall
+                            type="request-suggestions"
+                            args={args}
+                          />
+                        ) : null}
                     </div>
                   );
                 }

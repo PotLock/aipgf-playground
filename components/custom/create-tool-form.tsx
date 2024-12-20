@@ -1,4 +1,4 @@
-import { List, Plus, PlusCircle, Server, Trash2, Upload, X, LayoutDashboard, Loader2, FileCode2, Webhook } from "lucide-react";
+import { List, Plus, PlusCircle, Server, Trash2, Upload, X, LayoutDashboard, Loader2, FileCode2, Webhook, StepForward } from "lucide-react";
 import Form from 'next/form';
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 
@@ -69,10 +69,20 @@ export function CreateToolForm({
   }])
   const [apiSpecFile, setApiSpecFile] = useState<File | null>(null)
 
+
+  // Step Form state
+  const [stepTitle, setStepTitle] = useState('The title of the reasoning step')
+  const [stepContent, setStepContent] = useState('The content of the reasoning step. WRITE OUT ALL OF YOUR WORK. Where relevant, prove things mathematically.')
+  const [stepNext, setStepNext] = useState('Whether to continue with another step or provide the final answer')
+  const [stepToolName, setStepToolName] = useState('Tool name related to content')
+  const [stepToolResult, setStepToolResult] = useState('Tool result')
+  const [stepToolArgs, setStepToolArgs] = useState('Tool arguments')
+
   const options = [
     { value: 'widget', label: 'Widget', icon: LayoutDashboard },
     { value: 'smartcontract', label: 'Smart Contract', icon: FileCode2 },
     { value: 'api', label: 'API', icon: Webhook },
+    { value: 'step', label: 'Step', icon: StepForward },
   ]
 
   const httpMethods = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head']
@@ -215,7 +225,7 @@ export function CreateToolForm({
     if (chain && network && contractAddress) {
       fetchContractMethods(chain, network, contractAddress)
     }
-  }, [chain, network, contractAddress])
+  }, [chain, network, contractAddress,selectedForm])
 
 
   useEffect(() => {
@@ -226,6 +236,20 @@ export function CreateToolForm({
     setData(JSON.stringify(data))
   }, [widgetCode, widgetArgs])
 
+  useEffect(() => {
+
+
+    const data = {
+      title: stepTitle, // Updated to use widgetCode
+      content: stepContent,
+      next: stepNext,
+      toolName: stepToolName,
+      toolResult: stepToolResult,
+      toolArgs: stepToolArgs
+
+    }
+    setData(JSON.stringify(data))
+  }, [stepTitle, stepContent, stepNext, stepToolName, stepToolResult, stepToolArgs])
 
 
   useEffect(() => {
@@ -295,24 +319,7 @@ export function CreateToolForm({
   }
 
 
-  const updateApiJsonInput = () => {
 
-  }
-
-  const parseApiJson = (jsonString: string) => {
-    try {
-      const data = JSON.parse(jsonString)
-      if (data.title) setApiTitle(data.title)
-      if (data.version) setApiVersion(data.version)
-      if (data.description) setApiDescription(data.description)
-      if (data.endpoint) setApiEndpoint(data.endpoint)
-      if (data.key) setApiKey(data.key)
-      if (data.paths) setApiPaths(data.paths)
-    } catch (error) {
-      console.error('Error parsing JSON:', error)
-      alert('Error parsing JSON. Please check the format and try again.')
-    }
-  }
   const renderForm = () => {
     switch (selectedForm) {
       case 'widget':
@@ -795,6 +802,85 @@ export function CreateToolForm({
                 </div>
               </TabsContent>
             </Tabs>
+          </div>
+        )
+      case 'step':
+        return (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Step Tool</h3>
+            <div>
+              <Label htmlFor="step-title">Title</Label>
+              <Input
+                id="step-title"
+                name="step-title"
+                placeholder="The title of the reasoning step"
+                value={stepTitle}
+                onChange={(e) => {
+                  setStepTitle(e.target.value)
+                }}
+              />
+            </div>
+            <div>
+              <Label htmlFor="step-content">Content</Label>
+              <Textarea
+                id="step-content"
+                name="step-content"
+                placeholder="The content of the reasoning step. WRITE OUT ALL OF YOUR WORK. Where relevant, prove things mathematically."
+                value={stepContent}
+                onChange={(e) => {
+                  setStepContent(e.target.value)
+                }}
+                rows={5}
+              />
+            </div>
+            <div>
+              <Label htmlFor="step-next">Next Step</Label>
+              <Input
+                id="step-next"
+                name="step-next"
+                placeholder="Whether to continue with another step or provide the final answer"
+                value={stepNext}
+                onChange={(e) => {
+                  setStepNext(e.target.value)
+                }}
+              />
+            </div>
+            <div>
+              <Label htmlFor="step-tool-name">Tool Name</Label>
+              <Input
+                id="step-tool-name"
+                name="step-tool-name"
+                placeholder="Tool name related to content"
+                value={stepToolName}
+                onChange={(e) => {
+                  setStepToolName(e.target.value)
+                }}
+              />
+            </div>
+            <div>
+              <Label htmlFor="step-tool-result">Tool Result</Label>
+              <Input
+                id="step-tool-result"
+                name="step-tool-result"
+                placeholder="Tool result"
+                value={stepToolResult}
+                onChange={(e) => {
+                  setStepToolResult(e.target.value)
+                }}
+              />
+            </div>
+            <div>
+              <Label htmlFor="step-tool-args">Tool Arguments</Label>
+              <Input
+                id="step-tool-args"
+                name="step-tool-args"
+                placeholder="Tool arguments"
+                value={stepToolArgs}
+                onChange={(e) => {
+                  setStepToolArgs(e.target.value)
+                }}
+              />
+            </div>
           </div>
         )
       default:
