@@ -75,6 +75,8 @@ export default async function Page(props: { searchParams: Promise<any> }) {
                 {tool.typeName === 'api' && <ApiToolDetails data={tool.data as any} />}
                 {tool.typeName === 'smartcontract' && <SmartContractToolDetails data={tool.data as any} />}
                 {tool.typeName === 'widget' && <WidgetToolDetails data={tool.data as any} />}
+                {tool.typeName === 'step' && <WidgetToolDetails data={tool.data as any} />}
+
               </CardContent>
             </Card>
           ))}
