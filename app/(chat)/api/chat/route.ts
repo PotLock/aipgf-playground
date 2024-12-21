@@ -237,11 +237,11 @@ export async function POST(request: Request) {
       let params = {};
       if (item.data.args) {
         params = item.data.args.reduce(
-          (acc: any, { name, type, description }: any) => {
+          (acc: any, { name, type, description, defaultValue }: any) => {
             if (name === '') {
               return {};
             }
-            acc[name] = { type, description };
+            acc[name] = { type, description, defaultValue };
             return acc;
           },
           {}
@@ -251,7 +251,8 @@ export async function POST(request: Request) {
       // const params ={
       //   args: {
       //     type: 'any',
-      //     description: 'transaction to create greeting.'
+      //     description: 'transaction to create greeting.',
+      //      defaultValue :''
       //   }
       // }
 
@@ -261,34 +262,9 @@ export async function POST(request: Request) {
         parameters: z.object(ParametersSchema),
         execute: async (ParametersSchema: ParametersData) => {
           //return <TransactionFrame transaction={args}/>
-          console.log(item.data.code);
-          return JSON.stringify({
-            result: item.data.code,
-            args: ParametersSchema,
-          });
+          return item.data.code;
         },
       };
-
-      if (item.typeName == 'step') {
-        tool['step' + '_' + generateId()] = {
-          description: 'Add a step to the reasoning process.',
-          parameters: z.object({
-            title: z.string().describe(item.data.title),
-            content: z.string().describe(item.data.content),
-            nextStep: z
-              .enum(['continue', 'finalAnswer'])
-              .describe(item.data.next),
-            toolName: z.string().describe(item.data.toolName),
-            toolResult: z.string().describe(item.data.toolResult),
-            toolArgs: z.string().describe(item.data.toolArgs),
-          }),
-          execute: async (ParametersSchema: ParametersData) => {
-            //return <TransactionFrame transaction={args}/>
-            console.log(ParametersSchema);
-            return JSON.stringify(ParametersSchema);
-          },
-        };
-      }
     }
     if (item.typeName == 'api') {
       const spec = item.data;
@@ -469,23 +445,6 @@ export async function POST(request: Request) {
         : (Object.keys(toolsData) as any),
     tools: {
       ...toolsData,
-      addAReasoningStep: {
-        description: 'Add a step to the reasoning process.',
-        parameters: z.object({
-          title: z.string().describe('The title of the reasoning step'),
-          content: z
-            .string()
-            .describe(
-              'The content of the reasoning step. WRITE OUT ALL OF YOUR WORK. Where relevant, prove things mathematically.'
-            ),
-          nextStep: z
-            .enum(['continue', 'finalAnswer'])
-            .describe(
-              'Whether to continue with another step or provide the final answer'
-            ),
-        }),
-        execute: async (params: any) => JSON.stringify(params),
-      },
       createDocument: {
         description: 'Create a document for a writing activity',
         parameters: z.object({

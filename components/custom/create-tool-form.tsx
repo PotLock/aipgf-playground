@@ -1,4 +1,4 @@
-import { List, Plus, PlusCircle, Server, Trash2, Upload, X, LayoutDashboard, Loader2, FileCode2, Webhook, StepForward } from "lucide-react";
+import { List, Plus, PlusCircle, Server, Trash2, Upload, X, LayoutDashboard, Loader2, FileCode2, Webhook } from "lucide-react";
 import Form from 'next/form';
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 
@@ -29,8 +29,9 @@ export function CreateToolForm({
   children: React.ReactNode;
 }) {
   const [selectedForm, setSelectedForm] = useState<string | null>(null)
-  const [widgetArgs, setWidgetArgs] = useState([{ name: '', description: '', type: '' }])
+  const [widgetArgs, setWidgetArgs] = useState([{ name: '', description: '', type: '', defaultValue: '' }])
   const [avatar, setAvatar] = useState<string | null>(null)
+  const [enumValues, setEnumValues] = useState<string[][]>([])
 
   // Smart Contract Form state
   const [chain, setChain] = useState('')
@@ -69,20 +70,10 @@ export function CreateToolForm({
   }])
   const [apiSpecFile, setApiSpecFile] = useState<File | null>(null)
 
-
-  // Step Form state
-  const [stepTitle, setStepTitle] = useState('The title of the reasoning step')
-  const [stepContent, setStepContent] = useState('The content of the reasoning step. WRITE OUT ALL OF YOUR WORK. Where relevant, prove things mathematically.')
-  const [stepNext, setStepNext] = useState('Whether to continue with another step or provide the final answer')
-  const [stepToolName, setStepToolName] = useState('Tool name related to content')
-  const [stepToolResult, setStepToolResult] = useState('Tool result')
-  const [stepToolArgs, setStepToolArgs] = useState('Tool arguments')
-
   const options = [
     { value: 'widget', label: 'Widget', icon: LayoutDashboard },
     { value: 'smartcontract', label: 'Smart Contract', icon: FileCode2 },
     { value: 'api', label: 'API', icon: Webhook },
-    { value: 'step', label: 'Step', icon: StepForward },
   ]
 
   const httpMethods = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head']
@@ -225,31 +216,20 @@ export function CreateToolForm({
     if (chain && network && contractAddress) {
       fetchContractMethods(chain, network, contractAddress)
     }
-  }, [chain, network, contractAddress,selectedForm])
+  }, [chain, network, contractAddress])
 
 
   useEffect(() => {
     const data = {
       code: widgetCode, // Updated to use widgetCode
-      args: widgetArgs
+      args: widgetArgs.map((arg, index) => ({
+        ...arg,
+        enumValues: arg.type === 'enum' ? enumValues[index] : undefined
+      })),
     }
     setData(JSON.stringify(data))
-  }, [widgetCode, widgetArgs])
+  }, [widgetCode, widgetArgs, enumValues])
 
-  useEffect(() => {
-
-
-    const data = {
-      title: stepTitle, // Updated to use widgetCode
-      content: stepContent,
-      next: stepNext,
-      toolName: stepToolName,
-      toolResult: stepToolResult,
-      toolArgs: stepToolArgs
-
-    }
-    setData(JSON.stringify(data))
-  }, [stepTitle, stepContent, stepNext, stepToolName, stepToolResult, stepToolArgs])
 
 
   useEffect(() => {
@@ -272,18 +252,54 @@ export function CreateToolForm({
 
 
   const addWidgetArg = () => {
-    setWidgetArgs([...widgetArgs, { name: '', description: '', type: '' }])
+    setWidgetArgs([...widgetArgs, { name: '', description: '', type: '', defaultValue: '' }])
+    setEnumValues([...enumValues, []])
+
   }
 
   const removeWidgetArg = (index: number) => {
     setWidgetArgs(widgetArgs.filter((_, i) => i !== index))
+    setEnumValues(enumValues.filter((_, i) => i !== index))
   }
 
+
+  const convertDefaultValue = (value: string, type: string) => {
+    switch (type) {
+      case 'number':
+        return Number(value) || 0
+      case 'boolean':
+        return value.toLowerCase() === 'true'
+      case 'object':
+        try {
+          return JSON.parse(value)
+        } catch {
+          return {}
+        }
+      case 'array':
+        return value.split(',').map(item => item.trim())
+      case 'enum':
+        return value.split(',').map(item => item.trim())
+      default: // string
+        return value
+    }
+  }
   const updateWidgetArg = (index: number, field: string, value: string) => {
     const newArgs = [...widgetArgs]
     newArgs[index] = { ...newArgs[index], [field]: value }
+    if (field === 'defaultValue') {
+      const convertedValue = convertDefaultValue(value as string, newArgs[index].type)
+      newArgs[index] = { ...newArgs[index], [field]: convertedValue }
+    }
     setWidgetArgs(newArgs)
   }
+
+
+  const updateEnumValues = (index: number, value: string) => {
+    const newEnumValues = [...enumValues]
+    newEnumValues[index] = value.split(',').map(v => v.trim())
+    setEnumValues(newEnumValues)
+  }
+
   const handleAvatarChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
@@ -317,8 +333,6 @@ export function CreateToolForm({
     };
     setData(JSON.stringify(jsonData));
   }
-
-
 
   const renderForm = () => {
     switch (selectedForm) {
@@ -385,8 +399,19 @@ export function CreateToolForm({
                           <SelectItem value="boolean">Boolean</SelectItem>
                           <SelectItem value="object">Object</SelectItem>
                           <SelectItem value="array">Array</SelectItem>
+                          <SelectItem value="enum">Enum</SelectItem>
+
                         </SelectContent>
                       </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor={`arg-default-${index}`}>Default Value</Label>
+                      <Input
+                        id={`arg-default-${index}`}
+                        value={arg.defaultValue.toString()}
+                        onChange={(e) => updateWidgetArg(index, 'defaultValue', e.target.value)}
+                        placeholder={`Enter default value (${arg.type})`}
+                      />
                     </div>
                   </CardContent>
                 </Card>
@@ -751,7 +776,7 @@ export function CreateToolForm({
                                       </CardContent>
                                     </Card>
                                   ))}
-                                  <Button onClick={() => addApiParameter(pathIndex)} className="w-full">
+                                  <Button onClick={(e) => { e.preventDefault(); addApiParameter(pathIndex) }} className="w-full">
                                     <Plus className="mr-2 size-4" /> Add Parameter
                                   </Button>
                                 </div>
@@ -761,7 +786,7 @@ export function CreateToolForm({
                         </AccordionItem>
                       </Accordion>
                     ))}
-                    <Button onClick={addApiPath} className="w-full">
+                    <Button onClick={(e) => { e.preventDefault(); addApiPath() }} className="w-full">
                       <Plus className="mr-2 size-4" /> Add Path
                     </Button>
                   </div>
@@ -802,85 +827,6 @@ export function CreateToolForm({
                 </div>
               </TabsContent>
             </Tabs>
-          </div>
-        )
-      case 'step':
-        return (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Step Tool</h3>
-            <div>
-              <Label htmlFor="step-title">Title</Label>
-              <Input
-                id="step-title"
-                name="step-title"
-                placeholder="The title of the reasoning step"
-                value={stepTitle}
-                onChange={(e) => {
-                  setStepTitle(e.target.value)
-                }}
-              />
-            </div>
-            <div>
-              <Label htmlFor="step-content">Content</Label>
-              <Textarea
-                id="step-content"
-                name="step-content"
-                placeholder="The content of the reasoning step. WRITE OUT ALL OF YOUR WORK. Where relevant, prove things mathematically."
-                value={stepContent}
-                onChange={(e) => {
-                  setStepContent(e.target.value)
-                }}
-                rows={5}
-              />
-            </div>
-            <div>
-              <Label htmlFor="step-next">Next Step</Label>
-              <Input
-                id="step-next"
-                name="step-next"
-                placeholder="Whether to continue with another step or provide the final answer"
-                value={stepNext}
-                onChange={(e) => {
-                  setStepNext(e.target.value)
-                }}
-              />
-            </div>
-            <div>
-              <Label htmlFor="step-tool-name">Tool Name</Label>
-              <Input
-                id="step-tool-name"
-                name="step-tool-name"
-                placeholder="Tool name related to content"
-                value={stepToolName}
-                onChange={(e) => {
-                  setStepToolName(e.target.value)
-                }}
-              />
-            </div>
-            <div>
-              <Label htmlFor="step-tool-result">Tool Result</Label>
-              <Input
-                id="step-tool-result"
-                name="step-tool-result"
-                placeholder="Tool result"
-                value={stepToolResult}
-                onChange={(e) => {
-                  setStepToolResult(e.target.value)
-                }}
-              />
-            </div>
-            <div>
-              <Label htmlFor="step-tool-args">Tool Arguments</Label>
-              <Input
-                id="step-tool-args"
-                name="step-tool-args"
-                placeholder="Tool arguments"
-                value={stepToolArgs}
-                onChange={(e) => {
-                  setStepToolArgs(e.target.value)
-                }}
-              />
-            </div>
           </div>
         )
       default:
