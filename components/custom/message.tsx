@@ -76,7 +76,7 @@ export const PreviewMessage = ({
                   return (
                     <div key={toolCallId}>
                       {toolName.includes('widget') ? (
-                        <Widget code={JSON.parse(result).result} args={JSON.parse(result).args} />
+                        <Widget code={result} args={args} />
                       ) : toolName === 'createDocument' ? (
                         <DocumentToolResult
                           type="create"

@@ -120,8 +120,8 @@ export async function POST(request: Request) {
         let params = {};
         if (itemMethod.args) {
           params = itemMethod.args.reduce(
-            (acc: any, { name, type, description }: any) => {
-              acc[name] = { type, description };
+            (acc: any, { name, type, description , defaultValue }: any) => {
+              acc[name] = { type, description ,defaultValue};
               return acc;
             },
             {}
