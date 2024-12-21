@@ -189,7 +189,6 @@ export const zodExtract = (
     }
   } else if (
     type === 'vector<string::String>' ||
-    type === 'String' ||
     type === '0x1::string::String'
   ) {
     schema = z.array(z.string()).describe(description);

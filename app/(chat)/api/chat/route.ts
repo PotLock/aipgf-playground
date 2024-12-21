@@ -120,13 +120,22 @@ export async function POST(request: Request) {
         let params = {};
         if (itemMethod.args) {
           params = itemMethod.args.reduce(
-            (acc: any, { name, type, description , defaultValue }: any) => {
-              acc[name] = { type, description ,defaultValue};
+            (
+              acc: any,
+              { name, type, description, value: defaultValue }: any
+            ) => {
+              acc[name] = {
+                type,
+                description,
+                defaultValue: defaultValue !== undefined ? defaultValue : '',
+              };
               return acc;
             },
             {}
           );
         }
+        console.log(params);
+
         if (item.data.chain == 'near' && itemMethod.kind == 'view') {
           console.log(params);
         }
@@ -138,7 +147,7 @@ export async function POST(request: Request) {
             ...ParametersSchema,
             deposit: z
               .string()
-              .describe(' Amount of near to deposit by user.')
+              .describe('Amount of near to deposit by user.')
               .default('10000000000000000000000'),
           };
         }
@@ -261,6 +270,7 @@ export async function POST(request: Request) {
         description: item.description,
         parameters: z.object(ParametersSchema),
         execute: async (ParametersSchema: ParametersData) => {
+          console.log(ParametersSchema);
           //return <TransactionFrame transaction={args}/>
           return item.data.code;
         },
