@@ -120,16 +120,37 @@ export async function POST(request: Request) {
         let params = {};
         if (itemMethod.args) {
           params = itemMethod.args.reduce(
-            (acc: any, { name, type, description }: any) => {
-              acc[name] = { type, description };
+            (
+              acc: any,
+              { name, type, description, value: defaultValue }: any
+            ) => {
+              acc[name] = {
+                type,
+                description,
+                defaultValue: defaultValue !== undefined ? defaultValue : '',
+              };
               return acc;
             },
             {}
           );
         }
         console.log(params);
-        const ParametersSchema: any = convertParamsToZod(params);
 
+        if (item.data.chain == 'near' && itemMethod.kind == 'view') {
+          console.log(params);
+        }
+
+        let ParametersSchema: any = convertParamsToZod(params);
+
+        if (item.data.chain == 'near' && itemMethod.kind == 'call') {
+          ParametersSchema = {
+            ...ParametersSchema,
+            deposit: z
+              .string()
+              .describe('Amount of near to deposit by user.')
+              .default('10000000000000000000000'),
+          };
+        }
         toolMethod[itemMethod.name + '_' + generateId()] = {
           description: itemMethod.description || '',
           parameters: z.object(ParametersSchema),
@@ -157,12 +178,14 @@ export async function POST(request: Request) {
                 } else {
                   convertString = data;
                 }
-                return `${convertString}`;
+                return `{result: ${convertString}}`;
               } catch (error) {
                 return `Error calling contract method:${error}`;
               }
             }
             if (item.data.chain == 'near' && itemMethod.kind == 'call') {
+              console.log(ParametersData);
+              const { deposit, ...args } = ParametersData;
               const transaction = {
                 receiverId: item.data.contractAddress,
                 actions: [
@@ -170,15 +193,15 @@ export async function POST(request: Request) {
                     type: 'FunctionCall',
                     params: {
                       methodName: itemMethod.name,
-                      args: ParametersData,
+                      args: args,
                       gas: '30000000000000',
-                      deposit: '10000000000000000000000',
+                      deposit: deposit,
                     },
                   },
                 ],
               };
 
-              return `transaction  ${JSON.stringify(transaction)}`;
+              return `{ transaction:  ${JSON.stringify(transaction)}}`;
             }
           },
         };
@@ -223,8 +246,11 @@ export async function POST(request: Request) {
       let params = {};
       if (item.data.args) {
         params = item.data.args.reduce(
-          (acc: any, { name, type, description }: any) => {
-            acc[name] = { type, description };
+          (acc: any, { name, type, description, defaultValue }: any) => {
+            if (name === '') {
+              return {};
+            }
+            acc[name] = { type, description, defaultValue };
             return acc;
           },
           {}
@@ -234,16 +260,18 @@ export async function POST(request: Request) {
       // const params ={
       //   args: {
       //     type: 'any',
-      //     description: 'transaction to create greeting.'
+      //     description: 'transaction to create greeting.',
+      //      defaultValue :''
       //   }
       // }
-      const ParametersSchema: any = convertParamsToZod(params);
 
+      const ParametersSchema: any = convertParamsToZod(params);
       tool['widget' + '_' + generateId()] = {
         description: item.description,
         parameters: z.object(ParametersSchema),
         execute: async (ParametersSchema: ParametersData) => {
-          //return <Transaction transaction={args}/>
+          console.log(ParametersSchema);
+          //return <TransactionFrame transaction={args}/>
           return item.data.code;
         },
       };
@@ -414,13 +442,13 @@ export async function POST(request: Request) {
     }
     return tool;
   }, {});
-
   const streamingData = new StreamData();
   const result = await streamText({
     model: customModel(model.apiIdentifier),
     system: `Your name are ${agent.name} \n\n ${agent.prompt}`, //modelId === 'gpt-4o-canvas' ? canvasPrompt : regularPrompt,
     messages: coreMessages,
-    maxSteps: 5,
+    maxSteps: 10,
+    experimental_toolCallStreaming: true,
     experimental_activeTools:
       modelId === 'gpt-4o-canvas'
         ? canvasTools
@@ -686,7 +714,6 @@ export async function POST(request: Request) {
     data: streamingData,
   });
 }
-
 export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');

@@ -14,7 +14,6 @@ import { SparklesIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
 import { PreviewAttachment } from './preview-attachment';
-import { Weather } from './weather';
 import { Widget } from './widget';
 
 export const PreviewMessage = ({
@@ -73,34 +72,36 @@ export const PreviewMessage = ({
 
                 if (state === 'result') {
                   const { result } = toolInvocation;
-
+                  console.log(toolCallId, toolName, result, args)
                   return (
                     <div key={toolCallId}>
                       {toolName.includes('widget') ? (
-                        <Widget code={result} args={args} />) : toolName === 'createDocument' ? (
-                          <DocumentToolResult
-                            type="create"
-                            result={result}
-                            canvas={canvas}
-                            setCanvas={setCanvas}
-                          />
-                        ) : toolName === 'updateDocument' ? (
-                          <DocumentToolResult
-                            type="update"
-                            result={result}
-                            canvas={canvas}
-                            setCanvas={setCanvas}
-                          />
-                        ) : toolName === 'requestSuggestions' ? (
-                          <DocumentToolResult
-                            type="request-suggestions"
-                            result={result}
-                            canvas={canvas}
-                            setCanvas={setCanvas}
-                          />
-                        ) : (
-                        <pre>{JSON.stringify(result, null, 2)}</pre>
-                      )}
+                        <Widget code={result} args={args} />
+                      ) : toolName === 'createDocument' ? (
+                        <DocumentToolResult
+                          type="create"
+                          result={result}
+                          canvas={canvas}
+                          setCanvas={setCanvas}
+                        />
+                      ) : toolName === 'updateDocument' ? (
+                        <DocumentToolResult
+                          type="update"
+                          result={result}
+                          canvas={canvas}
+                          setCanvas={setCanvas}
+                        />
+                      ) : toolName === 'requestSuggestions' ? (
+                        <DocumentToolResult
+                          type="request-suggestions"
+                          result={result}
+                          canvas={canvas}
+                          setCanvas={setCanvas}
+                        />
+                      )
+                        : (
+                          <pre>{JSON.stringify(result, null, 2)}</pre>
+                        )}
                     </div>
                   );
                 } else {
@@ -111,9 +112,7 @@ export const PreviewMessage = ({
                         skeleton: ['getWeather'].includes(toolName),
                       })}
                     >
-                      {toolName === 'getWeather' ? (
-                        <Weather />
-                      ) : toolName === 'createDocument' ? (
+                      {toolName === 'createDocument' ? (
                         <DocumentToolCall type="create" args={args} />
                       ) : toolName === 'updateDocument' ? (
                         <DocumentToolCall type="update" args={args} />

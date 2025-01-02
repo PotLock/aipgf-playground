@@ -1,4 +1,5 @@
 import { type ClassValue, clsx } from 'clsx';
+import { iif } from 'rxjs';
 import { twMerge } from 'tailwind-merge';
 import { z, ZodSchema, ZodTypeAny } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
@@ -153,43 +154,78 @@ export const createParametersSchema = (
   return z.object(schema);
 };
 
-export const zodExtract = (type: any, describe: any) => {
-  if (type == 'u128') return z.number().describe(describe);
-  if (type == 'u64') return z.number().describe(describe);
-  if (type == 'u8') return z.number().describe(describe);
-  if (type == 'bool') return z.boolean().describe(describe);
-  if (type == 'address') return z.string().describe(describe);
-  if (type == 'vector<u8>') return z.string().describe(describe);
-  if (type == 'vector<address>') return z.array(z.string()).describe(describe);
-  if (type == 'vector<string::String>')
-    return z.array(z.string()).describe(describe);
-  if (type == 'String') return z.array(z.string()).describe(describe);
-  if (type == '0x1::string::String')
-    return z.array(z.string()).describe(describe);
-  if (type == 'generic')
-    return z.string().describe(' address type like 0x1::ABC::XYZ');
-  if (type == 'Type')
-    return z.string().describe(' address type like 0x1::ABC::XYZ');
-  if (type == 'TypeInfo')
-    return z.string().describe(' address type like 0x1::ABC::XYZ');
-  return z.string().describe(describe);
-};
-
 // Function to replace placeholders in a URL template with actual values from params
 export function fillUrl(template: string, params: Record<string, any>): string {
   return template.replace(/{(\w+)}/g, (_, key) => params[key] || '');
 }
 
-// Type for request options
-interface ApiRequestOptions {
-  method: string;
-  headers: Record<string, string>;
-  body?: string | FormData;
-}
+export const zodExtract = (
+  type: any,
+  description: any,
+  defaultValue?: string
+) => {
+  let schema;
 
+  if (type === 'u128' || type === 'u64' || type === 'u8') {
+    schema = z.number().describe(description);
+    if (defaultValue !== '') {
+      schema = schema.default(Number(defaultValue));
+    }
+  } else if (type === 'bool') {
+    schema = z.boolean().describe(description);
+    if (defaultValue !== '') {
+      //@ts-ignore
+      schema = schema.default(defaultValue);
+    }
+  } else if (type === 'address' || type === 'vector<u8>') {
+    schema = z.string().describe(description);
+    if (defaultValue !== '') {
+      schema = schema.default(defaultValue || '');
+    }
+  } else if (type === 'vector<address>') {
+    schema = z.array(z.string()).describe(description);
+    if (defaultValue !== '') {
+      schema = schema.default(JSON.parse(defaultValue || '[]'));
+    }
+  } else if (
+    type === 'vector<string::String>' ||
+    type === '0x1::string::String'
+  ) {
+    schema = z.array(z.string()).describe(description);
+    if (defaultValue !== '') {
+      //@ts-ignore
+      schema = schema.default(JSON.parse(defaultValue));
+    }
+  } else if (type === 'generic' || type === 'Type' || type === 'TypeInfo') {
+    schema = z.string().describe('address type like 0x1::ABC::XYZ');
+    if (defaultValue !== '') {
+      //@ts-ignore
+      schema = schema.default(defaultValue);
+    }
+  } else if (type === 'enum') {
+    //@ts-ignore
+    schema = z.enum(defaultValue).describe(description);
+  } else if (type === 'array') {
+    schema = z.array(z.string()).describe(description);
+    //@ts-ignore
+    if (defaultValue[0] !== '') {
+      //@ts-ignore
+      schema = schema.default(defaultValue);
+    }
+    //@ts-ignore
+  } else {
+    schema = z.string().describe(description);
+    if (defaultValue !== '') {
+      schema = schema.default(defaultValue || '');
+    }
+  }
+
+  return schema;
+};
 export const convertParamsToZod = (params: any) => {
   return Object.keys(params).reduce((acc: any, key: any) => {
-    acc[key] = key = zodExtract(params[key].type, params[key].description);
+    const { type, description, defaultValue } = params[key];
+    acc[key] = zodExtract(type, description, defaultValue);
     return acc;
   }, {});
 };

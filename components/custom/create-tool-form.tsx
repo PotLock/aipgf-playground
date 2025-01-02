@@ -29,8 +29,9 @@ export function CreateToolForm({
   children: React.ReactNode;
 }) {
   const [selectedForm, setSelectedForm] = useState<string | null>(null)
-  const [widgetArgs, setWidgetArgs] = useState([{ name: '', description: '', type: '' }])
+  const [widgetArgs, setWidgetArgs] = useState([{ name: '', description: '', type: '', defaultValue: '' }])
   const [avatar, setAvatar] = useState<string | null>(null)
+  const [enumValues, setEnumValues] = useState<string[][]>([])
 
   // Smart Contract Form state
   const [chain, setChain] = useState('')
@@ -221,10 +222,13 @@ export function CreateToolForm({
   useEffect(() => {
     const data = {
       code: widgetCode, // Updated to use widgetCode
-      args: widgetArgs
+      args: widgetArgs.map((arg, index) => ({
+        ...arg,
+        enumValues: arg.type === 'enum' ? enumValues[index] : undefined
+      })),
     }
     setData(JSON.stringify(data))
-  }, [widgetCode, widgetArgs])
+  }, [widgetCode, widgetArgs, enumValues])
 
 
 
@@ -248,18 +252,54 @@ export function CreateToolForm({
 
 
   const addWidgetArg = () => {
-    setWidgetArgs([...widgetArgs, { name: '', description: '', type: '' }])
+    setWidgetArgs([...widgetArgs, { name: '', description: '', type: '', defaultValue: '' }])
+    setEnumValues([...enumValues, []])
+
   }
 
   const removeWidgetArg = (index: number) => {
     setWidgetArgs(widgetArgs.filter((_, i) => i !== index))
+    setEnumValues(enumValues.filter((_, i) => i !== index))
   }
 
+
+  const convertDefaultValue = (value: string, type: string) => {
+    switch (type) {
+      case 'number':
+        return Number(value) || 0
+      case 'boolean':
+        return value.toLowerCase() === 'true'
+      case 'object':
+        try {
+          return JSON.parse(value)
+        } catch {
+          return {}
+        }
+      case 'array':
+        return value.split(',').map(item => item.trim())
+      case 'enum':
+        return value.split(',').map(item => item.trim())
+      default: // string
+        return value
+    }
+  }
   const updateWidgetArg = (index: number, field: string, value: string) => {
     const newArgs = [...widgetArgs]
     newArgs[index] = { ...newArgs[index], [field]: value }
+    if (field === 'defaultValue') {
+      const convertedValue = convertDefaultValue(value as string, newArgs[index].type)
+      newArgs[index] = { ...newArgs[index], [field]: convertedValue }
+    }
     setWidgetArgs(newArgs)
   }
+
+
+  const updateEnumValues = (index: number, value: string) => {
+    const newEnumValues = [...enumValues]
+    newEnumValues[index] = value.split(',').map(v => v.trim())
+    setEnumValues(newEnumValues)
+  }
+
   const handleAvatarChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
@@ -294,25 +334,6 @@ export function CreateToolForm({
     setData(JSON.stringify(jsonData));
   }
 
-
-  const updateApiJsonInput = () => {
-
-  }
-
-  const parseApiJson = (jsonString: string) => {
-    try {
-      const data = JSON.parse(jsonString)
-      if (data.title) setApiTitle(data.title)
-      if (data.version) setApiVersion(data.version)
-      if (data.description) setApiDescription(data.description)
-      if (data.endpoint) setApiEndpoint(data.endpoint)
-      if (data.key) setApiKey(data.key)
-      if (data.paths) setApiPaths(data.paths)
-    } catch (error) {
-      console.error('Error parsing JSON:', error)
-      alert('Error parsing JSON. Please check the format and try again.')
-    }
-  }
   const renderForm = () => {
     switch (selectedForm) {
       case 'widget':
@@ -378,8 +399,19 @@ export function CreateToolForm({
                           <SelectItem value="boolean">Boolean</SelectItem>
                           <SelectItem value="object">Object</SelectItem>
                           <SelectItem value="array">Array</SelectItem>
+                          <SelectItem value="enum">Enum</SelectItem>
+
                         </SelectContent>
                       </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor={`arg-default-${index}`}>Default Value</Label>
+                      <Input
+                        id={`arg-default-${index}`}
+                        value={arg.defaultValue.toString()}
+                        onChange={(e) => updateWidgetArg(index, 'defaultValue', e.target.value)}
+                        placeholder={`Enter default value (${arg.type})`}
+                      />
                     </div>
                   </CardContent>
                 </Card>
@@ -744,7 +776,7 @@ export function CreateToolForm({
                                       </CardContent>
                                     </Card>
                                   ))}
-                                  <Button onClick={() => addApiParameter(pathIndex)} className="w-full">
+                                  <Button onClick={(e) => { e.preventDefault(); addApiParameter(pathIndex) }} className="w-full">
                                     <Plus className="mr-2 size-4" /> Add Parameter
                                   </Button>
                                 </div>
@@ -754,7 +786,7 @@ export function CreateToolForm({
                         </AccordionItem>
                       </Accordion>
                     ))}
-                    <Button onClick={addApiPath} className="w-full">
+                    <Button onClick={(e) => { e.preventDefault(); addApiPath() }} className="w-full">
                       <Plus className="mr-2 size-4" /> Add Path
                     </Button>
                   </div>

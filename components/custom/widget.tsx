@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { ErrorBoundary } from 'react-error-boundary';
 import StringToReactComponent from 'string-to-react-component'
 
-import { Transaction } from './walletAction'
+import { TransactionFrame, ButtonAction } from './walletAction'
 
 export const Widget = ({ code, args }: { code: string, args: any }) => {
     const near = new providers.JsonRpcProvider({
@@ -27,14 +27,14 @@ export const Widget = ({ code, args }: { code: string, args: any }) => {
     return (
 
         <ErrorBoundary FallbackComponent={Fallback}>
-
-            <StringToReactComponent data={{ useEffect, useState, near, args, Transaction }}>
+{/*1. Add append button to widget messenger to agent 
+2. create custom widget Agent like : <widget prompt="blue span with balance of wallet 0x1231 from tool" > </widget>
+*/}
+            <StringToReactComponent data={{ useEffect, useState, near, args, TransactionFrame, ButtonAction }}>
                 {`(props)=>{
                     const {useEffect, useState, near, args, Transaction } = props;
                     ${generateDestructuring(args)}
-                        return (
-                           ${code}
-                        )
+                        ${code}
                 }`}
             </StringToReactComponent>
         </ErrorBoundary>
