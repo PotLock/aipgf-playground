@@ -141,6 +141,53 @@ export async function getAgentById(id: string) {
     throw error;
   }
 }
+export async function removeAgentById(id: string) {
+  try {
+    const [selectedAgent] = await db
+      .select()
+      .from(agent)
+      .where(eq(agent.id, id));
+
+    if (!selectedAgent) {
+      throw new Error('Agent not found');
+    }
+
+    // Fetch chat IDs associated with the agent
+    const chatIds = await db
+      .select()
+      .from(chat)
+      .where(eq(chat.agentId, id));
+
+    const chatIdArray = chatIds.map(chat => chat.id);
+
+    if (chatIdArray.length > 0) {
+      // Remove messenger data associated with the chat IDs
+      await db
+        .delete(message)
+        .where(inArray(message.chatId, chatIdArray));
+      console.log(`Removed messenger data for chats with agent id: ${id}`);
+
+      // Remove chats associated with the agent
+      await db
+        .delete(chat)
+        .where(eq(chat.agentId, id));
+      console.log(`Removed chats for agent with id: ${id}`);
+    }
+
+    // Remove the agent
+    await db
+      .delete(agent)
+      .where(eq(agent.id, id));
+    console.log(`Removed agent with id: ${id}`);
+
+    return selectedAgent;
+  } catch (error) {
+    console.log(error);
+    console.error('Failed to remove Agent from database');
+    throw error;
+  }
+}
+
 
 export async function voteMessage({
   chatId,
@@ -404,3 +451,4 @@ export async function getToolsByIds(ids: any[]): Promise<Array<Tool>> {
     throw error;
   }
 }
+
