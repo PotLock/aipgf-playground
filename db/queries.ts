@@ -11,6 +11,7 @@ import {
   User,
   document,
   Suggestion,
+  
   Message,
   message,
   vote,
@@ -397,14 +398,14 @@ export async function getAgentByUserId({ userId }: { userId: string }) {
             .from(tool)
             .where(inArray(tool.id, agent.tools as string[]));
         }
-
         return {
           ...agent,
           tools,
+          
         };
       })
     );
-
+ console.log(agentWithTools);
     return agentWithTools;
   } catch (error) {
     console.log(error);
