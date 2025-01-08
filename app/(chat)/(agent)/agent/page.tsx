@@ -35,7 +35,7 @@ export default async function Page(props: { searchParams: Promise<any> }) {
           <CardDescription className="pb-4">
             Start to chat with your agent
           </CardDescription>
-          <AgentCardList agents={agents as any} />
+          <AgentCardList userId={session.user.id!} />
         </CardContent>
       </Card>
     </div>

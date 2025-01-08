@@ -11,7 +11,7 @@ import {
   User,
   document,
   Suggestion,
-  
+
   Message,
   message,
   vote,
@@ -154,6 +154,9 @@ export async function removeAgentById(id: string) {
     }
 
     // Fetch chat IDs associated with the agent
+    // ...existing code...
+
+    // Fetch chat IDs associated with the agent
     const chatIds = await db
       .select()
       .from(chat)
@@ -162,11 +165,27 @@ export async function removeAgentById(id: string) {
     const chatIdArray = chatIds.map(chat => chat.id);
 
     if (chatIdArray.length > 0) {
-      // Remove messenger data associated with the chat IDs
-      await db
-        .delete(message)
+      // Fetch message IDs associated with the chat IDs
+      const messageIds = await db
+        .select()
+        .from(message)
         .where(inArray(message.chatId, chatIdArray));
-      console.log(`Removed messenger data for chats with agent id: ${id}`);
+
+      const messageIdArray = messageIds.map(message => message.id);
+
+      if (messageIdArray.length > 0) {
+        // Remove votes associated with the message IDs
+        await db
+          .delete(vote)
+          .where(inArray(vote.messageId, messageIdArray));
+        console.log(`Removed votes for messages with chat ids: ${chatIdArray}`);
+
+        // Remove messenger data associated with the chat IDs
+        await db
+          .delete(message)
+          .where(inArray(message.chatId, chatIdArray));
+        console.log(`Removed messenger data for chats with agent id: ${id}`);
+      }
 
       // Remove chats associated with the agent
       await db
@@ -401,11 +420,11 @@ export async function getAgentByUserId({ userId }: { userId: string }) {
         return {
           ...agent,
           tools,
-          
+
         };
       })
     );
- console.log(agentWithTools);
+    console.log(agentWithTools);
     return agentWithTools;
   } catch (error) {
     console.log(error);

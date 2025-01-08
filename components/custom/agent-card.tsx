@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -33,9 +33,10 @@ type Agent = {
 
 type AgentCardProps = {
     agent: Agent
+    onRemove(): void
 }
 
-function AgentCard({ agent }: AgentCardProps) {
+function AgentCard({ agent, onRemove }: AgentCardProps) {
     const [isRemoving, setIsRemoving] = useState(false)
     const [isExpanded, setIsExpanded] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -50,12 +51,15 @@ function AgentCard({ agent }: AgentCardProps) {
             router.push(`/chat?agentId=${agent.id}&startMessage=${chatInput}`);
         }
     };
-    const handleRemove = async () => {
+    const handleRemove = async (e:any) => {
+        e.preventDefault()
+
         setIsRemoving(true)
         try {
             const result = await removeAgent(agent.id)
             if (result.success) {
                 toast.success(result.message)
+                onRemove()
             } else {
                 toast.error('Failed to remove agent')
             }
@@ -113,7 +117,8 @@ function AgentCard({ agent }: AgentCardProps) {
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                                     <AlertDialogAction onClick={handleRemove} disabled={isRemoving}>
                                         {isRemoving ? 'Removing...' : 'Remove'}
-                                    </AlertDialogAction>                                </AlertDialogFooter>
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
                     </DropdownMenuContent>
@@ -216,25 +221,50 @@ function AgentCard({ agent }: AgentCardProps) {
     )
 }
 
-type AgentCardListProps = {
-    agents?: Agent[]
-}
 
-export default function AgentCardList({ agents = [] }: AgentCardListProps) {
-    if (agents.length === 0) {
+
+export default function AgentCardList({ userId }: any) {
+    const [agents, setAgents] = useState<Agent[] | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    useEffect(() => {
+        const fetchAgent = async () => {
+            try {
+                setIsLoading(true);
+
+                const response = await fetch(`/api/agent/`);
+                const data = await response.json();
+                setAgents(data);
+            } catch (error) {
+                console.error('Error fetching agent:', error);
+                toast.error('Failed to fetch agent data');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchAgent();
+    }, [userId]);
+
+    const handleRemove = (id: string) => {
+        setAgents((prevAgents) => prevAgents?.filter((agent) => agent.id !== id) || null);
+    };
+
+    if (isLoading || !agents) {
         return (
-            <Card className="w-full max-w-md">
+            <Card className="w-full ">
                 <CardContent className="py-10 text-center">
-                    <CardDescription>No agents available at the moment.</CardDescription>
+                    <CardDescription>
+                        {isLoading ? 'Loading...' : 'No agents available at the moment.'}
+                    </CardDescription>
                 </CardContent>
             </Card>
-        )
+        );
     }
 
     return (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {agents.map((agent) => (
-                <AgentCard key={agent.id} agent={agent} />
+                <AgentCard key={agent.id} agent={agent} onRemove={() => handleRemove(agent.id)} />
             ))}
         </div>
     )
