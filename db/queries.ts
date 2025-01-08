@@ -226,7 +226,7 @@ export async function getVotesByChatId({ id }: { id: string }) {
   try {
     return await db.select().from(vote).where(eq(vote.chatId, id));
   } catch (error) {
-    console.error('Failed to get votes by chat id from database', error);
+    console.error('Failed to get votes by chat id from database');
     throw error;
   }
 }
@@ -382,11 +382,30 @@ export async function createAgent({
 
 export async function getAgentByUserId({ userId }: { userId: string }) {
   try {
-    return await db
+    const agents = await db
       .select()
       .from(agent)
       .where(eq(agent.userId, userId))
-      .orderBy(desc(agent.createdAt));
+      .orderBy(desc(agent.createdAt)); // Order by createdAt in descending order
+
+    const agentWithTools = await Promise.all(
+      agents.map(async (agent) => {
+        let tools: Tool[] = [];
+        if (Array.isArray(agent.tools) && agent.tools.length > 0) {
+          tools = await db
+            .select()
+            .from(tool)
+            .where(inArray(tool.id, agent.tools as string[]));
+        }
+
+        return {
+          ...agent,
+          tools,
+        };
+      })
+    );
+
+    return agentWithTools;
   } catch (error) {
     console.log(error);
     console.error('Failed to get agents by userId from database');

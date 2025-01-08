@@ -54,7 +54,7 @@ function AgentCard({ agent }: AgentCardProps) {
     const handleToggleExpand = () => {
         setIsExpanded(!isExpanded);
     };
-    
+
     return (
         <Card className="w-full max-w-md">
             <CardHeader className="flex flex-row items-center gap-4">
@@ -106,28 +106,28 @@ function AgentCard({ agent }: AgentCardProps) {
             </CardHeader>
             <CardContent className="grid gap-4">
                 <div className="grid grid-cols-2 gap-2">
-                    
+
                     <div className="flex flex-col">
                         <span className="text-sm font-medium text-muted-foreground">Model</span>
                         <span>{agent.model}</span>
                     </div>
                 </div>
                 <div>
-                    <span className="text-sm font-medium text-muted-foreground">Prompt</span>
+                    <span className="text-sm font-medium text-muted-foreground">Prompt: </span>
                     <span>
-                            {isExpanded ? agent.prompt : `${agent.prompt.slice(0, 100)}...`}
-                            {agent.prompt.length > 100 && (
-                                <button onClick={handleToggleExpand} className="text-blue-500 ml-2">
-                                    {isExpanded ? 'Read Less' : 'Read More'}
-                                </button>
-                            )}
-                        </span>                </div>
+                        {isExpanded ? agent.prompt : `${agent.prompt.slice(0, 100)}...`}
+                        {agent.prompt.length > 100 && (
+                            <button onClick={handleToggleExpand} className="text-blue-500 ml-2">
+                                {isExpanded ? 'Read Less' : 'Read More'}
+                            </button>
+                        )}
+                    </span>                </div>
                 <div>
                     <span className="text-sm font-medium text-muted-foreground">Tools</span>
                     <div className="mt-2 flex flex-wrap gap-2">
                         {agent.tools && agent.tools.map((tool, index) => (
                             <Badge key={index} variant="secondary">
-                                {tool}
+                                {tool.name}
                             </Badge>
                         ))}
                     </div>
