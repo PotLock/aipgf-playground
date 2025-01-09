@@ -37,7 +37,7 @@ export const message = pgTable('Message', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   chatId: uuid('chatId')
     .notNull()
-    .references(() => chat.id),
+    .references(() => chat.id,{ onDelete: 'cascade' }),
   role: varchar('role').notNull(),
   content: json('content').notNull(),
   createdAt: timestamp('createdAt').notNull(),
@@ -135,7 +135,7 @@ export const tool = pgTable('Tool', {
   //UserId
   userId: uuid('userId')
     .notNull()
-    .references(() => user.id),
+    .references(() => user.id, { onDelete: 'cascade' }),
 });
 export type Tool = InferSelectModel<typeof tool>;
 

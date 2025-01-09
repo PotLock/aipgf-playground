@@ -11,6 +11,7 @@ import {
   User,
   document,
   Suggestion,
+
   Message,
   message,
   vote,
@@ -141,6 +142,72 @@ export async function getAgentById(id: string) {
     throw error;
   }
 }
+export async function removeAgentById(id: string) {
+  try {
+    const [selectedAgent] = await db
+      .select()
+      .from(agent)
+      .where(eq(agent.id, id));
+
+    if (!selectedAgent) {
+      throw new Error('Agent not found');
+    }
+
+    // Fetch chat IDs associated with the agent
+    // ...existing code...
+
+    // Fetch chat IDs associated with the agent
+    const chatIds = await db
+      .select()
+      .from(chat)
+      .where(eq(chat.agentId, id));
+
+    const chatIdArray = chatIds.map(chat => chat.id);
+
+    if (chatIdArray.length > 0) {
+      // Fetch message IDs associated with the chat IDs
+      const messageIds = await db
+        .select()
+        .from(message)
+        .where(inArray(message.chatId, chatIdArray));
+
+      const messageIdArray = messageIds.map(message => message.id);
+
+      if (messageIdArray.length > 0) {
+        // Remove votes associated with the message IDs
+        await db
+          .delete(vote)
+          .where(inArray(vote.messageId, messageIdArray));
+        console.log(`Removed votes for messages with chat ids: ${chatIdArray}`);
+
+        // Remove messenger data associated with the chat IDs
+        await db
+          .delete(message)
+          .where(inArray(message.chatId, chatIdArray));
+        console.log(`Removed messenger data for chats with agent id: ${id}`);
+      }
+
+      // Remove chats associated with the agent
+      await db
+        .delete(chat)
+        .where(eq(chat.agentId, id));
+      console.log(`Removed chats for agent with id: ${id}`);
+    }
+
+    // Remove the agent
+    await db
+      .delete(agent)
+      .where(eq(agent.id, id));
+    console.log(`Removed agent with id: ${id}`);
+
+    return selectedAgent;
+  } catch (error) {
+    console.log(error);
+    console.error('Failed to remove Agent from database');
+    throw error;
+  }
+}
+
 
 export async function voteMessage({
   chatId,
@@ -179,7 +246,7 @@ export async function getVotesByChatId({ id }: { id: string }) {
   try {
     return await db.select().from(vote).where(eq(vote.chatId, id));
   } catch (error) {
-    console.error('Failed to get votes by chat id from database', error);
+    console.error('Failed to get votes by chat id from database');
     throw error;
   }
 }
@@ -333,13 +400,75 @@ export async function createAgent({
   }
 }
 
-export async function getAgentByUserId({ userId }: { userId: string }) {
+export async function updateAgent({
+  id,
+  name,
+  description,
+  avatar,
+  intro,
+  model,
+  tools,
+  prompt,
+  suggestedActions,
+}: Agent) {
   try {
     return await db
+      .update(agent)
+      .set({
+        name,
+        description,
+        tools,
+        prompt,
+        avatar,
+        intro,
+        model,
+        suggestedActions,
+      })
+      .where(eq(agent.id, id))
+      .returning({
+        id: agent.id,
+        name: agent.name,
+        description: agent.description,
+        tools: agent.tools,
+        prompt: agent.prompt,
+        avatar: agent.avatar,
+        intro: agent.intro,
+        model: agent.model,
+        userId: agent.userId,
+        createdAt: agent.createdAt,
+        suggestedActions: agent.suggestedActions,
+      });
+  } catch (error) {
+    console.error('Failed to update agent in database', error);
+    throw error;
+  }
+}
+
+export async function getAgentByUserId({ userId }: { userId: string }) {
+  try {
+    const agents = await db
       .select()
       .from(agent)
       .where(eq(agent.userId, userId))
-      .orderBy(desc(agent.createdAt));
+      .orderBy(desc(agent.createdAt)); // Order by createdAt in descending order
+
+    const agentWithTools = await Promise.all(
+      agents.map(async (agent) => {
+        let tools: Tool[] = [];
+        if (Array.isArray(agent.tools) && agent.tools.length > 0) {
+          tools = await db
+            .select()
+            .from(tool)
+            .where(inArray(tool.id, agent.tools as string[]));
+        }
+        return {
+          ...agent,
+          tools,
+
+        };
+      })
+    );
+    return agentWithTools;
   } catch (error) {
     console.log(error);
     console.error('Failed to get agents by userId from database');
@@ -404,3 +533,4 @@ export async function getToolsByIds(ids: any[]): Promise<Array<Tool>> {
     throw error;
   }
 }
+

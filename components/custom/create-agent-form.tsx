@@ -34,24 +34,36 @@ interface SuggestedAction {
 }
 
 export function CreateAgentForm({
+  agent,
   action,
   children,
   tools
 }: {
   action: any;
   children: React.ReactNode;
-  tools: any
+  tools: any;
+  agent?: {
+    id: string;
+    name: string;
+    description: string;
+    prompt: string;
+    intro: string;
+    model: string;
+    avatar?: string;
+    tools: string[];
+    suggestedActions: SuggestedAction[];
+  };
 
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
 
 
-  const [actions, setActions] = useState<SuggestedAction[]>([])
-  const [actionsValue, setActionsValue] = useState<string>('')
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
-  const [selectedTools, setSelectedTools] = useState<Tool[]>([])
-  const [selectedToolsInput, setSelectedToolsInput] = useState<string>('')
+  const [actions, setActions] = useState<SuggestedAction[]>(agent?.suggestedActions || [])
+  const [actionsValue, setActionsValue] = useState<string>(agent ? JSON.stringify(agent.suggestedActions) : '')
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(agent?.avatar || null);
+  const [selectedTools, setSelectedTools] = useState<Tool[]>(agent?.tools ? tools.filter((tool: any) => agent.tools.includes(tool.id)) : [])
+  const [selectedToolsInput, setSelectedToolsInput] = useState<string>(agent ? JSON.stringify(agent.tools) : '')
 
   const [isModalToolOpen, setIsModalToolOpen] = useState(false)
   const [isModalActionOpen, setIsModalActionOpen] = useState(false)
@@ -105,17 +117,26 @@ export function CreateAgentForm({
   return (
     <Card >
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Create an Agent</CardTitle>
+        <CardTitle className="text-2xl">{agent ? 'Update Agent' : 'Create an Agent'}</CardTitle>
         <CardDescription>
-          Design Your Agent
+          {agent ? 'Modify Your Agent' : 'Design Your Agent'}
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
 
         <Form action={action} className="flex flex-col gap-4 px-4 sm:px-16" >
+          {agent && (
+            <Input
+              id="id"
+              name="id"
+              type="hidden"
+              defaultValue={agent.id}
+            />
+          )}
           <div className="space-y-2">
             <Label htmlFor="avatar">Avatar</Label>
             <div className="flex items-center space-x-4">
+
               <Avatar className="size-20 cursor-pointer" onClick={handleAvatarClick}>
                 {avatarPreview ? (
                   <AvatarImage src={avatarPreview} alt="Agent avatar" />
@@ -135,13 +156,13 @@ export function CreateAgentForm({
                 ref={fileInputRef}
               />
               <Button type="button" variant="outline" onClick={handleAvatarClick}>
-                Upload Avatar
+                {agent?.avatar ? 'Change Avatar' : 'Upload Avatar'}
               </Button>
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
-            <Input id="name" name="name" defaultValue={''} placeholder="Agent Name" required />
+            <Input id="name" name="name" defaultValue={agent?.name || ''} placeholder="Agent Name" required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
@@ -149,6 +170,7 @@ export function CreateAgentForm({
               id="description"
               name="description"
               placeholder="Describe the agent's capabilities"
+              defaultValue={agent?.description || ''}
               required
             />
           </div>
@@ -158,6 +180,7 @@ export function CreateAgentForm({
               id="prompt"
               name="prompt"
               placeholder="Enter the agent's initial prompt"
+              defaultValue={agent?.prompt || ''}
               required
             />
           </div>
@@ -168,6 +191,7 @@ export function CreateAgentForm({
               name="intro"
               type="text"
               placeholder="Enter the agent's initial intro"
+              defaultValue={agent?.intro || ''}
               required
             />
           </div>
@@ -177,7 +201,7 @@ export function CreateAgentForm({
             >
               Model
             </Label>
-            <Select name="model">
+            <Select name="model" defaultValue={agent?.model}>
               <SelectTrigger >
                 <SelectValue placeholder="Select Model" />
               </SelectTrigger>

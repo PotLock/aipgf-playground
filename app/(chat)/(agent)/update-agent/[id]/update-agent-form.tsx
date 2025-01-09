@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { CreateAgentForm } from '@/components/custom/create-agent-form';
 import { SubmitButton } from '@/components/custom/submit-button';
 
-import { createAgentAction, CreateAgentActionState } from './actions';
+import { updateAgentAction, UpdateAgentActionState } from './actions';
 
 interface Tool {
     id: string
@@ -20,11 +20,11 @@ interface ToolCardProps {
     tools: Tool[]
 }
 
-export default function CreateAgent({ tools }: ToolCardProps) {
+export default function UpdateAgent({ tools, agent }: any) {
     const router = useRouter();
 
-    const [state, formAction] = useActionState<CreateAgentActionState, FormData>(
-        createAgentAction,
+    const [state, formAction] = useActionState<UpdateAgentActionState, FormData>(
+        updateAgentAction,
         {
             status: 'idle',
         }
@@ -34,11 +34,11 @@ export default function CreateAgent({ tools }: ToolCardProps) {
         if (state.status === 'agent_exists') {
             toast.error('Agent already exists');
         } else if (state.status === 'failed') {
-            toast.error('Failed to create agent');
+            toast.error('Failed to update agent');
         } else if (state.status === 'invalid_data') {
             toast.error('Failed validating your submission!');
         } else if (state.status === 'success') {
-            toast.success('Agent created successfully');
+            toast.success('Agent updated successfully');
             router.push('/agent')
             router.refresh();
         }
@@ -50,7 +50,7 @@ export default function CreateAgent({ tools }: ToolCardProps) {
 
     return (
         <div className="flex flex-col min-w-0 h-dvh bg-background">
-            <CreateAgentForm action={handleSubmit} tools={tools} >
+            <CreateAgentForm action={handleSubmit} tools={tools} agent={agent}>
                 <SubmitButton>Create</SubmitButton>
             </CreateAgentForm>
         </div>

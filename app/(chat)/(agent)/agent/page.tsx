@@ -1,5 +1,4 @@
-import { PlusCircle } from 'lucide-react';
-import { cookies } from 'next/headers';
+
 import Link from 'next/link';
 
 import { auth } from '@/app/(auth)/auth';
@@ -8,7 +7,6 @@ import { ChatHeader } from '@/components/custom/chat-header';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { getAgentByUserId } from '@/db/queries';
 
 
 export default async function Page(props: { searchParams: Promise<any> }) {
@@ -18,32 +16,23 @@ export default async function Page(props: { searchParams: Promise<any> }) {
     return Response.json('Unauthorized!', { status: 401 });
   }
 
-  const agents = await getAgentByUserId({ userId: session.user.id! });
   return (
     <div className="flex flex-col min-w-0 h-dvh bg-background">
       <ChatHeader />
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle>Agent</CardTitle>
-          <CardDescription>
+          <Button>
+            <Link href="/create-agent">
+              Create Agent
+            </Link>
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <CardDescription className="pb-4">
             Start to chat with your agent
           </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-6">
-          <Card className="flex flex-col items-center justify-center h-full">
-            <CardContent className="pt-6 text-center">
-              <PlusCircle className="size-12 mb-4 mx-auto text-gray-400" />
-              <CardTitle className="text-xl mb-2">Create New Agent</CardTitle>
-              <CardDescription className="mb-4">Add a new Agent to your collection</CardDescription>
-              <Button asChild>
-                <Link className='w-full'
-                  href={`/create-agent`}>
-                  Create Agent
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-          <AgentCardList agents={agents as any} />
+          <AgentCardList userId={session.user.id!} />
         </CardContent>
       </Card>
     </div>
