@@ -93,12 +93,10 @@ function AgentCard({ agent, onRemove }: AgentCardProps) {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <Link href={`/update-agent/${agent.id}`}>
-                            <DropdownMenuItem >
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                            </DropdownMenuItem>
-                        </Link>
+                        <DropdownMenuItem  onClick={() => router.push(`/update-agent/${agent.id}`)}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit
+                        </DropdownMenuItem>
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
                                 <DropdownMenuItem onSelect={(e) => {

@@ -9,7 +9,6 @@ export default async function Page({ params }: { params: { id: string } }) {
     return new Response('Unauthorized!', { status: 401 });
   }
   const { id } = await params;
-  console.log(id, session.user.id);
   const tools = await getToolByUserId({ userId: session.user.id! });
   const agent = await getAgentById(id);
 
