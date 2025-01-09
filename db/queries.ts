@@ -1,7 +1,7 @@
 'server-only';
 
 import { genSaltSync, hashSync } from 'bcrypt-ts';
-import { and, asc, desc, eq, gt, inArray } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
@@ -444,13 +444,17 @@ export async function updateAgent({
   }
 }
 
-export async function getAgentByUserId({ userId }: { userId: string }) {
+export async function getAgentByUserId({ userId, page = 1, limit = 10 }: { userId: string, page?: number, limit?: number }) {
   try {
+    const offset = (page - 1) * limit;
+
     const agents = await db
       .select()
       .from(agent)
       .where(eq(agent.userId, userId))
-      .orderBy(desc(agent.createdAt)); // Order by createdAt in descending order
+      .orderBy(desc(agent.createdAt))
+      .limit(limit)
+      .offset(offset); // Add pagination
 
     const agentWithTools = await Promise.all(
       agents.map(async (agent) => {
@@ -464,17 +468,25 @@ export async function getAgentByUserId({ userId }: { userId: string }) {
         return {
           ...agent,
           tools,
-
         };
       })
     );
-    return agentWithTools;
+    const totalAgents = await db
+      .select({ count: count() })
+      .from(agent)
+      .where(eq(agent.userId, userId));
+
+    return {
+      agents: agentWithTools,
+      totalAgents: totalAgents[0].count,
+    };
   } catch (error) {
-    console.log(error);
-    console.error('Failed to get agents by userId from database');
+    console.error('Failed to get agents by user ID', error);
     throw error;
   }
 }
+
+
 
 export async function createTool({
   name,

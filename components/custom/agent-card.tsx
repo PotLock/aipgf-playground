@@ -93,7 +93,7 @@ function AgentCard({ agent, onRemove }: AgentCardProps) {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem  onClick={() => router.push(`/update-agent/${agent.id}`)}>
+                        <DropdownMenuItem onClick={() => router.push(`/update-agent/${agent.id}`)}>
                             <Pencil className="mr-2 h-4 w-4" />
                             Edit
                         </DropdownMenuItem>
@@ -226,14 +226,17 @@ function AgentCard({ agent, onRemove }: AgentCardProps) {
 export default function AgentCardList({ userId }: any) {
     const [agents, setAgents] = useState<Agent[] | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const limit = 10; // Number of agents per page
     useEffect(() => {
         const fetchAgent = async () => {
             try {
                 setIsLoading(true);
-
-                const response = await fetch(`/api/agent/`);
+                const response = await fetch(`/api/agent?page=${page}&limit=${limit}`);
                 const data = await response.json();
-                setAgents(data);
+                setAgents(data.agents);
+                setTotalPages(data.totalPages);
             } catch (error) {
                 console.error('Error fetching agent:', error);
                 toast.error('Failed to fetch agent data');
@@ -243,29 +246,68 @@ export default function AgentCardList({ userId }: any) {
         };
 
         fetchAgent();
-    }, [userId]);
+    }, [userId, page]);
+
+
+
+    const handlePreviousPage = () => {
+        if (page > 1) {
+            setPage(page - 1);
+        }
+    };
+
+    const handleNextPage = () => {
+        if (page < totalPages) {
+            setPage(page + 1);
+        }
+    };
 
     const handleRemove = (id: string) => {
         setAgents((prevAgents) => prevAgents?.filter((agent) => agent.id !== id) || null);
     };
 
-    if (isLoading || !agents) {
-        return (
-            <Card className="w-full ">
-                <CardContent className="py-10 text-center">
-                    <CardDescription>
-                        {isLoading ? 'Loading...' : 'No agents available at the moment.'}
-                    </CardDescription>
-                </CardContent>
-            </Card>
-        );
-    }
-
+    const handlePageChange = (newPage: number) => {
+        setPage(newPage);
+    };
     return (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {agents.map((agent) => (
-                <AgentCard key={agent.id} agent={agent} onRemove={() => handleRemove(agent.id)} />
-            ))}
+        <div>
+            {isLoading || !agents ? (
+                <Card className="w-full ">
+                    <CardContent className="py-10 text-center">
+                        <CardDescription>
+                            {isLoading ? 'Loading...' : 'No agents available at the moment.'}
+                        </CardDescription>
+                    </CardContent>
+                </Card>)
+                : (
+                    <>
+                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                            {agents.map((agent) => (
+                                <AgentCard key={agent.id} agent={agent} onRemove={() => handleRemove(agent.id)} />
+                            ))}
+                        </div>
+
+                    </>
+                )}
+            <div className="flex justify-between items-center mt-4">
+                <Button onClick={() => handlePageChange(page - 1)} disabled={page === 1}>
+                    Previous
+                </Button>
+                <div>
+                    {Array.from({ length: totalPages }, (_, index) => (
+                        <Button
+                            key={index + 1}
+                            onClick={() => handlePageChange(index + 1)}
+                            disabled={page === index + 1}
+                        >
+                            {index + 1}
+                        </Button>
+                    ))}
+                </div>
+                <Button onClick={() => handlePageChange(page + 1)} disabled={page === totalPages}>
+                    Next
+                </Button>
+            </div>
         </div>
     )
 }

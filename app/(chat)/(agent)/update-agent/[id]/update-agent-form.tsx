@@ -51,7 +51,7 @@ export default function UpdateAgent({ tools, agent }: any) {
     return (
         <div className="flex flex-col min-w-0 h-dvh bg-background">
             <CreateAgentForm action={handleSubmit} tools={tools} agent={agent}>
-                <SubmitButton>Create</SubmitButton>
+                <SubmitButton>Update</SubmitButton>
             </CreateAgentForm>
         </div>
     );
