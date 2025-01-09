@@ -1,16 +1,17 @@
 import { auth } from '@/app/(auth)/auth';
-import { getToolByUserId } from '@/db/queries';
+import { getToolByUserId, getAgentById } from '@/db/queries';
+import UpdateAgent from './update-agent-form';
 
-import CreateAgent from './update-agent-form'; './create-agent-form'
-
-
-export default async function Page() {
+export default async function Page({ params }: { params: { id: string } }) {
   const session = await auth();
 
   if (!session || !session.user) {
-    return Response.json('Unauthorized!', { status: 401 });
+    return new Response('Unauthorized!', { status: 401 });
   }
-
+  const { id } = await params;
+  console.log(id, session.user.id);
   const tools = await getToolByUserId({ userId: session.user.id! });
-  return <CreateAgent tools={tools as any} />;
+  const agent = await getAgentById(id);
+
+  return <UpdateAgent tools={tools as any} agent={agent} />;
 }

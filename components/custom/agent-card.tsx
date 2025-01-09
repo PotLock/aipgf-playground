@@ -51,7 +51,7 @@ function AgentCard({ agent, onRemove }: AgentCardProps) {
             router.push(`/chat?agentId=${agent.id}&startMessage=${chatInput}`);
         }
     };
-    const handleRemove = async (e:any) => {
+    const handleRemove = async (e: any) => {
         e.preventDefault()
 
         setIsRemoving(true)
@@ -93,10 +93,12 @@ function AgentCard({ agent, onRemove }: AgentCardProps) {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem >
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit
-                        </DropdownMenuItem>
+                        <Link href={`/update-agent/${agent.id}`}>
+                            <DropdownMenuItem >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                            </DropdownMenuItem>
+                        </Link>
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
                                 <DropdownMenuItem onSelect={(e) => {

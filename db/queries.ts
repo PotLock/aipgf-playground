@@ -400,6 +400,50 @@ export async function createAgent({
   }
 }
 
+export async function updateAgent({
+  id,
+  name,
+  description,
+  avatar,
+  intro,
+  model,
+  tools,
+  prompt,
+  suggestedActions,
+}: Agent) {
+  try {
+    return await db
+      .update(agent)
+      .set({
+        name,
+        description,
+        tools,
+        prompt,
+        avatar,
+        intro,
+        model,
+        suggestedActions,
+      })
+      .where(eq(agent.id, id))
+      .returning({
+        id: agent.id,
+        name: agent.name,
+        description: agent.description,
+        tools: agent.tools,
+        prompt: agent.prompt,
+        avatar: agent.avatar,
+        intro: agent.intro,
+        model: agent.model,
+        userId: agent.userId,
+        createdAt: agent.createdAt,
+        suggestedActions: agent.suggestedActions,
+      });
+  } catch (error) {
+    console.error('Failed to update agent in database', error);
+    throw error;
+  }
+}
+
 export async function getAgentByUserId({ userId }: { userId: string }) {
   try {
     const agents = await db
@@ -424,7 +468,6 @@ export async function getAgentByUserId({ userId }: { userId: string }) {
         };
       })
     );
-    console.log(agentWithTools);
     return agentWithTools;
   } catch (error) {
     console.log(error);
