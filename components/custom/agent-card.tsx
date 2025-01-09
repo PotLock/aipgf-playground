@@ -289,24 +289,55 @@ export default function AgentCardList({ userId }: any) {
 
                     </>
                 )}
-            <div className="flex justify-between items-center mt-4">
-                <Button onClick={() => handlePageChange(page - 1)} disabled={page === 1}>
-                    Previous
-                </Button>
-                <div>
-                    {Array.from({ length: totalPages }, (_, index) => (
-                        <Button
-                            key={index + 1}
-                            onClick={() => handlePageChange(index + 1)}
-                            disabled={page === index + 1}
-                        >
-                            {index + 1}
-                        </Button>
-                    ))}
+            <div className="flex flex-col items-center justify-center mt-8 space-y-4">
+                <div className="join space-x-1">
+                    <Button
+                        className="join-item px-2 sm:px-4"
+                        onClick={() => handlePageChange(1)}
+                        disabled={page === 1}
+                    >
+                        «
+                    </Button>
+                    <Button
+                        className="join-item px-2 sm:px-4"
+                        onClick={() => handlePageChange(page - 1)}
+                        disabled={page === 1}
+                    >
+                        ‹
+                    </Button>
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        const pageNumber = page - 2 + i;
+                        if (pageNumber > 0 && pageNumber <= totalPages) {
+                            return (
+                                <Button
+                                    key={pageNumber}
+                                    className={`join-item px-3 sm:px-4 ${pageNumber === page ? 'bg-primary text-primary-foreground' : ''}`}
+                                    onClick={() => handlePageChange(pageNumber)}
+                                >
+                                    {pageNumber}
+                                </Button>
+                            );
+                        }
+                        return null;
+                    })}
+                    <Button
+                        className="join-item px-2 sm:px-4"
+                        onClick={() => handlePageChange(page + 1)}
+                        disabled={page === totalPages}
+                    >
+                        ›
+                    </Button>
+                    <Button
+                        className="join-item px-2 sm:px-4"
+                        onClick={() => handlePageChange(totalPages)}
+                        disabled={page === totalPages}
+                    >
+                        »
+                    </Button>
                 </div>
-                <Button onClick={() => handlePageChange(page + 1)} disabled={page === totalPages}>
-                    Next
-                </Button>
+                <div className="text-sm text-muted-foreground">
+                    Page {page} of {totalPages}
+                </div>
             </div>
         </div>
     )
