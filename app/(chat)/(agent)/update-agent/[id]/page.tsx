@@ -2,7 +2,15 @@ import { auth } from '@/app/(auth)/auth';
 import { getToolByUserId, getAgentById } from '@/db/queries';
 import UpdateAgent from './update-agent-form';
 
-export default async function Page({ params }: { params: { id: string } }) {
+
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
+
+
+export default async function Page({ params }: PageProps) {
   const session = await auth();
 
   if (!session || !session.user) {
