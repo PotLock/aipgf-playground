@@ -34,11 +34,11 @@ export default function UpdateAgent({ tools, agent }: any) {
         if (state.status === 'agent_exists') {
             toast.error('Agent already exists');
         } else if (state.status === 'failed') {
-            toast.error('Failed to create agent');
+            toast.error('Failed to update agent');
         } else if (state.status === 'invalid_data') {
             toast.error('Failed validating your submission!');
         } else if (state.status === 'success') {
-            toast.success('Agent created successfully');
+            toast.success('Agent updated successfully');
             router.push('/agent')
             router.refresh();
         }
