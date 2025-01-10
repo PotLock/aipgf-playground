@@ -272,13 +272,11 @@ export default function AgentCardList({ userId }: any) {
     return (
         <div>
             {isLoading || !agents ? (
-                <Card className="w-full ">
-                    <CardContent className="py-10 text-center">
-                        <CardDescription>
-                            {isLoading ? 'Loading...' : 'No agents available at the moment.'}
-                        </CardDescription>
-                    </CardContent>
-                </Card>)
+                <div className="w-full h-96 flex items-center justify-center">
+                    <span className="py-10 text-center">
+                        {isLoading ? 'Loading...' : 'No agents available at the moment.'}
+                    </span>
+                </div>)
                 : (
                     <>
                         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
