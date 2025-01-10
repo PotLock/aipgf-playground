@@ -40,6 +40,7 @@ export default async function Page(props: { params: Promise<any> }) {
   const tools = await getToolsByIds(agent.tools as any);
   return (
     <PreviewChat
+      startMessage={''}
       id={chat.id}
       initialMessages={convertToUIMessages(messagesFromDb)}
       selectedModelId={selectedModelId}

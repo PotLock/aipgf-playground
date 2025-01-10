@@ -7,7 +7,8 @@
     "turbo":"next dev --turbo",
     "build": "tsx db/migrate && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate" :"npx drizzle-kit generate"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.60",

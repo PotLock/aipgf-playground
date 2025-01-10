@@ -6,9 +6,11 @@ import { getUser } from '@/db/queries';
 
 import { authConfig } from './auth.config';
 
-interface ExtendedSession extends Session {
+
+export interface ExtendedSession extends Session {
   user: User;
 }
+
 
 export const {
   handlers: { GET, POST },

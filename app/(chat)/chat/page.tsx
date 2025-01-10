@@ -10,7 +10,7 @@ import { generateUUID } from '@/lib/utils';
 
 export default async function Page(props: { searchParams: Promise<any> }) {
     const params = await props.searchParams;
-    const { agentId } = params;
+    const { agentId, startMessage } = params;
 
     let agent: any;
     if (agentId) {
@@ -36,6 +36,7 @@ export default async function Page(props: { searchParams: Promise<any> }) {
     const tools = await getToolsByIds(agent.tools as any);
     return (
         <Chat
+            startMessage={startMessage}
             key={id}
             id={id}
             initialMessages={[]}

@@ -3,7 +3,7 @@
 import { Attachment, Message } from 'ai';
 import { useChat } from 'ai/react';
 import { AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 import { useWindowSize } from 'usehooks-ts';
 
@@ -24,14 +24,16 @@ export function Chat({
   selectedModelId,
   agent,
   tools,
-  user
+  user,
+  startMessage
 }: {
   id: string;
   initialMessages: Array<Message>;
   selectedModelId: string;
   agent: Agent;
   tools: Tool[];
-  user: User
+  user: User,
+  startMessage: string
 }) {
   const { mutate } = useSWRConfig();
 
@@ -79,6 +81,14 @@ export function Chat({
     useScrollToBottom<HTMLDivElement>();
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
+
+  useEffect(() => {
+    if (startMessage && messages.length == 0) {
+      append({ content: startMessage, role: 'user' });
+    }
+  }, [startMessage, messages]);
+
+
   return (
     <>
       <div className="flex flex-col min-w-0 h-dvh bg-background">
