@@ -1,4 +1,4 @@
-import { auth, User } from '@/app/(auth)/auth';
+import { auth } from '@/app/(auth)/auth';
 import { getVotesByChatId, voteMessage } from '@/db/queries';
 
 export async function GET(request: Request) {
@@ -11,7 +11,7 @@ export async function GET(request: Request) {
 
   const session: any = await auth();
 
-  if (!session || !session.user || !session.user.username) {
+  if (!session || !session.user || !session.user.email) {
     return new Response('Unauthorized', { status: 401 });
   }
 
@@ -34,7 +34,7 @@ export async function PATCH(request: Request) {
 
   const session: any = await auth();
 
-  if (!session || !session.user || !session.user.username) {
+  if (!session || !session.user || !session.user.email) {
     return new Response('Unauthorized', { status: 401 });
   }
 

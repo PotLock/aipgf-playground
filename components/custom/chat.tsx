@@ -92,7 +92,7 @@ export function Chat({
           {messages.map((message, index) => (
             <PreviewMessage
               bot={agent.name}
-              user={user.username}
+              user={user.email}
               key={message.id}
               chatId={id}
               message={message}

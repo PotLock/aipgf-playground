@@ -22,6 +22,7 @@ interface ToolCardProps {
 
 export default function CreateAgent({ tools }: ToolCardProps) {
     const router = useRouter();
+    const [isSuccessful, setIsSuccessful] = useState(false);
 
     const [state, formAction] = useActionState<CreateAgentActionState, FormData>(
         createAgentAction,
@@ -39,6 +40,7 @@ export default function CreateAgent({ tools }: ToolCardProps) {
             toast.error('Failed validating your submission!');
         } else if (state.status === 'success') {
             toast.success('Agent created successfully');
+            setIsSuccessful(true);
             router.push('/agent')
             router.refresh();
         }
@@ -51,7 +53,7 @@ export default function CreateAgent({ tools }: ToolCardProps) {
     return (
         <div className="flex flex-col min-w-0 h-dvh bg-background">
             <CreateAgentForm action={handleSubmit} tools={tools} >
-                <SubmitButton>Create</SubmitButton>
+                <SubmitButton isSuccessful={isSuccessful}>Create</SubmitButton>
             </CreateAgentForm>
         </div>
     );

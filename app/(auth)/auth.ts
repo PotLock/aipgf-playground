@@ -1,17 +1,11 @@
 import { compare } from 'bcrypt-ts';
-import NextAuth, { Session } from 'next-auth';
+import NextAuth, { type User, type Session } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 
 import { getUser } from '@/db/queries';
 
 import { authConfig } from './auth.config';
 
-export interface User {
-  id?: string;
-  name?: string | null;
-  username?: string | null;
-  image?: string | null;
-}
 interface ExtendedSession extends Session {
   user: User;
 }
@@ -26,19 +20,20 @@ export const {
   providers: [
     Credentials({
       credentials: {},
-      async authorize({ username, password }: any) {
-        let users = await getUser(username);
+      async authorize({ email, password }: any) {
+        const users = await getUser(email);
         if (users.length === 0) return null;
-        let passwordsMatch = await compare(password, users[0].password!);
-        if (passwordsMatch) return users[0] as any;
+        // biome-ignore lint: Forbidden non-null assertion.
+        const passwordsMatch = await compare(password, users[0].password!);
+        if (!passwordsMatch) return null;
+        return users[0] as any;
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }: { token: any; user: User }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.username = user.username;
       }
 
       return token;
@@ -52,7 +47,6 @@ export const {
     }) {
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.username = token.username as string;
       }
 
       return session;

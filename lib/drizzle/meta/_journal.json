@@ -64,6 +64,13 @@
       "when": 1732738525349,
       "tag": "0008_clever_texas_twister",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1736490908527,
+      "tag": "0009_goofy_puck",
+      "breakpoints": true
     }
   ]
 }

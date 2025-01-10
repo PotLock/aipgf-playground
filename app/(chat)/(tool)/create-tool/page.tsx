@@ -13,6 +13,7 @@ import { createToolAction, CreateToolActionState } from './actions';
 
 export default function Page() {
   const router = useRouter();
+  const [isSuccessful, setIsSuccessful] = useState(false);
 
   const [state, formAction] = useActionState<CreateToolActionState, FormData>(
     createToolAction,
@@ -29,6 +30,7 @@ export default function Page() {
     } else if (state.status === 'invalid_data') {
       toast.error('Failed validating your submission!');
     } else if (state.status === 'success') {
+      setIsSuccessful(true);
       toast.success('Tool created successfully');
       router.push('/tool')
       router.refresh();
@@ -43,7 +45,7 @@ export default function Page() {
     <div className="flex flex-col min-w-0 h-dvh bg-background">
       <ChatHeader />
       <CreateToolForm action={handleSubmit} >
-        <SubmitButton >Create</SubmitButton>
+        <SubmitButton isSuccessful={isSuccessful}>Create</SubmitButton>
       </CreateToolForm>
     </div>
   );

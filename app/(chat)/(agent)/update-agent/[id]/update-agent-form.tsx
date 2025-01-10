@@ -22,6 +22,7 @@ interface ToolCardProps {
 
 export default function UpdateAgent({ tools, agent }: any) {
     const router = useRouter();
+    const [isSuccessful, setIsSuccessful] = useState(false);
 
     const [state, formAction] = useActionState<UpdateAgentActionState, FormData>(
         updateAgentAction,
@@ -39,6 +40,7 @@ export default function UpdateAgent({ tools, agent }: any) {
             toast.error('Failed validating your submission!');
         } else if (state.status === 'success') {
             toast.success('Agent updated successfully');
+            setIsSuccessful(true);
             router.push('/agent')
             router.refresh();
         }
@@ -51,7 +53,7 @@ export default function UpdateAgent({ tools, agent }: any) {
     return (
         <div className="flex flex-col min-w-0 h-dvh bg-background">
             <CreateAgentForm action={handleSubmit} tools={tools} agent={agent}>
-                <SubmitButton>Update</SubmitButton>
+                <SubmitButton isSuccessful={isSuccessful}>Update</SubmitButton>
             </CreateAgentForm>
         </div>
     );

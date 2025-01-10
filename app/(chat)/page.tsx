@@ -19,22 +19,22 @@ export default async function Page(props: { searchParams: Promise<any> }) {
   return (
     <div className="flex flex-col min-w-0 h-dvh bg-background">
       <ChatHeader />
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle>Agent</CardTitle>
-          <Button>
+      <div className="p-6">
+        <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <h2 className="text-2xl font-bold tracking-tight">Agent</h2>
+          <Button asChild>
             <Link href="/create-agent">
               Create Agent
             </Link>
           </Button>
-        </CardHeader>
-        <CardContent>
-          <CardDescription className="pb-4">
+        </div>
+        <div className="space-y-4">
+          <p className="text-muted-foreground">
             Start to chat with your agent
-          </CardDescription>
+          </p>
           <AgentCardList userId={session.user.id!} />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

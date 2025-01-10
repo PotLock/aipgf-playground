@@ -10,7 +10,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu } from '@radix-ui/react-dropdown-menu'
 import { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu'
-import { MoreVertical, Pencil, Send, Trash2 } from 'lucide-react'
+import { MoreVertical, Pencil, PlusCircle, Send, Trash2 } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog'
 import { removeAgent } from '@/app/(chat)/(agent)/actions'
 import { toast } from 'sonner'
@@ -271,7 +271,7 @@ export default function AgentCardList({ userId }: any) {
     };
     return (
         <div>
-            {isLoading || !agents ? (
+            {isLoading ? (
                 <Card className="w-full ">
                     <CardContent className="py-10 text-center">
                         <CardDescription>
@@ -281,64 +281,84 @@ export default function AgentCardList({ userId }: any) {
                 </Card>)
                 : (
                     <>
-                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                            {agents.map((agent) => (
-                                <AgentCard key={agent.id} agent={agent} onRemove={() => handleRemove(agent.id)} />
-                            ))}
-                        </div>
+                        {agents && agents.length > 0 ? (
+                            <>
+                                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                                    {agents?.map((agent) => (
+                                        <AgentCard key={agent.id} agent={agent} onRemove={() => handleRemove(agent.id)} />
+                                    ))}
+                                </div>
+                                <div className="flex flex-col items-center justify-center mt-8 space-y-4">
+                                    <div className="join space-x-1">
+                                        <Button
+                                            className="join-item px-2 sm:px-4"
+                                            onClick={() => handlePageChange(1)}
+                                            disabled={page === 1}
+                                        >
+                                            «
+                                        </Button>
+                                        <Button
+                                            className="join-item px-2 sm:px-4"
+                                            onClick={() => handlePageChange(page - 1)}
+                                            disabled={page === 1}
+                                        >
+                                            ‹
+                                        </Button>
+                                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                            const pageNumber = page - 2 + i;
+                                            if (pageNumber > 0 && pageNumber <= totalPages) {
+                                                return (
+                                                    <Button
+                                                        key={pageNumber}
+                                                        className={`join-item px-3 sm:px-4 ${pageNumber === page ? 'bg-primary text-primary-foreground' : ''}`}
+                                                        onClick={() => handlePageChange(pageNumber)}
+                                                    >
+                                                        {pageNumber}
+                                                    </Button>
+                                                );
+                                            }
+                                            return null;
+                                        })}
+                                        <Button
+                                            className="join-item px-2 sm:px-4"
+                                            onClick={() => handlePageChange(page + 1)}
+                                            disabled={page === totalPages}
+                                        >
+                                            ›
+                                        </Button>
+                                        <Button
+                                            className="join-item px-2 sm:px-4"
+                                            onClick={() => handlePageChange(totalPages)}
+                                            disabled={page === totalPages}
+                                        >
+                                            »
+                                        </Button>
+                                    </div>
+                                    <div className="text-sm text-muted-foreground">
+                                        Page {page} of {totalPages}
+                                    </div>
+                                </div>
+                            </>
 
+                        ) : (
+                            <Card className="flex flex-col items-center justify-center h-full">
+                                <CardContent className="pt-6 text-center">
+                                    <PlusCircle className="size-12 mb-4 mx-auto text-gray-400" />
+                                    <CardTitle className="text-xl mb-2">Create New Agent</CardTitle>
+                                    <CardDescription className="mb-4">Add a new agent to your collection</CardDescription>
+                                    <Button asChild>
+                                        <Link className='w-full'
+                                            href={`/create-agent`}>
+                                            Create Agent
+                                        </Link>
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        )}
                     </>
                 )}
-            <div className="flex flex-col items-center justify-center mt-8 space-y-4">
-                <div className="join space-x-1">
-                    <Button
-                        className="join-item px-2 sm:px-4"
-                        onClick={() => handlePageChange(1)}
-                        disabled={page === 1}
-                    >
-                        «
-                    </Button>
-                    <Button
-                        className="join-item px-2 sm:px-4"
-                        onClick={() => handlePageChange(page - 1)}
-                        disabled={page === 1}
-                    >
-                        ‹
-                    </Button>
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        const pageNumber = page - 2 + i;
-                        if (pageNumber > 0 && pageNumber <= totalPages) {
-                            return (
-                                <Button
-                                    key={pageNumber}
-                                    className={`join-item px-3 sm:px-4 ${pageNumber === page ? 'bg-primary text-primary-foreground' : ''}`}
-                                    onClick={() => handlePageChange(pageNumber)}
-                                >
-                                    {pageNumber}
-                                </Button>
-                            );
-                        }
-                        return null;
-                    })}
-                    <Button
-                        className="join-item px-2 sm:px-4"
-                        onClick={() => handlePageChange(page + 1)}
-                        disabled={page === totalPages}
-                    >
-                        ›
-                    </Button>
-                    <Button
-                        className="join-item px-2 sm:px-4"
-                        onClick={() => handlePageChange(totalPages)}
-                        disabled={page === totalPages}
-                    >
-                        »
-                    </Button>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                    Page {page} of {totalPages}
-                </div>
-            </div>
+
+
         </div>
     )
 }

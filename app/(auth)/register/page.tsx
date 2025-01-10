@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -8,17 +9,19 @@ import { toast } from 'sonner';
 import { AuthForm } from '@/components/custom/auth-form';
 import { SubmitButton } from '@/components/custom/submit-button';
 
-import { register, RegisterActionState } from '../actions';
+import { register, type RegisterActionState } from '../actions';
 
 export default function Page() {
   const router = useRouter();
 
   const [email, setEmail] = useState('');
+  const [isSuccessful, setIsSuccessful] = useState(false);
+
   const [state, formAction] = useActionState<RegisterActionState, FormData>(
     register,
     {
       status: 'idle',
-    }
+    },
   );
 
   useEffect(() => {
@@ -30,6 +33,7 @@ export default function Page() {
       toast.error('Failed validating your submission!');
     } else if (state.status === 'success') {
       toast.success('Account created successfully');
+      setIsSuccessful(true);
       router.refresh();
     }
   }, [state, router]);
@@ -49,7 +53,7 @@ export default function Page() {
           </p>
         </div>
         <AuthForm action={handleSubmit} defaultEmail={email}>
-          <SubmitButton>Sign Up</SubmitButton>
+          <SubmitButton isSuccessful={isSuccessful}>Sign Up</SubmitButton>
           <p className="text-center text-sm text-gray-600 mt-4 dark:text-zinc-400">
             {'Already have an account? '}
             <Link
