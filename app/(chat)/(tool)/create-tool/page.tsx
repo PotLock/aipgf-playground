@@ -45,7 +45,8 @@ export default function Page() {
     <div className="flex flex-col min-w-0 h-dvh bg-background">
       <ChatHeader />
       <CreateToolForm action={handleSubmit} >
-        <SubmitButton isSuccessful={isSuccessful}>Create</SubmitButton>
+        <div className='pb-4'></div>
+        <SubmitButton isSuccessful={isSuccessful} >Create</SubmitButton>
       </CreateToolForm>
     </div>
   );
