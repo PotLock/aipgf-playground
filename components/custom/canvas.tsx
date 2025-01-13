@@ -17,7 +17,7 @@ import {
   useWindowSize,
 } from 'usehooks-ts';
 
-import { Document, Suggestion, Vote } from '@/db/schema';
+import { agent, Document, Suggestion, Vote } from '@/db/schema';
 import { fetcher } from '@/lib/utils';
 
 import { DiffView } from './diffview';
@@ -59,7 +59,7 @@ export function Canvas({
   messages,
   setMessages,
   votes,
-  
+
 }: {
   chatId: string;
   input: string;
@@ -314,6 +314,7 @@ export function Canvas({
 
             <form className="flex flex-row gap-2 relative items-end w-full px-4 pb-4">
               <MultimodalInput
+                agent={agent}
                 chatId={chatId}
                 input={input}
                 setInput={setInput}
@@ -337,52 +338,52 @@ export function Canvas({
         initial={
           isMobile
             ? {
-                opacity: 0,
-                x: 0,
-                y: 0,
-                width: windowWidth,
-                height: windowHeight,
-                borderRadius: 50,
-              }
+              opacity: 0,
+              x: 0,
+              y: 0,
+              width: windowWidth,
+              height: windowHeight,
+              borderRadius: 50,
+            }
             : {
-                opacity: 0,
-                x: canvas.boundingBox.left,
-                y: canvas.boundingBox.top,
-                height: canvas.boundingBox.height,
-                width: canvas.boundingBox.width,
-                borderRadius: 50,
-              }
+              opacity: 0,
+              x: canvas.boundingBox.left,
+              y: canvas.boundingBox.top,
+              height: canvas.boundingBox.height,
+              width: canvas.boundingBox.width,
+              borderRadius: 50,
+            }
         }
         animate={
           isMobile
             ? {
-                opacity: 1,
-                x: 0,
-                y: 0,
-                width: windowWidth,
-                height: '100dvh',
-                borderRadius: 0,
-                transition: {
-                  delay: 0,
-                  type: 'spring',
-                  stiffness: 200,
-                  damping: 30,
-                },
-              }
+              opacity: 1,
+              x: 0,
+              y: 0,
+              width: windowWidth,
+              height: '100dvh',
+              borderRadius: 0,
+              transition: {
+                delay: 0,
+                type: 'spring',
+                stiffness: 200,
+                damping: 30,
+              },
+            }
             : {
-                opacity: 1,
-                x: 0,
-                y: 0,
-                height: windowHeight,
-                width: windowWidth ? windowWidth - 400 : 'calc(100dvw-400px)',
-                borderRadius: 0,
-                transition: {
-                  delay: 0,
-                  type: 'spring',
-                  stiffness: 200,
-                  damping: 30,
-                },
-              }
+              opacity: 1,
+              x: 0,
+              y: 0,
+              height: windowHeight,
+              width: windowWidth ? windowWidth - 400 : 'calc(100dvw-400px)',
+              borderRadius: 0,
+              transition: {
+                delay: 0,
+                type: 'spring',
+                stiffness: 200,
+                damping: 30,
+              },
+            }
         }
         exit={{
           opacity: 0,

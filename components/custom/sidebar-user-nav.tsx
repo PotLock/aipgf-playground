@@ -4,8 +4,7 @@ import Image from 'next/image';
 import { signOut } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 
-import { User } from '@/app/(auth)/auth';
-import { useWalletSelector } from "@/components/context/wallet-selector-provider"
+import type { User } from 'next-auth';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +21,6 @@ import {
 
 export function SidebarUserNav({ user }: { user: User }) {
   const { setTheme, theme } = useTheme();
-  const { accountId, selector,getBalance,callMethod,sendToken } = useWalletSelector();
 
   return (
     <SidebarMenu>
@@ -31,13 +29,13 @@ export function SidebarUserNav({ user }: { user: User }) {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent bg-background data-[state=open]:text-sidebar-accent-foreground h-10">
               <Image
-                src={`https://avatar.vercel.sh/${user.username}`}
-                alt={user.username ?? 'User Avatar'}
+                src={`https://avatar.vercel.sh/${user.email}`}
+                alt={user.email ?? 'User Avatar'}
                 width={24}
                 height={24}
                 className="rounded-full"
               />
-              <span>{user?.username}</span>
+              <span>{user?.email}</span>
               <ChevronUp className="ml-auto" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
@@ -59,8 +57,6 @@ export function SidebarUserNav({ user }: { user: User }) {
                   signOut({
                     redirectTo: '/',
                   });
-                  const wallet = await selector.wallet();
-                  await wallet.signOut();
                 }}
               >
                 Sign out

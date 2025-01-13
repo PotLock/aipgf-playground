@@ -3,14 +3,14 @@
 import { Attachment, Message } from 'ai';
 import { useChat } from 'ai/react';
 import { AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 import { useWindowSize } from 'usehooks-ts';
 
 import { ChatHeader } from '@/components/custom/chat-header';
 import { PreviewMessage, ThinkingMessage } from '@/components/custom/message';
 import { useScrollToBottom } from '@/components/custom/use-scroll-to-bottom';
-import { Agent, User, Vote } from '@/db/schema';
+import { Agent, Tool, User, Vote } from '@/db/schema';
 import { fetcher } from '@/lib/utils';
 
 import { Canvas, UICanvas } from './canvas';
@@ -23,13 +23,17 @@ export function Chat({
   initialMessages,
   selectedModelId,
   agent,
-  user
+  tools,
+  user,
+  startMessage
 }: {
   id: string;
   initialMessages: Array<Message>;
   selectedModelId: string;
   agent: Agent;
-  user: User
+  tools: Tool[];
+  user: User,
+  startMessage: string
 }) {
   const { mutate } = useSWRConfig();
 
@@ -44,7 +48,7 @@ export function Chat({
     stop,
     data: streamingData,
   } = useChat({
-    body: { id, modelId: selectedModelId, agent: agent },
+    body: { id, modelId: selectedModelId, agent, tools },
     initialMessages,
     onFinish: () => {
       mutate('/api/history');
@@ -78,10 +82,17 @@ export function Chat({
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
 
+  useEffect(() => {
+    if (startMessage && messages.length == 0) {
+      append({ content: startMessage, role: 'user' });
+    }
+  }, [startMessage, messages]);
+
+
   return (
     <>
       <div className="flex flex-col min-w-0 h-dvh bg-background">
-        <ChatHeader selectedModelId={selectedModelId} />
+        <ChatHeader />
         <div
           ref={messagesContainerRef}
           className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"
@@ -91,7 +102,7 @@ export function Chat({
           {messages.map((message, index) => (
             <PreviewMessage
               bot={agent.name}
-              user={user.username}
+              user={user.email}
               key={message.id}
               chatId={id}
               message={message}
@@ -120,6 +131,7 @@ export function Chat({
         <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
           <MultimodalInput
             chatId={id}
+            agent={agent}
             input={input}
             setInput={setInput}
             handleSubmit={handleSubmit}

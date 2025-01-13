@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useWindowSize } from 'usehooks-ts';
 
-import { ModelSelector } from '@/components/custom/model-selector';
 import { SidebarToggle } from '@/components/custom/sidebar-toggle';
 import { Button } from '@/components/ui/button';
 import { BetterTooltip } from '@/components/ui/tooltip';
@@ -11,7 +10,7 @@ import { BetterTooltip } from '@/components/ui/tooltip';
 import { PlusIcon, GitIcon, BotIcon, BoxIcon } from './icons';
 import { useSidebar } from '../ui/sidebar';
 
-export function ChatHeader({ selectedModelId }: { selectedModelId: string }) {
+export function ChatHeader() {
   const { open } = useSidebar();
 
   const { width: windowWidth } = useWindowSize();
@@ -57,10 +56,6 @@ export function ChatHeader({ selectedModelId }: { selectedModelId: string }) {
           </Link>
         </Button>
       </BetterTooltip>
-      <ModelSelector
-        selectedModelId={selectedModelId}
-        className="order-1 md:order-2"
-      />
       <Button
         className="hidden md:flex py-1.5 px-2 h-fit md:h-[34px] order-4 md:ml-auto"
         asChild

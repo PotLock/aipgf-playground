@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import React, {
   useRef,
   useEffect,
-  useState, 
+  useState,
   useCallback,
   Dispatch,
   SetStateAction,
@@ -15,6 +15,7 @@ import React, {
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
+import { Agent } from '@/db/schema';
 import { sanitizeUIMessages } from '@/lib/utils';
 
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
@@ -22,18 +23,7 @@ import { PreviewAttachment } from './preview-attachment';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 
-const suggestedActions = [
-  {
-    title: 'What is the weather',
-    label: 'in San Francisco?',
-    action: 'What is the weather in San Francisco?',
-  },
-  {
-    title: 'Help me draft an essay',
-    label: 'about Silicon Valley',
-    action: 'Help me draft an essay about Silicon Valley',
-  },
-];
+
 
 export function MultimodalInput({
   chatId,
@@ -48,6 +38,7 @@ export function MultimodalInput({
   append,
   handleSubmit,
   className,
+  agent,
 }: {
   chatId: string;
   input: string;
@@ -69,6 +60,7 @@ export function MultimodalInput({
     chatRequestOptions?: ChatRequestOptions
   ) => void;
   className?: string;
+  agent: any
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
@@ -118,9 +110,31 @@ export function MultimodalInput({
   const submitForm = useCallback(() => {
     window.history.replaceState({}, '', `/chat/${chatId}`);
 
-    handleSubmit(undefined, {
-      experimental_attachments: attachments,
-    });
+
+    if (attachments.length > 0) {
+      const photoLinks = attachments
+        .filter((attachment): attachment is Attachment & { contentType: string } =>
+          attachment.contentType !== undefined && attachment.contentType.startsWith('image/'))
+        .map(attachment => `![${attachment.name}](${attachment.url})`)
+        .join(' ');
+
+      const messageContent = photoLinks
+        ? `${input}\n\n image:\n ${photoLinks}`
+        : input;
+
+      append({
+        role: 'user',
+        content: messageContent,
+      }, {
+        experimental_attachments: attachments,
+      })
+      setInput('')
+    } else {
+
+      handleSubmit(undefined, {
+        experimental_attachments: attachments,
+      });
+    }
 
     setAttachments([]);
     setLocalStorageInput('');
@@ -129,6 +143,9 @@ export function MultimodalInput({
       textareaRef.current?.focus();
     }
   }, [
+    append,
+    input,
+    setInput,
     attachments,
     handleSubmit,
     setAttachments,
@@ -197,7 +214,7 @@ export function MultimodalInput({
         attachments.length === 0 &&
         uploadQueue.length === 0 && (
           <div className="grid sm:grid-cols-2 gap-2 w-full">
-            {/* {suggestedActions.map((suggestedAction, index) => (
+            {agent.suggestedActions && agent.suggestedActions.map((suggestedAction: any, index: number) => (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -224,7 +241,7 @@ export function MultimodalInput({
                   </span>
                 </Button>
               </motion.div>
-            ))} */}
+            ))}
           </div>
         )}
 

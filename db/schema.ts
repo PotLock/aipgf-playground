@@ -13,7 +13,7 @@ import {
 
 export const user = pgTable('User', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
-  username: varchar('username', { length: 64 }).notNull(),
+  email: varchar('email', { length: 64 }).notNull(),
   password: varchar('password', { length: 64 }),
 });
 
@@ -37,7 +37,7 @@ export const message = pgTable('Message', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   chatId: uuid('chatId')
     .notNull()
-    .references(() => chat.id),
+    .references(() => chat.id,{ onDelete: 'cascade' }),
   role: varchar('role').notNull(),
   content: json('content').notNull(),
   createdAt: timestamp('createdAt').notNull(),
@@ -114,6 +114,7 @@ export type Suggestion = InferSelectModel<typeof Suggestion>;
 export const tool = pgTable('Tool', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
+  avatar: text('avatar'),
   name: text('name').notNull(),
   typeName: varchar('typeName', { length: 64 }).notNull(),
   description: text('description'),
@@ -121,20 +122,20 @@ export const tool = pgTable('Tool', {
   // args: json('args'),
   // typeMethod: varchar('typeMethod', { length: 64 }),
   // methods: varchar('methods', { length: 256 }),
+  // network: varchar('network', { length: 64 }),
+  // chain: varchar('chain', { length: 64 }),
   // // Tool API
   // accessToken: text('accessToken'),
   // spec: json('spec'),
-  // network: varchar('network', { length: 64 }),
-  // chain: varchar('chain', { length: 64 }),
   // // Tool Widget
-  // prompt: text('prompt'),
   // code: text('code'),
-  // toolWidget: json('toolWidget'),
+  // args :  json('args') 
+  // toolWidget: json('toolWidget') ?  tool for widget
   data: json('toolWidget'),
   //UserId
   userId: uuid('userId')
     .notNull()
-    .references(() => user.id),
+    .references(() => user.id, { onDelete: 'cascade' }),
 });
 export type Tool = InferSelectModel<typeof tool>;
 
@@ -144,10 +145,11 @@ export const agent = pgTable('Agent', {
   name: varchar('name', { length: 64 }).notNull(),
   model: varchar('model', { length: 64 }).notNull(),
   description: varchar('description', { length: 256 }).notNull(),
-  avatar: varchar('avatar', { length: 256 }).notNull(),
+  avatar: text('avatar'),
   intro: varchar('intro', { length: 256 }),
   prompt: text('prompt').notNull(),
-  tool: json('tool'),
+  tools: json('tools'),
+  suggestedActions: json('suggestedActions'),
   userId: uuid('userId')
     .notNull()
     .references(() => user.id),

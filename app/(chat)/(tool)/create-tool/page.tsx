@@ -1,36 +1,38 @@
 'use client';
-//https://github.com/sersavan/shadcn-multi-select-component/issues/13
-// How to create item chat
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-import { CreateAgentForm } from '@/components/custom/create-agent-form';
+import { ChatHeader } from '@/components/custom/chat-header';
+import { CreateToolForm } from '@/components/custom/create-tool-form';
 import { SubmitButton } from '@/components/custom/submit-button';
 
-import { createAgentAction, CreateAgentActionState } from './actions';
+import { createToolAction, CreateToolActionState } from './actions';
+
+
 
 export default function Page() {
   const router = useRouter();
+  const [isSuccessful, setIsSuccessful] = useState(false);
 
-  const [state, formAction] = useActionState<CreateAgentActionState, FormData>(
-    createAgentAction,
+  const [state, formAction] = useActionState<CreateToolActionState, FormData>(
+    createToolAction,
     {
       status: 'idle',
     }
   );
 
   useEffect(() => {
-    if (state.status === 'agent_exists') {
-      toast.error('Agent already exists');
+    if (state.status === 'tool_exists') {
+      toast.error('Tool already exists');
     } else if (state.status === 'failed') {
-      toast.error('Failed to create agent');
+      toast.error('Failed to create Tool');
     } else if (state.status === 'invalid_data') {
       toast.error('Failed validating your submission!');
     } else if (state.status === 'success') {
-      toast.success('Agent created successfully');
-      router.push('/agent')
+      setIsSuccessful(true);
+      toast.success('Tool created successfully');
+      router.push('/tool')
       router.refresh();
     }
   }, [state, router]);
@@ -41,9 +43,10 @@ export default function Page() {
 
   return (
     <div className="flex flex-col min-w-0 h-dvh bg-background">
-      <CreateAgentForm action={handleSubmit} >
-        <SubmitButton>Create</SubmitButton>
-      </CreateAgentForm>
+      <ChatHeader />
+      <CreateToolForm action={handleSubmit} >
+        <SubmitButton isSuccessful={isSuccessful}>Create</SubmitButton>
+      </CreateToolForm>
     </div>
   );
 }

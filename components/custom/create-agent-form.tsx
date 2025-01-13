@@ -1,122 +1,208 @@
-import { List, Server } from "lucide-react";
+import { List, Plus, PlusCircle, Server, Trash2, Upload, X } from "lucide-react";
 import Form from 'next/form';
-import { useState } from "react";
+import { useRef, useState } from "react";
 
-import { DEFAULT_MODEL_NAME, models } from '@/ai/models';
+import { models } from '@/ai/models';
 
 import { MultiSelect } from '../custom/multi-select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectItem, SelectContent, SelectGroup, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
 import { Textarea } from '../ui/textarea';
+import ActionCard from "./suggest-action/action-card";
+import CreateActionModal from "./suggest-action/create-action-modal";
+import { ToolCard } from "./tool-selector/tool-card";
+import { ToolSelectorModal } from "./tool-selector/tool-selector-modal";
 
+
+
+interface Tool {
+  id: string
+  name: string
+  description: string
+  isFavorite: boolean
+  avatar?: string
+}
+interface SuggestedAction {
+  id: string
+  title: string
+  label: string
+  action: string
+}
 
 export function CreateAgentForm({
+  agent,
   action,
-  children
+  children,
+  tools
 }: {
   action: any;
   children: React.ReactNode;
-}) {
-  const [selectedFrameworks, setSelectedFrameworks] = useState<string[]>([]);
+  tools: any;
+  agent?: {
+    id: string;
+    name: string;
+    description: string;
+    prompt: string;
+    intro: string;
+    model: string;
+    avatar?: string;
+    tools: string[];
+    suggestedActions: SuggestedAction[];
+  };
 
-  const frameworksList = [
-    { value: "tool1", label: "Tool 1", icon: List },
-    { value: "tool2", label: "Tool 2", icon: Server },
-  ];
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+
+
+  const [actions, setActions] = useState<SuggestedAction[]>(agent?.suggestedActions || [])
+  const [actionsValue, setActionsValue] = useState<string>(agent ? JSON.stringify(agent.suggestedActions) : '')
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(agent?.avatar || null);
+  const [selectedTools, setSelectedTools] = useState<Tool[]>(agent?.tools ? tools.filter((tool: any) => agent.tools.includes(tool.id)) : [])
+  const [selectedToolsInput, setSelectedToolsInput] = useState<string>(agent ? JSON.stringify(agent.tools) : '')
+
+  const [isModalToolOpen, setIsModalToolOpen] = useState(false)
+  const [isModalActionOpen, setIsModalActionOpen] = useState(false)
+
+  const handleToolsSelect = (tools: Tool[]) => {
+    const ids = tools.map(item => item.id);
+    setSelectedToolsInput(JSON.stringify(ids));
+    setSelectedTools(tools)
+  }
+
+  const handleToolRemove = (toolId: string) => {
+    setSelectedTools((prev) => prev.filter((tool) => tool.id !== toolId))
+  }
+
+
+  const handleCreateAction = (newAction: Omit<SuggestedAction, 'id'>) => {
+    const actionWithId = {
+      ...newAction,
+      id: Date.now().toString() // Simple ID generation
+    }
+    setActions([...actions, actionWithId])
+    setActionsValue(JSON.stringify([...actions, actionWithId]))
+    setIsModalActionOpen(false)
+  }
+
+  const handleRemoveAction = (id: string) => {
+    setActions(actions.filter(action => action.id !== id))
+  }
+
+
+  const deleteAllActions = () => {
+    setActions([])
+    setActionsValue('')
+  }
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      //setAgent((prev) => ({ ...prev, avatar: file }))
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click()
+  }
+
   return (
-    <Card>
+    <Card >
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Create an Agent</CardTitle>
+        <CardTitle className="text-2xl">{agent ? 'Update Agent' : 'Create an Agent'}</CardTitle>
         <CardDescription>
-          Design Your Agent
+          {agent ? 'Modify Your Agent' : 'Design Your Agent'}
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <Form action={action} className="flex flex-col gap-4 px-4 sm:px-16">
-          <div className="flex flex-col gap-2">
-            <Label
-              htmlFor="text"
-              className="text-zinc-600 font-normal dark:text-zinc-400"
-            >
-              Avatar
-            </Label>
 
+        <Form action={action} className="flex flex-col gap-4 px-4 sm:px-16" >
+          {agent && (
             <Input
-              id="avatar"
-              name="avatar"
-              className="bg-muted text-md md:text-sm"
-              type="text"
-              placeholder="Avatar"
-              autoComplete="text"
-              required
-              autoFocus
-              defaultValue={'/Logo.svg'}
+              id="id"
+              name="id"
+              type="hidden"
+              defaultValue={agent.id}
             />
+          )}
+          <div className="space-y-2">
+            <Label htmlFor="avatar">Avatar</Label>
+            <div className="flex items-center space-x-4">
+
+              <Avatar className="size-20 cursor-pointer" onClick={handleAvatarClick}>
+                {avatarPreview ? (
+                  <AvatarImage src={avatarPreview} alt="Agent avatar" />
+                ) : (
+                  <AvatarFallback>
+                    <Upload className="size-8 text-muted-foreground" />
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <Input
+                id="avatar"
+                name="avatar"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarUpload}
+                ref={fileInputRef}
+              />
+              <Button type="button" variant="outline" onClick={handleAvatarClick}>
+                {agent?.avatar ? 'Change Avatar' : 'Upload Avatar'}
+              </Button>
+            </div>
           </div>
-          <div className="flex flex-col gap-2">
-            <Label
-              htmlFor="text"
-              className="text-zinc-600 font-normal dark:text-zinc-400"
-            >
-              Name Agent
-            </Label>
-
-            <Input
-              id="name"
-              name="name"
-              className="bg-muted text-md md:text-sm"
-              type="text"
-              placeholder="Super Agent"
-              autoComplete="text"
-              required
-              autoFocus
-              defaultValue={''}
-            />
+          <div className="space-y-2">
+            <Label htmlFor="name">Name</Label>
+            <Input id="name" name="name" defaultValue={agent?.name || ''} placeholder="Agent Name" required />
           </div>
-
-          <div className="flex flex-col gap-2">
-            <Label
-              htmlFor="password"
-              className="text-zinc-600 font-normal dark:text-zinc-400"
-            >
-              Description
-            </Label>
-
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               name="description"
-              className="bg-muted text-md md:text-sm"
+              placeholder="Describe the agent's capabilities"
+              defaultValue={agent?.description || ''}
               required
             />
           </div>
-
-          <div className="flex flex-col gap-2">
-            <Label
-              htmlFor="text"
-              className="text-zinc-600 font-normal dark:text-zinc-400"
-            >
-              Intro
-            </Label>
-
+          <div className="space-y-2">
+            <Label htmlFor="prompt">Prompt</Label>
+            <Textarea
+              id="prompt"
+              name="prompt"
+              placeholder="Enter the agent's initial prompt"
+              defaultValue={agent?.prompt || ''}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="prompt">Intro</Label>
             <Input
               id="intro"
               name="intro"
-              className="bg-muted text-md md:text-sm"
               type="text"
+              placeholder="Enter the agent's initial intro"
+              defaultValue={agent?.intro || ''}
               required
             />
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="space-y-2">
             <Label
               htmlFor="text"
-              className="text-zinc-600 font-normal dark:text-zinc-400"
             >
               Model
             </Label>
-            <Select name="model">
-              <SelectTrigger className="w-[180px]">
+            <Select name="model" defaultValue={agent?.model}>
+              <SelectTrigger >
                 <SelectValue placeholder="Select Model" />
               </SelectTrigger>
               <SelectContent>
@@ -128,48 +214,66 @@ export function CreateAgentForm({
               </SelectContent>
             </Select>
           </div>
-          <div className="flex flex-col gap-2">
-            <Label
-              htmlFor="text"
-              className="text-zinc-600 font-normal dark:text-zinc-400"
-            >
-              Prompt
-            </Label>
 
-            <Textarea
-              id="prompt"
-              name="prompt"
-              className="bg-muted text-md md:text-sm"
-              required
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label
-              htmlFor="text"
-              className="text-zinc-600 font-normal dark:text-zinc-400"
-            >
+          <div className="space-y-2">
+            {/* <Label
+              htmlFor="text"            >
               Tool
-            </Label>
-            <MultiSelect
-              options={frameworksList}
-              onValueChange={setSelectedFrameworks}
-              defaultValue={selectedFrameworks}
-              placeholder="Select tools"
-              variant="inverted"
-              animation={0}
-              maxCount={3}
+            </Label> */}
+            <div className="flex items-center space-x-2">
+              <Button onClick={(e) => { e.preventDefault(); setIsModalToolOpen(true) }}>Add Tools</Button>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {selectedTools.map((tool) => (
+                <ToolCard
+                  key={tool.id}
+                  tool={tool}
+                  isSelected={true}
+                  onRemove={() => handleToolRemove(tool.id)}
+                  showSwitch={false}
+                />
+              ))}
+            </div>
+            <ToolSelectorModal
+              isOpen={isModalToolOpen}
+              onClose={() => setIsModalToolOpen(false)}
+              onToolsSelect={handleToolsSelect}
+              selectedTools={selectedTools}
+              tools={tools}
             />
             <Input
-              id="tool"
-              name="tool"
+              id="tools"
+              name="tools"
               hidden
-              className="bg-muted text-md md:text-sm hidden"
+              className="hidden"
               type="text"
-              placeholder="Super Agent"
-              autoComplete="text"
-              required
-              autoFocus
-              defaultValue={selectedFrameworks}
+              defaultValue={selectedToolsInput}
+            />
+          </div>
+          <div className="space-y-2">
+            <div className="space-y-2">
+              {/* <Label>Suggested Actions</Label> */}
+              <div className="flex items-center space-x-2">
+                <Button onClick={(e) => { e.preventDefault(); setIsModalActionOpen(true) }} >
+                  <Plus className="mr-2 size-4" /> Create Suggested Action
+                </Button>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {actions.map((action) => (
+                  <ActionCard key={action.id} action={action} onRemove={handleRemoveAction} />
+                ))}
+                <CreateActionModal
+                  isOpen={isModalActionOpen}
+                  onClose={() => setIsModalActionOpen(false)}
+                  onCreateAction={handleCreateAction}
+                />
+              </div>
+            </div>
+            <Input
+              name="suggestedActions"
+              className="hidden"
+              type="text"
+              defaultValue={actionsValue}
             />
           </div>
           {children}
