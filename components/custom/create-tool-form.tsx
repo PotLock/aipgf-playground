@@ -834,7 +834,7 @@ export function CreateToolForm({
     }
   }
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full max-w-2xl mx-auto ">
       <CardHeader>
         <CardTitle>Create Tool</CardTitle>
         <CardDescription>Fill in the details and select tool type</CardDescription>
