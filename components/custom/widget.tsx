@@ -27,12 +27,12 @@ export const Widget = ({ code, args }: { code: string, args: any }) => {
     return (
 
         <ErrorBoundary FallbackComponent={Fallback}>
-{/*1. Add append button to widget messenger to agent 
+            {/*1. Add append button to widget messenger to agent 
 2. create custom widget Agent like : <widget prompt="blue span with balance of wallet 0x1231 from tool" > </widget>
 */}
             <StringToReactComponent data={{ useEffect, useState, near, args, TransactionFrame, ButtonAction }}>
                 {`(props)=>{
-                    const {useEffect, useState, near, args, Transaction } = props;
+                    const {useEffect, useState, near, args, TransactionFrame } = props;
                     ${generateDestructuring(args)}
                         ${code}
                 }`}
