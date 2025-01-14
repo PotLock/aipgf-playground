@@ -18,8 +18,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 
-
-
+import { CodeEditor } from './code-editor'; // Import the CodeEditor component
 
 export function CreateToolForm({
   action,
@@ -44,8 +43,26 @@ export function CreateToolForm({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const [widgetCode, setWidgetCode] = useState('')
+  const [widgetCode, setWidgetCode] = useState<string>(`
+// Example : Merge Args with template code 
+// Create Args with Name : 'greating' and Description : 'Greeting' 
+//  type : 'string' , defaultValue : 'Hello'
+// In widget Code : return greating 
 
+const greating = 'Hello';
+return \`\${greating} World\`;`);
+
+  // CodeEditor state
+  const [content, setContent] = useState<string>('');
+  const [status, setStatus] = useState<'streaming' | 'idle'>('idle');
+  const [isCurrentVersion, setIsCurrentVersion] = useState<boolean>(true);
+  const [currentVersionIndex, setCurrentVersionIndex] = useState<number>(0);
+  const [suggestions, setSuggestions] = useState<Array<any>>([]);
+
+  const saveContent = (updatedContent: string, debounce: boolean) => {
+    setWidgetCode(updatedContent);
+    // Handle saving content logic here
+  };
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -339,17 +356,7 @@ export function CreateToolForm({
       case 'widget':
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Widget Form</h3>
-
-            <div>
-              <Label htmlFor="widget-template">Template</Label>
-              <Textarea
-                id="widget-code"
-                name="widget-code"
-                value={widgetCode}
-                onChange={(e) => setWidgetCode(e.target.value)}
-                placeholder="Enter Template Code" />
-            </div>
+            <h3 className="text-lg font-semibold">Widget Tool</h3>
             <div className="space-y-4">
               <Label>Widget Arguments</Label>
               {widgetArgs.map((arg, index) => (
@@ -372,7 +379,7 @@ export function CreateToolForm({
                         id={`arg-name-${index}`}
                         value={arg.name}
                         onChange={(e) => updateWidgetArg(index, 'name', e.target.value)}
-                        placeholder="Enter argument name"
+                        placeholder="Enter the text first like args1 , args2 and no special characters."
                       />
                     </div>
                     <div>
@@ -381,7 +388,7 @@ export function CreateToolForm({
                         id={`arg-description-${index}`}
                         value={arg.description}
                         onChange={(e) => updateWidgetArg(index, 'description', e.target.value)}
-                        placeholder="Enter argument description"
+                        placeholder=" Ex: transaction data example data {greeting:'hello'}"
                       />
                     </div>
                     <div>
@@ -420,12 +427,37 @@ export function CreateToolForm({
                 <Plus className="mr-2 size-4" /> Add Argument
               </Button>
             </div>
+            <div>
+              <Label htmlFor="widget-template">Widget Code</Label>
+              <div className="relative w-full cursor-pointer">
+                <div className="dark:bg-muted bg-background h-full overflow-y-scroll !max-w-full pb-40 items-center py-2 px-2">
+                  <div className="flex flex-1 relative w-full">
+                    <div className="absolute inset-0">
+                      <CodeEditor
+                        content={widgetCode}
+                        saveContent={saveContent}
+                        status={status}
+                        isCurrentVersion={true}
+                        currentVersionIndex={0}
+                        suggestions={suggestions}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* <Textarea
+                id="widget-code"
+                name="widget-code"
+                value={widgetCode}
+                onChange={(e) => setWidgetCode(e.target.value)}
+                placeholder="Enter Template Code" /> */}
+            </div>
           </div>
         )
       case 'smartcontract':
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Smart Contract Form</h3>
+            <h3 className="text-lg font-semibold">Smart Contract Tool</h3>
             <div>
               <Label htmlFor="chain">Chain</Label>
               <Select
@@ -539,7 +571,7 @@ export function CreateToolForm({
       case 'api':
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">API Form (OpenAPI v3)</h3>
+            <h3 className="text-lg font-semibold">API Tool (OpenAPI v3)</h3>
             <Tabs defaultValue="manual" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="manual">Manual Input</TabsTrigger>

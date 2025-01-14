@@ -106,6 +106,7 @@ export function Chat({
               key={message.id}
               chatId={id}
               message={message}
+              append={append}
               canvas={canvas}
               setCanvas={setCanvas}
               isLoading={isLoading && messages.length - 1 === index}
