@@ -18,8 +18,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 
-
-
+import { CodeEditor } from './code-editor'; // Import the CodeEditor component
 
 export function CreateToolForm({
   action,
@@ -44,8 +43,19 @@ export function CreateToolForm({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const [widgetCode, setWidgetCode] = useState('')
+  const [widgetCode, setWidgetCode] = useState<string>(`const agentSay = 'Hello';\nreturn \`\${agentSay} World\`;`);
 
+  // CodeEditor state
+  const [content, setContent] = useState<string>('');
+  const [status, setStatus] = useState<'streaming' | 'idle'>('idle');
+  const [isCurrentVersion, setIsCurrentVersion] = useState<boolean>(true);
+  const [currentVersionIndex, setCurrentVersionIndex] = useState<number>(0);
+  const [suggestions, setSuggestions] = useState<Array<any>>([]);
+
+  const saveContent = (updatedContent: string, debounce: boolean) => {
+    setWidgetCode(updatedContent);
+    // Handle saving content logic here
+  };
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -339,17 +349,7 @@ export function CreateToolForm({
       case 'widget':
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Widget Form</h3>
-
-            <div>
-              <Label htmlFor="widget-template">Template</Label>
-              <Textarea
-                id="widget-code"
-                name="widget-code"
-                value={widgetCode}
-                onChange={(e) => setWidgetCode(e.target.value)}
-                placeholder="Enter Template Code" />
-            </div>
+            <h3 className="text-lg font-semibold">Widget Tool</h3>
             <div className="space-y-4">
               <Label>Widget Arguments</Label>
               {widgetArgs.map((arg, index) => (
@@ -419,6 +419,31 @@ export function CreateToolForm({
               <Button onClick={(e) => { e.preventDefault(); addWidgetArg() }} className="w-full">
                 <Plus className="mr-2 size-4" /> Add Argument
               </Button>
+            </div>
+            <div>
+              <Label htmlFor="widget-template">Code Template</Label>
+              <div className="relative w-full cursor-pointer">
+                <div className="dark:bg-muted bg-background h-full overflow-y-scroll !max-w-full pb-40 items-center py-2 px-2">
+                  <div className="flex flex-1 relative w-full">
+                    <div className="absolute inset-0">
+                      <CodeEditor
+                        content={widgetCode}
+                        saveContent={saveContent}
+                        status={status}
+                        isCurrentVersion={true}
+                        currentVersionIndex={0}
+                        suggestions={suggestions}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* <Textarea
+                id="widget-code"
+                name="widget-code"
+                value={widgetCode}
+                onChange={(e) => setWidgetCode(e.target.value)}
+                placeholder="Enter Template Code" /> */}
             </div>
           </div>
         )
