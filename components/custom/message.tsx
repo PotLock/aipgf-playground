@@ -24,7 +24,8 @@ export const PreviewMessage = ({
   vote,
   isLoading,
   bot,
-  user
+  user,
+  append
 }: {
   chatId: string;
   message: Message;
@@ -33,7 +34,8 @@ export const PreviewMessage = ({
   vote: Vote | undefined;
   isLoading: boolean;
   bot: string;
-  user: string
+  user: string;
+  append: any;
 }) => {
   return (
     <motion.div
@@ -76,7 +78,7 @@ export const PreviewMessage = ({
                   return (
                     <div key={toolCallId}>
                       {toolName.includes('widget') ? (
-                        <Widget code={result} args={args} />
+                        <Widget code={result} args={args} append={append} />
                       ) : toolName === 'createDocument' ? (
                         <DocumentToolResult
                           type="create"
