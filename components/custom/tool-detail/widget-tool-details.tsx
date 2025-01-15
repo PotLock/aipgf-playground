@@ -17,7 +17,7 @@ export function WidgetToolDetails({ data }: { data: WidgetToolData }) {
         <p className="font-semibold text-sm mb-1">Widget Code</p>
         <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
           {/* https://codeium.com/playground */}
-          <code>{data.code}</code>
+          <code className="text-black">{data.code}</code>
         </pre>
       </div>
       {data.args && data.args.length > 0 && (

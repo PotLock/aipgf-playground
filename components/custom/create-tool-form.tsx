@@ -1,6 +1,6 @@
 import { List, Plus, PlusCircle, Server, Trash2, Upload, X, LayoutDashboard, Loader2, FileCode2, Webhook } from "lucide-react";
 import Form from 'next/form';
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, ReactNode, useEffect, useRef, useState } from "react";
 
 import { DEFAULT_MODEL_NAME, models } from '@/ai/models';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -20,13 +20,13 @@ import { Textarea } from '../ui/textarea';
 
 import { CodeEditor } from './code-editor'; // Import the CodeEditor component
 
-export function CreateToolForm({
-  action,
-  children
-}: {
-  action: any;
-  children: React.ReactNode;
-}) {
+interface CreateToolFormProps {
+  action: (formData: FormData) => void;
+  children: ReactNode;
+  tool?: any; // Add the tool prop as an optional parameter
+}
+
+export function CreateToolForm({ action, children, tool }: CreateToolFormProps) {
   const [selectedForm, setSelectedForm] = useState<string | null>(null)
   const [widgetArgs, setWidgetArgs] = useState([{ name: '', description: '', type: '', defaultValue: '' }])
   const [avatar, setAvatar] = useState<string | null>(null)
@@ -865,14 +865,79 @@ return \`\${greating} World\`;`);
         return null
     }
   }
+
+  // Add useEffect to handle tool data initialization
+  useEffect(() => {
+    if (tool) {
+      console.log(tool)
+      // Set avatar if exists
+      if (tool.avatar) {
+        setAvatar(tool.avatar);
+      }
+
+      // Set form type based on tool type
+      if (tool.typeName) {
+        setSelectedForm(tool.typeName);
+      }
+
+      // Handle different tool types
+      if (tool.data) {
+        const toolData = typeof tool.data === 'string' ? JSON.parse(tool.data) : tool.data;
+
+        switch (tool.typeName) {
+          case 'widget':
+            if (toolData.args) {
+              setWidgetArgs(toolData.args);
+              // Initialize enum values if they exist
+              const newEnumValues = toolData.args.map((arg: any) => 
+                arg.type === 'enum' && arg.enumValues ? arg.enumValues : []
+              );
+              setEnumValues(newEnumValues);
+            }
+            if (toolData.code) {
+              setWidgetCode(toolData.code);
+            }
+            break;
+
+          case 'api':
+            if (toolData) {
+              setApiTitle(toolData.title || '');
+              setApiVersion(toolData.version || '');
+              setApiDescription(toolData.description || '');
+              setApiEndpoint(toolData.endpoint || '');
+              setApiKey(toolData.apiKey || '');
+              setApiPaths(toolData.paths || []);
+            }
+            break;
+
+          case 'smartcontract':
+            if (toolData) {
+              setChain(toolData.chain || '');
+              setNetwork(toolData.network || '');
+              setContractAddress(toolData.contractAddress || '');
+              if (toolData.methods) {
+                setContractMethods(toolData.methods);
+                setSelectedMethods(toolData.methods.map((m: any) => m.name));
+              }
+            }
+            break;
+        }
+      }
+    }
+  }, [tool]);
+
   return (
     <Card className="w-full max-w-2xl mx-auto ">
       <CardHeader>
-        <CardTitle>Create Tool</CardTitle>
+        <CardTitle>{tool ? 'Update Tool' : 'Create Tool'}</CardTitle>
         <CardDescription>Fill in the details and select tool type</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <Form action={action}>
+        <Form action={action} className="flex flex-col flex-1 space-y-4 px-4 pb-4">
+          {/* Add hidden input for tool ID when updating */}
+          {tool?.id && (
+            <input type="hidden" name="id" value={tool.id} />
+          )}
           <div className="space-y-4">
             <div className="flex items-center space-x-4">
               <Avatar className="size-20" onClick={handleAvatarClick}>
@@ -901,6 +966,7 @@ return \`\${greating} World\`;`);
                 id="name"
                 name="name"
                 placeholder="Enter your name"
+                defaultValue={tool?.name || ''}
                 aria-describedby="name-description"
               />
               <p id="name-description" className="text-sm text-muted-foreground">Please enter tool name</p>
@@ -911,6 +977,7 @@ return \`\${greating} World\`;`);
                 id="description"
                 name="description"
                 placeholder="Enter a description"
+                defaultValue={tool?.description || ''}
                 aria-describedby="description-description"
               />
               <p id="description-description" className="text-sm text-muted-foreground">Provide a brief description of your project or request</p>

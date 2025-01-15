@@ -23,7 +23,7 @@ import {
 // Optionally, if not using username/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
 // https://authjs.dev/reference/adapter/drizzle
-let client = postgres(`${process.env.POSTGRES_URL!}?sslmode=require`);
+let client = postgres(process.env.POSTGRES_URL!);
 let db = drizzle(client);
 
 export async function getUser(email: string): Promise<Array<User>> {
@@ -522,25 +522,86 @@ export async function createTool({
   }
 }
 
-export async function getToolByUserId({ userId }: { userId: string }) {
+export async function getToolByUserId({ userId, page = 1, limit = 10 }: { userId: string, page?: number, limit?: number }) {
+    try {
+        const offset = (page - 1) * limit;
+
+        const tools = await db
+            .select()
+            .from(tool)
+            .where(eq(tool.userId, userId))
+            .orderBy(desc(tool.createdAt))
+            .limit(limit)
+            .offset(offset);
+
+        const totalTools = await db
+            .select({ count: count() })
+            .from(tool)
+            .where(eq(tool.userId, userId));
+
+        return {
+            tools,
+            totalTools: totalTools[0].count,
+        };
+    } catch (error) {
+        console.log(error);
+        console.error('Failed to get tools by userId from database');
+        throw error;
+    }
+}
+export async function getToolById(id: string) {
   try {
-    return await db
+    const [selectedTool] = await db
       .select()
       .from(tool)
-      .where(eq(tool.userId, userId))
-      .orderBy(desc(tool.createdAt));
+      .where(eq(tool.id, id));
+    return selectedTool;
   } catch (error) {
     console.log(error);
-    console.error('Failed to get tools by userId from database');
+    console.error('Failed to get Tool from database');
     throw error;
   }
 }
-
 export async function getToolsByIds(ids: any[]): Promise<Array<Tool>> {
   try {
     return await db.select().from(tool).where(inArray(tool.id, ids));
   } catch (error) {
     console.error('Failed to get user from database');
+    throw error;
+  }
+}
+
+export async function updateTool({
+  id,
+  name,
+  description,
+  avatar,
+  data,
+  userId,
+  typeName,
+}: Tool) {
+  try {
+    return await db
+      .update(tool)
+      .set({
+        name,
+        description,
+        avatar,
+        data,
+      })
+      .where(eq(tool.id, id))
+      .returning({
+        id: tool.id,
+        name: tool.name,
+        description: tool.description,
+        avatar: tool.avatar,
+        data: tool.data,
+        userId: tool.userId,
+        createdAt: tool.createdAt,
+        typeName: tool.typeName,
+      });
+  } catch (error) {
+    console.error('Failed to update tool in database', error);
     throw error;
   }
 }

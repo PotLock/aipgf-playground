@@ -33,15 +33,10 @@ interface SuggestedAction {
   action: string
 }
 
-export function CreateAgentForm({
-  agent,
-  action,
-  children,
-  tools
-}: {
+interface CreateAgentFormProps {
   action: any;
   children: React.ReactNode;
-  tools: any;
+  tools: Tool[];
   agent?: {
     id: string;
     name: string;
@@ -53,8 +48,14 @@ export function CreateAgentForm({
     tools: string[];
     suggestedActions: SuggestedAction[];
   };
+}
 
-}) {
+export function CreateAgentForm({
+  agent,
+  action,
+  children,
+  tools = []
+}: CreateAgentFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
 
@@ -62,7 +63,11 @@ export function CreateAgentForm({
   const [actions, setActions] = useState<SuggestedAction[]>(agent?.suggestedActions || [])
   const [actionsValue, setActionsValue] = useState<string>(agent ? JSON.stringify(agent.suggestedActions) : '')
   const [avatarPreview, setAvatarPreview] = useState<string | null>(agent?.avatar || null);
-  const [selectedTools, setSelectedTools] = useState<Tool[]>(agent?.tools ? tools.filter((tool: any) => agent.tools.includes(tool.id)) : [])
+  const [selectedTools, setSelectedTools] = useState<Tool[]>(
+    agent?.tools && Array.isArray(tools)
+      ? tools.filter((tool: Tool) => agent.tools.includes(tool.id))
+      : []
+  );
   const [selectedToolsInput, setSelectedToolsInput] = useState<string>(agent ? JSON.stringify(agent.tools) : '')
 
   const [isModalToolOpen, setIsModalToolOpen] = useState(false)
