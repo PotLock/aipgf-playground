@@ -869,7 +869,7 @@ return \`\${greating} World\`;`);
   // Add useEffect to handle tool data initialization
   useEffect(() => {
     if (tool) {
-      console.log(tool)
+      console.log('Tool data:', tool);
       // Set avatar if exists
       if (tool.avatar) {
         setAvatar(tool.avatar);
@@ -883,6 +883,7 @@ return \`\${greating} World\`;`);
       // Handle different tool types
       if (tool.data) {
         const toolData = typeof tool.data === 'string' ? JSON.parse(tool.data) : tool.data;
+        console.log('Parsed tool data:', toolData);
 
         switch (tool.typeName) {
           case 'widget':
@@ -918,6 +919,10 @@ return \`\${greating} World\`;`);
               if (toolData.methods) {
                 setContractMethods(toolData.methods);
                 setSelectedMethods(toolData.methods.map((m: any) => m.name));
+                // Trigger contract methods fetch after setting initial values
+                if (toolData.chain && toolData.network && toolData.contractAddress) {
+                  fetchContractMethods(toolData.chain, toolData.network, toolData.contractAddress);
+                }
               }
             }
             break;
