@@ -2,13 +2,10 @@ import { List, Plus, PlusCircle, Server, Trash2, Upload, X, LayoutDashboard, Loa
 import Form from 'next/form';
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 
-import { DEFAULT_MODEL_NAME, models } from '@/ai/models';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { tool } from "@/db/schema";
 
-import { MultiSelect } from './multi-select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
@@ -200,7 +197,15 @@ return \`\${greating} World\`;`);
     setLoadingMethods(prev => [...prev, methodName])
     setError(null)
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_METADATA_URL}/api/near?account=${contractAddress}&network=${network.toLowerCase()}&methods=${methodName}`)
+      let endpoint;
+      if (chain === 'starknet') {
+        endpoint = 'starknet';
+      } else if (chain === 'ethereum') {
+        endpoint = 'eth';
+      } else {
+        endpoint = 'near';
+      }
+      const response = await fetch(`${process.env.NEXT_PUBLIC_METADATA_URL}/api/${endpoint}?account=${contractAddress}&network=${network.toLowerCase()}&methods=${methodName}`)
       if (!response.ok) {
         throw new Error('Failed to fetch method details')
       }
@@ -263,7 +268,7 @@ return \`\${greating} World\`;`);
   }, [apiTitle, apiVersion, apiDescription, apiEndpoint, apiKey, apiPaths])
 
 
-  const chains = ['near', 'ethereum', 'polygon', 'bsc'] // Add more chains as needed
+  const chains = ['near', 'starknet'] // Add more chains as needed
   const networks = ['mainnet', 'testnet'] // Add more networks as needed
 
 
@@ -348,6 +353,9 @@ return \`\${greating} World\`;`);
       contractAddress,
       methods: contractMethods.filter(method => selectedMethods.includes(method.name))
     };
+    console.log('method',contractMethods.filter(method => selectedMethods.includes(method.name)))
+    console.log("contractMethods",contractMethods)
+    console.log("jsonData",jsonData)
     setData(JSON.stringify(jsonData));
   }
 
