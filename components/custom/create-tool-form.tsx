@@ -358,10 +358,10 @@ return \`\${greating} World\`;`)
     }
 
     // Call updateContractJsonInput after updating selected methods
-    await updateContractJsonInput()
+    await updateContractJsonInput(newSelectedMethods)
   }
 
-  const updateContractJsonInput = async () => {
+  const updateContractJsonInput = async (selectedMethods: string[] = []) => {
     const selectedMethodsData = contractMethods.filter((method) => selectedMethods.includes(method.name))
     const jsonData = {
       chain,
@@ -482,7 +482,7 @@ return \`\${greating} World\`;`)
                 value={chain}
                 onValueChange={async (value) => {
                   setChain(value)
-                  await updateContractJsonInput()
+                  await updateContractJsonInput(selectedMethods)
                 }}
               >
                 <SelectTrigger id="chain">
@@ -503,7 +503,7 @@ return \`\${greating} World\`;`)
                 value={network}
                 onValueChange={async (value) => {
                   setNetwork(value)
-                  await updateContractJsonInput()
+                  await updateContractJsonInput(selectedMethods)
                 }}
               >
                 <SelectTrigger id="network">
@@ -527,7 +527,7 @@ return \`\${greating} World\`;`)
                 value={contractAddress}
                 onChange={async (e) => {
                   setContractAddress(e.target.value)
-                  await updateContractJsonInput()
+                  await updateContractJsonInput(selectedMethods)
                 }}
               />
             </div>
@@ -572,7 +572,7 @@ return \`\${greating} World\`;`)
                                     index
                                   ].value = e.target.value
                                   setContractMethods(updatedMethods)
-                                  await updateContractJsonInput()
+                                  await updateContractJsonInput(selectedMethods)
                                 }}
                               />
                             </div>
