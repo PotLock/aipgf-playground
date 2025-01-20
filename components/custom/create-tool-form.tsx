@@ -237,10 +237,10 @@ return \`\${greating} World\`;`)
             description: data.returns[0].description ? data.returns[0].description : '',
             args: data.returns[0].args
               ? data.returns[0].args.map((arg: any) => ({
-                  ...arg,
-                  type_schema: { type: arg.type },
-                  description: arg.description,
-                }))
+                ...arg,
+                type_schema: { type: arg.type },
+                description: arg.description ? arg.description : '',
+              }))
               : [],
             isLoaded: true,
           }
