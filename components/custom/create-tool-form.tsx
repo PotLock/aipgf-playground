@@ -234,7 +234,7 @@ return \`\${greating} World\`;`)
         if (method.name === methodName) {
           return {
             ...method,
-            description: data.returns[0].description,
+            description: data.returns[0].description ? data.returns[0].description : '',
             args: data.returns[0].args
               ? data.returns[0].args.map((arg: any) => ({
                   ...arg,
