@@ -112,9 +112,12 @@ export async function POST(request: Request) {
   });
   // if tools = smartcontract pls create more tools by methods. smartcontract here
   const toolsData = tools.reduce((tool: any, item: any) => {
+    console.log('starknet',item.data);
+
     if (item.typeName == 'smartcontract') {
-      
+
       item.data.methods.reduce((toolMethod: any, itemMethod: any) => {
+
         // get args
         let params = {};
         if (itemMethod.args) {
@@ -205,6 +208,40 @@ export async function POST(request: Request) {
                 ],
               };
               return `{ transaction:  ${JSON.stringify(transaction)}}`;
+            }
+
+            if (item.data.chain == 'starknet' && itemMethod.kind == 'view') {
+              try {
+                const data = {
+                  args: ParametersData,
+                  network: 'mainnet',
+                  method_name: itemMethod.name,
+                  contract_id: item.data.contractAddress,
+                  chain: 'starknet',
+                };
+                const response = await fetch(url, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(data),
+                });
+
+                if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                let convertString;
+                if (typeof data == 'object') {
+                  convertString = JSON.stringify(result);
+                } else {
+                  convertString = result;
+                }
+                return `{result: ${convertString}}`;
+              } catch (error) {
+                return `Error calling contract method:${error}`;
+              }
             }
             if (item.data.chain == 'starknet' && itemMethod.kind == 'call') {
               const transaction = {
