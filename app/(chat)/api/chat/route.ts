@@ -112,7 +112,6 @@ export async function POST(request: Request) {
   });
   // if tools = smartcontract pls create more tools by methods. smartcontract here
   const toolsData = tools.reduce((tool: any, item: any) => {
-    console.log('starknet',item.data);
 
     if (item.typeName == 'smartcontract') {
 
@@ -135,10 +134,6 @@ export async function POST(request: Request) {
             },
             {}
           );
-        }
-
-        if (item.data.chain == 'near' && itemMethod.kind == 'view') {
-          console.log(params);
         }
 
         let ParametersSchema: any = convertParamsToZod(params);
@@ -491,7 +486,6 @@ export async function POST(request: Request) {
     return tool;
   }, {});
   const streamingData = new StreamData();
-  console.log('toolsData', toolsData);
   const result = await streamText({
     model: customModel(model.apiIdentifier),
     system: `Your name are ${agent.name} \n\n ${agent.prompt}`, //modelId === 'gpt-4o-canvas' ? canvasPrompt : regularPrompt,
