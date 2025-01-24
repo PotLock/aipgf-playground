@@ -54,7 +54,13 @@ export function Tools() {
             Create your own custom tool
           </p>
           {isLoading ? (
-            <p>Loading...</p>
+            <Card className="w-full ">
+              <CardContent className="py-10 text-center">
+                <CardDescription>
+                  {isLoading ? 'Loading...' : 'No agents available at the moment.'}
+                </CardDescription>
+              </CardContent>
+            </Card>
           ) : (
             <p>No tools available at the moment.</p>
           )}
@@ -92,7 +98,7 @@ export function Tools() {
                 <CardDescription className="mb-4">Create tool</CardDescription>
                 <Button asChild>
                   <Link className='w-full' href={`/create-tool`}>
-                    Create Agent
+                    Create Tool
                   </Link>
                 </Button>
               </CardContent>

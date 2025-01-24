@@ -278,7 +278,7 @@ return \`\${greating} World\`;`)
     setData(JSON.stringify(data))
   }, [apiTitle, apiVersion, apiDescription, apiEndpoint, apiKey, apiPaths])
 
-  const chains = ["near", "starknet"]
+  const chains = ["near", "starknet","ethereum"]
   const networks = ["mainnet", "testnet"]
 
   const addWidgetArg = () => {
