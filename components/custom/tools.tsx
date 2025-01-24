@@ -39,51 +39,67 @@ export function Tools() {
   }, [page]);
 
   if (isLoading) {
-    return(
-        <Card className="flex flex-col">
-            <CardHeader>
-                <CardTitle>Tool</CardTitle>
-                <CardDescription>
-                Create your own custom tool
-                </CardDescription>
-            </CardHeader>
-            <Card className="w-full ">
-                <CardContent className="py-10 text-center">
-                    <CardDescription>
-                        {isLoading ? 'Loading...' : 'No tools available at the moment.'}
-                    </CardDescription>
-                </CardContent>
-            </Card>
-        </Card>
-    ); 
+    return (
+      <div className="p-6">
+        <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <h2 className="text-2xl font-bold tracking-tight">Tool</h2>
+          <Button asChild>
+            <Link href="/create-tool">
+              Create Tool
+            </Link>
+          </Button>
+        </div>
+        <div className="space-y-4">
+          <p className="text-muted-foreground">
+            Create your own custom tool
+          </p>
+          {isLoading ? (
+            <p>Loading...</p>
+          ) : (
+            <p>No tools available at the moment.</p>
+          )}
+        </div>
+      </div>
+    );
   }
 
   return (
-    <Card className="flex flex-col">
-      <CardHeader>
-        <CardTitle>Tool</CardTitle>
-        <CardDescription>
+    <div className="p-6">
+      <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <h2 className="text-2xl font-bold tracking-tight">Tool</h2>
+        <Button asChild>
+          <Link href="/create-tool">
+            Create Tool
+          </Link>
+        </Button>
+      </div>
+      <div className="space-y-4">
+        <p className="text-muted-foreground">
           Create your own custom tool
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="flex flex-col items-center justify-center h-full">
-          <CardContent className="pt-6 text-center">
-            <PlusCircle className="size-12 mb-4 mx-auto text-gray-400" />
-            <CardTitle className="text-xl mb-2">Create New Tool</CardTitle>
-            <CardDescription className="mb-4">Add a new tool to your collection</CardDescription>
-            <Button asChild>
-              <Link className='w-full' href={`/create-tool`}>
-                Create Tool
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-        {tools && tools.map((tool) => (
-          <ToolCard key={tool.id} tool={tool} />
-        ))}
-      </CardContent>
-      
+        </p>
+        {isLoading ? (
+          <p>Loading...</p>
+        ) : (
+          tools && tools.length > 0 ? (
+            tools.map((tool) => (
+              <ToolCard key={tool.id} tool={tool} />
+            ))
+          ) : (
+            <Card className="flex flex-col items-center justify-center h-full">
+              <CardContent className="pt-6 text-center">
+                <PlusCircle className="size-12 mb-4 mx-auto text-gray-400" />
+                <CardTitle className="text-xl mb-2">Create New Tool</CardTitle>
+                <CardDescription className="mb-4">Create tool</CardDescription>
+                <Button asChild>
+                  <Link className='w-full' href={`/create-tool`}>
+                    Create Agent
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>)
+        )}
+      </div>
+
       <div className="flex flex-col items-center justify-center mt-8 space-y-4 pb-6">
         <div className="join space-x-1">
           <Button
@@ -134,6 +150,6 @@ export function Tools() {
           Page {page} of {totalPages}
         </div>
       </div>
-    </Card>
+    </div>
   );
 } 
