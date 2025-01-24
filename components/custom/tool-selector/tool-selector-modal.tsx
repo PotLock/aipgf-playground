@@ -31,7 +31,7 @@ export function ToolSelectorModal({
     onClose,
     onToolsSelect,
     selectedTools,
-    tools
+    tools = []
 }: ToolSelectorModalProps) {
     const [activeTab, setActiveTab] = useState("user")
     const [modalSearchQuery, setModalSearchQuery] = useState("")
@@ -41,11 +41,13 @@ export function ToolSelectorModal({
         setTempSelectedTools(selectedTools)
     }, [selectedTools])
 
-    const filteredTools = tools.filter(
-        (tool) =>
-            tool.name.toLowerCase().includes(modalSearchQuery.toLowerCase()) ||
-            tool.description.toLowerCase().includes(modalSearchQuery.toLowerCase())
-    )
+    const filteredTools = Array.isArray(tools) 
+        ? tools.filter(
+            (tool) =>
+                tool.name.toLowerCase().includes(modalSearchQuery.toLowerCase()) ||
+                tool.description.toLowerCase().includes(modalSearchQuery.toLowerCase())
+        )
+        : [];
 
     const userTools = filteredTools.filter((tool) => !tool.isFavorite)
     const favoriteTools = filteredTools.filter((tool) => tool.isFavorite)
