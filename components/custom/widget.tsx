@@ -28,8 +28,8 @@ export const Widget = ({ code, args, append }: { code: string, args: any, append
         <ErrorBoundary FallbackComponent={Fallback}>
             {
             /*
-                1. Add append button to widget messenger to agent 
-                2. Create custom widget Agent like : <widget prompt="blue span with balance of wallet 0x1231 from tool" > </widget>
+                1. Create custom widget Agent like : <widget prompt="blue span with balance of wallet 0x1231 from tool" > </widget>
+                2. Can handle multiple multi-chain wallets and funding
             */}
             <StringToReactComponent data={{ useEffect, useState, near, args, TransactionFrame, ButtonAction, appendMessage }}>
                 {`(props)=>{
