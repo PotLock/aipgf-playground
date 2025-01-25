@@ -26,7 +26,7 @@ export function Tools() {
         const response = await fetch(`/api/tool?page=${page}&limit=${limit}`);
         const data = await response.json();
         setTools(data.tools);
-        setTotalPages(data.totalTools);
+        setTotalPages(data.totalPages);
       } catch (error) {
         console.error('Error fetching tool:', error);
         toast.error('Failed to fetch tool data');
@@ -84,56 +84,56 @@ export function Tools() {
         ))}
       </CardContent>
       
-      <div className="flex flex-col items-center justify-center mt-8 space-y-4 pb-6">
+      <div className="flex flex-col items-center justify-center mt-8 space-y-4">
         <div className="join space-x-1">
-          <Button
-            className="join-item px-2 sm:px-4"
-            onClick={() => handlePageChange(1)}
-            disabled={page === 1}
-          >
-            «
-          </Button>
-          <Button
-            className="join-item px-2 sm:px-4"
-            onClick={() => handlePageChange(page - 1)}
-            disabled={page === 1}
-          >
-            ‹
-          </Button>
-          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-            const pageNumber = page - 2 + i;
-            if (pageNumber > 0 && pageNumber <= totalPages) {
-              return (
-                <Button
-                  key={pageNumber}
-                  className={`join-item px-3 sm:px-4 ${pageNumber === page ? 'bg-primary text-primary-foreground' : ''}`}
-                  onClick={() => handlePageChange(pageNumber)}
-                >
-                  {pageNumber}
-                </Button>
-              );
-            }
-            return null;
-          })}
-          <Button
-            className="join-item px-2 sm:px-4"
-            onClick={() => handlePageChange(page + 1)}
-            disabled={page === totalPages}
-          >
-            ›
-          </Button>
-          <Button
-            className="join-item px-2 sm:px-4"
-            onClick={() => handlePageChange(totalPages)}
-            disabled={page === totalPages}
-          >
-            »
-          </Button>
+            <Button
+                className="join-item px-2 sm:px-4"
+                onClick={() => handlePageChange(1)}
+                disabled={page === 1}
+            >
+                «
+            </Button>
+            <Button
+                className="join-item px-2 sm:px-4"
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page === 1}
+            >
+                ‹
+            </Button>
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const pageNumber = page - 2 + i;
+                if (pageNumber > 0 && pageNumber <= totalPages) {
+                    return (
+                        <Button
+                            key={pageNumber}
+                            className={`join-item px-3 sm:px-4 ${pageNumber === page ? 'bg-primary text-primary-foreground' : ''}`}
+                            onClick={() => handlePageChange(pageNumber)}
+                        >
+                            {pageNumber}
+                        </Button>
+                    );
+                }
+                return null;
+            })}
+            <Button
+                className="join-item px-2 sm:px-4"
+                onClick={() => handlePageChange(page + 1)}
+                disabled={page === totalPages}
+            >
+                ›
+            </Button>
+            <Button
+                className="join-item px-2 sm:px-4"
+                onClick={() => handlePageChange(totalPages)}
+                disabled={page === totalPages}
+            >
+                »
+            </Button>
         </div>
         <div className="text-sm text-muted-foreground">
-          Page {page} of {totalPages}
+            Page {page} of {totalPages}
         </div>
-      </div>
+    </div>
     </Card>
   );
 } 

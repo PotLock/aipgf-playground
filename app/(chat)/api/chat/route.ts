@@ -6,8 +6,6 @@ import {
   streamObject,
   streamText,
 } from 'ai';
-import { providers } from 'near-api-js';
-import { Web3 } from 'web3';
 import { z, ZodObject } from 'zod';
 
 import { customModel } from '@/ai';
@@ -114,8 +112,12 @@ export async function POST(request: Request) {
   });
   // if tools = smartcontract pls create more tools by methods. smartcontract here
   const toolsData = tools.reduce((tool: any, item: any) => {
+    console.log('starknet',item.data);
+
     if (item.typeName == 'smartcontract') {
+
       item.data.methods.reduce((toolMethod: any, itemMethod: any) => {
+
         // get args
         let params = {};
         if (itemMethod.args) {
@@ -134,7 +136,6 @@ export async function POST(request: Request) {
             {}
           );
         }
-        console.log(params);
 
         if (item.data.chain == 'near' && itemMethod.kind == 'view') {
           console.log(params);
@@ -155,28 +156,35 @@ export async function POST(request: Request) {
           description: itemMethod.description || '',
           parameters: z.object(ParametersSchema),
           execute: async (ParametersData: ParametersData) => {
+            const url = `${process.env.NEXT_PUBLIC_METADATA_URL}/api/data`;
+
             if (item.data.chain == 'near' && itemMethod.kind == 'view') {
               try {
-                // Should create relay server to get data
-                const provider = new providers.JsonRpcProvider({
-                  url: `https://rpc.${item.data.network}.near.org`,
-                });
-                const res: any = await provider.query({
-                  request_type: 'call_function',
-                  account_id: item.data.contractAddress,
+                const data = {
+                  args: ParametersData,
+                  network: 'mainnet',
                   method_name: itemMethod.name,
-                  args_base64: Buffer.from(
-                    JSON.stringify(ParametersData)
-                  ).toString('base64'),
-                  finality: 'final',
+                  contract_id: item.data.contractAddress,
+                  chain: 'near',
+                };
+                const response = await fetch(url, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(data),
                 });
-                const data = JSON.parse(Buffer.from(res.result).toString());
 
+                if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
                 let convertString;
                 if (typeof data == 'object') {
-                  convertString = JSON.stringify(data);
+                  convertString = JSON.stringify(result);
                 } else {
-                  convertString = data;
+                  convertString = result;
                 }
                 return `{result: ${convertString}}`;
               } catch (error) {
@@ -184,7 +192,6 @@ export async function POST(request: Request) {
               }
             }
             if (item.data.chain == 'near' && itemMethod.kind == 'call') {
-              console.log(ParametersData);
               const { deposit, ...args } = ParametersData;
               const transaction = {
                 receiverId: item.data.contractAddress,
@@ -200,7 +207,48 @@ export async function POST(request: Request) {
                   },
                 ],
               };
+              return `{ transaction:  ${JSON.stringify(transaction)}}`;
+            }
 
+            if (item.data.chain == 'starknet' && itemMethod.kind == 'view') {
+              try {
+                const data = {
+                  args: ParametersData,
+                  network: 'mainnet',
+                  method_name: itemMethod.name,
+                  contract_id: item.data.contractAddress,
+                  chain: 'starknet',
+                };
+                const response = await fetch(url, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(data),
+                });
+
+                if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                let convertString;
+                if (typeof data == 'object') {
+                  convertString = JSON.stringify(result);
+                } else {
+                  convertString = result;
+                }
+                return `{result: ${convertString}}`;
+              } catch (error) {
+                return `Error calling contract method:${error}`;
+              }
+            }
+            if (item.data.chain == 'starknet' && itemMethod.kind == 'call') {
+              const transaction = {
+                address: item.data.contractAddress,
+                method: itemMethod.name,
+                data: Object.values(ParametersData)
+              };
               return `{ transaction:  ${JSON.stringify(transaction)}}`;
             }
           },
@@ -443,6 +491,7 @@ export async function POST(request: Request) {
     return tool;
   }, {});
   const streamingData = new StreamData();
+  console.log('toolsData', toolsData);
   const result = await streamText({
     model: customModel(model.apiIdentifier),
     system: `Your name are ${agent.name} \n\n ${agent.prompt}`, //modelId === 'gpt-4o-canvas' ? canvasPrompt : regularPrompt,

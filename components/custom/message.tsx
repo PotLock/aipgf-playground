@@ -71,7 +71,7 @@ export const PreviewMessage = ({
             <div className="flex flex-col gap-4">
               {message.toolInvocations.map((toolInvocation) => {
                 const { toolName, toolCallId, state, args } = toolInvocation;
-
+                console.log(toolInvocation)
                 if (state === 'result') {
                   const { result } = toolInvocation;
                   console.log(toolCallId, toolName, result, args)
