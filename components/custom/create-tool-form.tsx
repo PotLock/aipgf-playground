@@ -216,7 +216,7 @@ return \`\${greating} World\`;`)
 
       // If we have existing methods with values, merge them
       if (contractMethods.length > 0) {
-        const mergedMethods = methods.map(newMethod => {
+        const mergedMethods = methods.map((newMethod:any) => {
           const existingMethod = contractMethods.find(m => m.name === newMethod.name)
           return existingMethod || newMethod
         })
