@@ -378,6 +378,7 @@ export async function createAgent({
         intro,
         model,
         userId,
+        visible: false,
         suggestedActions,
       })
       .returning({
@@ -391,6 +392,7 @@ export async function createAgent({
         model: agent.model,
         userId: agent.userId,
         createdAt: agent.createdAt,
+        visibility: agent.visible,
         suggestedActions: agent.suggestedActions,
       });
   } catch (error) {
@@ -511,6 +513,7 @@ export async function createTool({
         avatar: tool.avatar,
         name: tool.name,
         description: tool.description,
+        visibility: tool.visible,
         data: tool.data,
         userId: tool.userId,
         createdAt: tool.createdAt,
@@ -577,7 +580,6 @@ export async function updateTool({
   description,
   avatar,
   data,
-  userId,
   typeName,
 }: Tool) {
   try {
@@ -588,6 +590,7 @@ export async function updateTool({
         description,
         avatar,
         data,
+        typeName
       })
       .where(eq(tool.id, id))
       .returning({
@@ -623,6 +626,78 @@ export async function removeToolById(id: string) {
   catch (error) {
     console.log(error);
     console.error('Failed to remove Tool from database');
+    throw error;
+  }
+}
+export async function changeToolVisibility(id: string, visibility: boolean) {
+  try {
+    const [selectedTool] = await db
+      .select()
+      .from(tool)
+      .where(eq(tool.id, id));
+
+    if (!selectedTool) {
+      throw new Error('Tool not found');
+    }
+
+    await db
+      .update(tool)
+      .set({ visible: visibility })
+      .where(eq(tool.id, id));
+  } catch (error) {
+    console.log(error);
+    console.error('Failed to change tool visibility');
+    throw error;
+  }
+}
+
+export async function changeAgentVisibility(id: string, visibility: boolean) {
+  try {
+    const [selectedAgent] = await db
+      .select()
+      .from(agent)
+      .where(eq(agent.id, id));
+
+    if (!selectedAgent) {
+      throw new Error('Agent not found');
+    }
+
+    await db
+      .update(agent)
+      .set({ visible: visibility })
+      .where(eq(agent.id, id));
+  } catch (error) {
+    console.log(error);
+    console.error('Failed to change agent visibility');
+    throw error;
+  }
+}
+export async function getVisibleTools() {
+  try {
+    const visibleTools = await db
+      .select()
+      .from(tool)
+      .where(eq(tool.visible, true));
+
+    return visibleTools;
+  } catch (error) {
+    console.log(error);
+    console.error('Failed to get visible tools');
+    throw error;
+  }
+}
+
+export async function getVisibleAgents() {
+  try {
+    const visibleAgents = await db
+      .select()
+      .from(agent)
+      .where(eq(agent.visible, true));
+
+    return visibleAgents;
+  } catch (error) {
+    console.log(error);
+    console.error('Failed to get visible agents');
     throw error;
   }
 }

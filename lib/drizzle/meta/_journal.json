@@ -71,6 +71,13 @@
       "when": 1736490908527,
       "tag": "0009_goofy_puck",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1737967113569,
+      "tag": "0010_pale_morlun",
+      "breakpoints": true
     }
   ]
 }

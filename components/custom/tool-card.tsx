@@ -14,12 +14,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Link, MoreVertical, Pencil, PlusCircle, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Link, MoreVertical, Pencil, PlusCircle, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
-import { removeTool } from '@/app/(chat)/(tool)/action';
+import { removeTool, updateToolVisibility } from '@/app/(chat)/(tool)/action';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
 import { AlertDialogFooter, AlertDialogHeader } from '../ui/alert-dialog';
 
@@ -32,6 +32,7 @@ interface ToolCardProps {
 export function ToolCard({ tool, onRemove }: ToolCardProps) {
   const router = useRouter();
   const [isRemoving, setIsRemoving] = useState(false)
+  const [isVisible, setIsVisible] = useState(tool.visible);
 
   const handleRemove = async (e: any) => {
     e.preventDefault()
@@ -52,6 +53,15 @@ export function ToolCard({ tool, onRemove }: ToolCardProps) {
       setIsRemoving(false)
     }
   }
+  const handleVisibilityToggle = async () => {
+    try {
+      await updateToolVisibility(tool.id, !isVisible);
+      setIsVisible(!isVisible);
+    } catch (error) {
+      console.error('Failed to update tool visibility', error);
+    }
+  };
+
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="">
@@ -94,6 +104,41 @@ export function ToolCard({ tool, onRemove }: ToolCardProps) {
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction onClick={handleRemove} disabled={isRemoving}>
                         {isRemoving ? 'Removing...' : 'Remove'}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <DropdownMenuItem onSelect={(e) => {
+                      e.preventDefault();
+                    }}>
+                      {isVisible ? (
+                        <>
+                          <EyeOff className="mr-2 h-4 w-4" />
+                          Hide
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="mr-2 h-4 w-4" />
+                          Show
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        {isVisible ? 'Hide' : 'Show'} this tool?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to {isVisible ? 'hide' : 'show'} this tool?
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleVisibilityToggle}>
+                        {isVisible ? 'Hide' : 'Show'}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
