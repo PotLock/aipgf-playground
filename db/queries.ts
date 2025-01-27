@@ -523,31 +523,31 @@ export async function createTool({
 }
 
 export async function getToolByUserId({ userId, page = 1, limit = 10 }: { userId: string, page?: number, limit?: number }) {
-    try {
-        const offset = (page - 1) * limit;
+  try {
+    const offset = (page - 1) * limit;
 
-        const tools = await db
-            .select()
-            .from(tool)
-            .where(eq(tool.userId, userId))
-            .orderBy(desc(tool.createdAt))
-            .limit(limit)
-            .offset(offset);
+    const tools = await db
+      .select()
+      .from(tool)
+      .where(eq(tool.userId, userId))
+      .orderBy(desc(tool.createdAt))
+      .limit(limit)
+      .offset(offset);
 
-        const totalTools = await db
-            .select({ count: count() })
-            .from(tool)
-            .where(eq(tool.userId, userId));
+    const totalTools = await db
+      .select({ count: count() })
+      .from(tool)
+      .where(eq(tool.userId, userId));
 
-        return {
-            tools,
-            totalTools: totalTools[0].count,
-        };
-    } catch (error) {
-        console.log(error);
-        console.error('Failed to get tools by userId from database');
-        throw error;
-    }
+    return {
+      tools,
+      totalTools: totalTools[0].count,
+    };
+  } catch (error) {
+    console.log(error);
+    console.error('Failed to get tools by userId from database');
+    throw error;
+  }
 }
 export async function getToolById(id: string) {
   try {
@@ -606,3 +606,23 @@ export async function updateTool({
   }
 }
 
+export async function removeToolById(id: string) {
+  try {
+    const [selectedTool] = await db
+      .select()
+      .from(tool)
+      .where(eq(tool.id, id));
+
+    if (!selectedTool) {
+      throw new Error('tool not found');
+    }
+    await db
+      .delete(tool)
+      .where(eq(tool.id, id));
+  }
+  catch (error) {
+    console.log(error);
+    console.error('Failed to remove Tool from database');
+    throw error;
+  }
+}
