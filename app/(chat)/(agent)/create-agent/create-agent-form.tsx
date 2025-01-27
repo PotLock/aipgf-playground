@@ -16,11 +16,9 @@ interface Tool {
     avatar?: string
 }
 
-interface ToolCardProps {
-    tools: Tool[]
-}
 
-export default function CreateAgent({ tools }: ToolCardProps) {
+
+export default function CreateAgent() {
     const router = useRouter();
     const [isSuccessful, setIsSuccessful] = useState(false);
 
@@ -52,7 +50,7 @@ export default function CreateAgent({ tools }: ToolCardProps) {
 
     return (
         <div className="flex flex-col min-w-0 h-dvh bg-background">
-            <CreateAgentForm action={handleSubmit} tools={tools} >
+            <CreateAgentForm action={handleSubmit} >
                 <SubmitButton isSuccessful={isSuccessful}>Create</SubmitButton>
             </CreateAgentForm>
         </div>

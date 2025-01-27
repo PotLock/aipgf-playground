@@ -30,7 +30,7 @@ export default async function Page(props: { searchParams: Promise<any> }) {
           <p className="text-muted-foreground">
             Start to chat with your agent
           </p>
-          <AgentCardList userId={session.user.id!} />
+          <AgentCardList />
         </div>
       </div>
     </div>

@@ -55,8 +55,13 @@ export function ToolCard({ tool, onRemove }: ToolCardProps) {
   }
   const handleVisibilityToggle = async () => {
     try {
-      await updateToolVisibility(tool.id, !isVisible);
-      setIsVisible(!isVisible);
+      const result = await updateToolVisibility(tool.id, !isVisible);
+      if (result.success) {
+        toast.success(result.message)
+        setIsVisible(!isVisible);
+      } else {
+        toast.error('Failed to update tool visibility')
+      }
     } catch (error) {
       console.error('Failed to update tool visibility', error);
     }
@@ -65,13 +70,16 @@ export function ToolCard({ tool, onRemove }: ToolCardProps) {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-row items-center gap-4 mb-2">
           <Avatar>
             <AvatarImage src={tool.avatar || ""} alt={tool.name} />
             <AvatarFallback>{tool.name.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
+          <div className="flex-grow">
+            <CardTitle>{tool.name.length > 20 ? `${tool.name.slice(0, 20)}...` : tool.name}</CardTitle>
+            <CardDescription>{tool.description && tool.description.length > 20 ? `${tool.description.slice(0, 20)}...` : tool.name}</CardDescription>
+          </div>
           <div className="flex items-center gap-2">
-            <Badge>{tool.typeName}</Badge>
             <DropdownMenu>
               <DropdownMenuTrigger className="focus:outline-none">
                 <MoreVertical className="h-5 w-5 text-gray-500 hover:text-gray-700" />
@@ -148,8 +156,7 @@ export function ToolCard({ tool, onRemove }: ToolCardProps) {
           </div>
         </div>
         <div className="space-y-1">
-          <CardTitle className="text-xl">{tool.name}</CardTitle>
-          <CardDescription>{tool.description}</CardDescription>
+          <Badge>{tool.typeName}</Badge>
         </div>
       </CardHeader>
       <Separator />
@@ -169,7 +176,7 @@ export function ToolCard({ tool, onRemove }: ToolCardProps) {
   );
 }
 
-export default function ToolCardList({ userId }: any) {
+export default function ToolCardList() {
   const [tools, setTools] = useState<Tool[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -192,7 +199,7 @@ export default function ToolCardList({ userId }: any) {
     };
 
     fetchTool();
-  }, [userId, page]);
+  }, [page]);
 
 
 

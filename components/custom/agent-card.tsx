@@ -10,9 +10,9 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu } from '@radix-ui/react-dropdown-menu'
 import { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu'
-import { MoreVertical, Pencil, PlusCircle, Send, Trash2 } from 'lucide-react'
+import { MoreVertical, Pencil, PlusCircle, Send, Trash2, Eye, EyeOff } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog'
-import { removeAgent } from '@/app/(chat)/(agent)/actions'
+import { removeAgent, updateAgentVisibility } from '@/app/(chat)/(agent)/actions'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -29,6 +29,7 @@ type Agent = {
     prompt: string
     tools: any[]
     suggestedActions: any[]
+    visible: boolean
 }
 
 type AgentCardProps = {
@@ -41,6 +42,7 @@ function AgentCard({ agent, onRemove }: AgentCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [chatInput, setChatInput] = useState('');
+    const [isVisible, setIsVisible] = useState(agent.visible);
     const router = useRouter()
     const handleChatInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         setChatInput(e.target.value);
@@ -74,9 +76,23 @@ function AgentCard({ agent, onRemove }: AgentCardProps) {
         setIsExpanded(!isExpanded);
     };
 
+    const handleVisibilityToggle = async () => {
+        try {
+            const result = await updateAgentVisibility(agent.id, !isVisible);
+            if (result.success) {
+                setIsVisible(!isVisible);
+                toast.success(result.message)
+            } else {
+                toast.error('Failed to update tool visibility')
+            }
+        } catch (error) {
+            console.error('Failed to update agent visibility', error);
+        }
+    };
+
     return (
         <Card className="w-full max-w-md">
-            <CardHeader className="flex flex-row items-center gap-4">
+            <CardHeader className="flex flex-row items-center gap-4 mb-2">
                 <Avatar className="size-14">
                     <AvatarImage src={agent.avatar} alt={agent.name} />
                     <AvatarFallback>{agent.name.slice(0, 2).toUpperCase()}</AvatarFallback>
@@ -117,6 +133,41 @@ function AgentCard({ agent, onRemove }: AgentCardProps) {
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                                     <AlertDialogAction onClick={handleRemove} disabled={isRemoving}>
                                         {isRemoving ? 'Removing...' : 'Remove'}
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <DropdownMenuItem onSelect={(e) => {
+                                    e.preventDefault();
+                                }}>
+                                    {isVisible ? (
+                                        <>
+                                            <EyeOff className="mr-2 h-4 w-4" />
+                                            Hide
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Eye className="mr-2 h-4 w-4" />
+                                            Show
+                                        </>
+                                    )}
+                                </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                        {isVisible ? 'Hide' : 'Show'} this agent?
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Are you sure you want to {isVisible ? 'hide' : 'show'} this agent?
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleVisibilityToggle}>
+                                        {isVisible ? 'Hide' : 'Show'}
                                     </AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
@@ -223,7 +274,7 @@ function AgentCard({ agent, onRemove }: AgentCardProps) {
 
 
 
-export default function AgentCardList({ userId }: any) {
+export default function AgentCardList() {
     const [agents, setAgents] = useState<Agent[] | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [page, setPage] = useState(1);
@@ -246,7 +297,7 @@ export default function AgentCardList({ userId }: any) {
         };
 
         fetchAgent();
-    }, [userId, page]);
+    }, [page]);
 
 
 

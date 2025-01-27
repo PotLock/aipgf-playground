@@ -9,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { ToolCard } from "./tool-card"
 
-
 interface Tool {
     id: string
     name: string
@@ -24,6 +23,12 @@ interface ToolSelectorModalProps {
     onToolsSelect: (tools: Tool[]) => void
     selectedTools: Tool[]
     tools: Tool[]
+    visibleTools: Tool[]
+    currentPage: number
+    totalPages: number
+    visibleTotalPages: number
+    onPageChange: (page: number) => void
+    onVisiblePageChange: (page: number) => void
 }
 
 export function ToolSelectorModal({
@@ -31,26 +36,38 @@ export function ToolSelectorModal({
     onClose,
     onToolsSelect,
     selectedTools,
-    tools = []
+    tools = [],
+    visibleTools = [],
+    currentPage,
+    totalPages,
+    visibleTotalPages,
+    onPageChange,
+    onVisiblePageChange
 }: ToolSelectorModalProps) {
     const [activeTab, setActiveTab] = useState("user")
     const [modalSearchQuery, setModalSearchQuery] = useState("")
     const [tempSelectedTools, setTempSelectedTools] = useState<Tool[]>(selectedTools)
+    const [itemsPerPage] = useState(10)
 
     useEffect(() => {
         setTempSelectedTools(selectedTools)
     }, [selectedTools])
 
-    const filteredTools = Array.isArray(tools) 
+    const filteredTools = Array.isArray(tools)
         ? tools.filter(
             (tool) =>
                 tool.name.toLowerCase().includes(modalSearchQuery.toLowerCase()) ||
                 tool.description.toLowerCase().includes(modalSearchQuery.toLowerCase())
         )
-        : [];
+        : []
 
-    const userTools = filteredTools.filter((tool) => !tool.isFavorite)
-    const favoriteTools = filteredTools.filter((tool) => tool.isFavorite)
+    const filteredVisibleTools = Array.isArray(visibleTools)
+        ? visibleTools.filter(
+            (tool) =>
+                tool.name.toLowerCase().includes(modalSearchQuery.toLowerCase()) ||
+                tool.description.toLowerCase().includes(modalSearchQuery.toLowerCase())
+        )
+        : []
 
     const handleToolToggle = (tool: Tool) => {
         setTempSelectedTools((prev) =>
@@ -63,6 +80,12 @@ export function ToolSelectorModal({
     const handleSave = () => {
         onToolsSelect(tempSelectedTools)
         onClose()
+    }
+
+    const paginatedTools = (tools: Tool[]) => {
+        const startIndex = (currentPage - 1) * itemsPerPage
+        const endIndex = startIndex + itemsPerPage
+        return tools.slice(startIndex, endIndex)
     }
 
     return (
@@ -82,12 +105,12 @@ export function ToolSelectorModal({
                 </div>
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
                     <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="user">Your created Tools</TabsTrigger>
-                        <TabsTrigger value="favorite">Favorite Tools</TabsTrigger>
+                        <TabsTrigger value="user">Your Tools</TabsTrigger>
+                        <TabsTrigger value="favorite">Explore Tools</TabsTrigger>
                     </TabsList>
                     <div className="h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                         <TabsContent value="user">
-                            {userTools.map((tool) => (
+                            {paginatedTools(filteredTools).map((tool) => (
                                 <ToolCard
                                     key={tool.id}
                                     tool={tool}
@@ -95,9 +118,59 @@ export function ToolSelectorModal({
                                     onSelect={() => handleToolToggle(tool)}
                                 />
                             ))}
+                            <div className="mt-4 flex flex-col items-center space-y-2">
+                                <div className="join space-x-1">
+                                    <Button
+                                        className="join-item px-2 sm:px-4"
+                                        onClick={() => onPageChange(1)}
+                                        disabled={currentPage === 1}
+                                    >
+                                        «
+                                    </Button>
+                                    <Button
+                                        className="join-item px-2 sm:px-4"
+                                        onClick={() => onPageChange(currentPage - 1)}
+                                        disabled={currentPage === 1}
+                                    >
+                                        ‹
+                                    </Button>
+                                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                        const pageNumber = currentPage - 2 + i;
+                                        if (pageNumber > 0 && pageNumber <= totalPages) {
+                                            return (
+                                                <Button
+                                                    key={pageNumber}
+                                                    className={`join-item px-3 sm:px-4 ${pageNumber === currentPage ? 'bg-primary text-primary-foreground' : ''}`}
+                                                    onClick={() => onPageChange(pageNumber)}
+                                                >
+                                                    {pageNumber}
+                                                </Button>
+                                            );
+                                        }
+                                        return null;
+                                    })}
+                                    <Button
+                                        className="join-item px-2 sm:px-4"
+                                        onClick={() => onPageChange(currentPage + 1)}
+                                        disabled={currentPage === totalPages}
+                                    >
+                                        ›
+                                    </Button>
+                                    <Button
+                                        className="join-item px-2 sm:px-4"
+                                        onClick={() => onPageChange(totalPages)}
+                                        disabled={currentPage === totalPages}
+                                    >
+                                        »
+                                    </Button>
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                    Page {currentPage} of {totalPages}
+                                </div>
+                            </div>
                         </TabsContent>
                         <TabsContent value="favorite">
-                            {favoriteTools.map((tool) => (
+                            {paginatedTools(filteredVisibleTools).map((tool) => (
                                 <ToolCard
                                     key={tool.id}
                                     tool={tool}
@@ -105,6 +178,56 @@ export function ToolSelectorModal({
                                     onSelect={() => handleToolToggle(tool)}
                                 />
                             ))}
+                            <div className="mt-4 flex flex-col items-center space-y-2">
+                                <div className="join space-x-1">
+                                    <Button
+                                        className="join-item px-2 sm:px-4"
+                                        onClick={() => onVisiblePageChange(1)}
+                                        disabled={currentPage === 1}
+                                    >
+                                        «
+                                    </Button>
+                                    <Button
+                                        className="join-item px-2 sm:px-4"
+                                        onClick={() => onVisiblePageChange(currentPage - 1)}
+                                        disabled={currentPage === 1}
+                                    >
+                                        ‹
+                                    </Button>
+                                    {Array.from({ length: Math.min(5, visibleTotalPages) }, (_, i) => {
+                                        const pageNumber = currentPage - 2 + i;
+                                        if (pageNumber > 0 && pageNumber <= visibleTotalPages) {
+                                            return (
+                                                <Button
+                                                    key={pageNumber}
+                                                    className={`join-item px-3 sm:px-4 ${pageNumber === currentPage ? 'bg-primary text-primary-foreground' : ''}`}
+                                                    onClick={() => onVisiblePageChange(pageNumber)}
+                                                >
+                                                    {pageNumber}
+                                                </Button>
+                                            );
+                                        }
+                                        return null;
+                                    })}
+                                    <Button
+                                        className="join-item px-2 sm:px-4"
+                                        onClick={() => onVisiblePageChange(currentPage + 1)}
+                                        disabled={currentPage === visibleTotalPages}
+                                    >
+                                        ›
+                                    </Button>
+                                    <Button
+                                        className="join-item px-2 sm:px-4"
+                                        onClick={() => onVisiblePageChange(visibleTotalPages)}
+                                        disabled={currentPage === visibleTotalPages}
+                                    >
+                                        »
+                                    </Button>
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                    Page {currentPage} of {visibleTotalPages}
+                                </div>
+                            </div>
                         </TabsContent>
                     </div>
                 </Tabs>

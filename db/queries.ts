@@ -672,14 +672,23 @@ export async function changeAgentVisibility(id: string, visibility: boolean) {
     throw error;
   }
 }
-export async function getVisibleTools() {
+export async function getVisibleTools({ page = 1, limit = 10 }: { page: number, limit: number }) {
   try {
-    const visibleTools = await db
-      .select()
-      .from(tool)
-      .where(eq(tool.visible, true));
+    const offset = (page - 1) * limit;
+    const [tools, totalTools] = await Promise.all([
+      db
+        .select()
+        .from(tool)
+        .where(eq(tool.visible, true))
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ count: count() })
+        .from(tool)
+        .where(eq(tool.visible, true))
+    ]);
 
-    return visibleTools;
+    return { tools, totalTools: totalTools[0].count };
   } catch (error) {
     console.log(error);
     console.error('Failed to get visible tools');
