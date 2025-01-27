@@ -29,6 +29,8 @@ interface ToolSelectorModalProps {
     visibleTotalPages: number
     onPageChange: (page: number) => void
     onVisiblePageChange: (page: number) => void
+    isLoading: boolean
+    isVisibleLoading: boolean
 }
 
 export function ToolSelectorModal({
@@ -42,7 +44,9 @@ export function ToolSelectorModal({
     totalPages,
     visibleTotalPages,
     onPageChange,
-    onVisiblePageChange
+    onVisiblePageChange,
+    isLoading,
+    isVisibleLoading
 }: ToolSelectorModalProps) {
     const [activeTab, setActiveTab] = useState("user")
     const [modalSearchQuery, setModalSearchQuery] = useState("")
@@ -110,124 +114,140 @@ export function ToolSelectorModal({
                     </TabsList>
                     <div className="h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                         <TabsContent value="user">
-                            {paginatedTools(filteredTools).map((tool) => (
-                                <ToolCard
-                                    key={tool.id}
-                                    tool={tool}
-                                    isSelected={tempSelectedTools.some((t) => t.id === tool.id)}
-                                    onSelect={() => handleToolToggle(tool)}
-                                />
-                            ))}
-                            <div className="mt-4 flex flex-col items-center space-y-2">
-                                <div className="join space-x-1">
-                                    <Button
-                                        className="join-item px-2 sm:px-4"
-                                        onClick={() => onPageChange(1)}
-                                        disabled={currentPage === 1}
-                                    >
-                                        «
-                                    </Button>
-                                    <Button
-                                        className="join-item px-2 sm:px-4"
-                                        onClick={() => onPageChange(currentPage - 1)}
-                                        disabled={currentPage === 1}
-                                    >
-                                        ‹
-                                    </Button>
-                                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                        const pageNumber = currentPage - 2 + i;
-                                        if (pageNumber > 0 && pageNumber <= totalPages) {
-                                            return (
-                                                <Button
-                                                    key={pageNumber}
-                                                    className={`join-item px-3 sm:px-4 ${pageNumber === currentPage ? 'bg-primary text-primary-foreground' : ''}`}
-                                                    onClick={() => onPageChange(pageNumber)}
-                                                >
-                                                    {pageNumber}
-                                                </Button>
-                                            );
-                                        }
-                                        return null;
-                                    })}
-                                    <Button
-                                        className="join-item px-2 sm:px-4"
-                                        onClick={() => onPageChange(currentPage + 1)}
-                                        disabled={currentPage === totalPages}
-                                    >
-                                        ›
-                                    </Button>
-                                    <Button
-                                        className="join-item px-2 sm:px-4"
-                                        onClick={() => onPageChange(totalPages)}
-                                        disabled={currentPage === totalPages}
-                                    >
-                                        »
-                                    </Button>
+                            {isLoading ? (
+                                <div className="flex justify-center items-center h-full">
+                                    <span>Loading...</span>
                                 </div>
-                                <div className="text-sm text-muted-foreground">
-                                    Page {currentPage} of {totalPages}
-                                </div>
-                            </div>
+                            ) : (
+                                <>
+                                    {paginatedTools(filteredTools).map((tool) => (
+                                        <ToolCard
+                                            key={tool.id}
+                                            tool={tool}
+                                            isSelected={tempSelectedTools.some((t) => t.id === tool.id)}
+                                            onSelect={() => handleToolToggle(tool)}
+                                        />
+                                    ))}
+                                    <div className="mt-4 flex flex-col items-center space-y-2">
+                                        <div className="join space-x-1">
+                                            <Button
+                                                className="join-item px-2 sm:px-4"
+                                                onClick={() => onPageChange(1)}
+                                                disabled={currentPage === 1}
+                                            >
+                                                «
+                                            </Button>
+                                            <Button
+                                                className="join-item px-2 sm:px-4"
+                                                onClick={() => onPageChange(currentPage - 1)}
+                                                disabled={currentPage === 1}
+                                            >
+                                                ‹
+                                            </Button>
+                                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                                const pageNumber = currentPage - 2 + i;
+                                                if (pageNumber > 0 && pageNumber <= totalPages) {
+                                                    return (
+                                                        <Button
+                                                            key={pageNumber}
+                                                            className={`join-item px-3 sm:px-4 ${pageNumber === currentPage ? 'bg-primary text-primary-foreground' : ''}`}
+                                                            onClick={() => onPageChange(pageNumber)}
+                                                        >
+                                                            {pageNumber}
+                                                        </Button>
+                                                    );
+                                                }
+                                                return null;
+                                            })}
+                                            <Button
+                                                className="join-item px-2 sm:px-4"
+                                                onClick={() => onPageChange(currentPage + 1)}
+                                                disabled={currentPage === totalPages}
+                                            >
+                                                ›
+                                            </Button>
+                                            <Button
+                                                className="join-item px-2 sm:px-4"
+                                                onClick={() => onPageChange(totalPages)}
+                                                disabled={currentPage === totalPages}
+                                            >
+                                                »
+                                            </Button>
+                                        </div>
+                                        <div className="text-sm text-muted-foreground">
+                                            Page {currentPage} of {totalPages}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </TabsContent>
                         <TabsContent value="favorite">
-                            {paginatedTools(filteredVisibleTools).map((tool) => (
-                                <ToolCard
-                                    key={tool.id}
-                                    tool={tool}
-                                    isSelected={tempSelectedTools.some((t) => t.id === tool.id)}
-                                    onSelect={() => handleToolToggle(tool)}
-                                />
-                            ))}
-                            <div className="mt-4 flex flex-col items-center space-y-2">
-                                <div className="join space-x-1">
-                                    <Button
-                                        className="join-item px-2 sm:px-4"
-                                        onClick={() => onVisiblePageChange(1)}
-                                        disabled={currentPage === 1}
-                                    >
-                                        «
-                                    </Button>
-                                    <Button
-                                        className="join-item px-2 sm:px-4"
-                                        onClick={() => onVisiblePageChange(currentPage - 1)}
-                                        disabled={currentPage === 1}
-                                    >
-                                        ‹
-                                    </Button>
-                                    {Array.from({ length: Math.min(5, visibleTotalPages) }, (_, i) => {
-                                        const pageNumber = currentPage - 2 + i;
-                                        if (pageNumber > 0 && pageNumber <= visibleTotalPages) {
-                                            return (
-                                                <Button
-                                                    key={pageNumber}
-                                                    className={`join-item px-3 sm:px-4 ${pageNumber === currentPage ? 'bg-primary text-primary-foreground' : ''}`}
-                                                    onClick={() => onVisiblePageChange(pageNumber)}
-                                                >
-                                                    {pageNumber}
-                                                </Button>
-                                            );
-                                        }
-                                        return null;
-                                    })}
-                                    <Button
-                                        className="join-item px-2 sm:px-4"
-                                        onClick={() => onVisiblePageChange(currentPage + 1)}
-                                        disabled={currentPage === visibleTotalPages}
-                                    >
-                                        ›
-                                    </Button>
-                                    <Button
-                                        className="join-item px-2 sm:px-4"
-                                        onClick={() => onVisiblePageChange(visibleTotalPages)}
-                                        disabled={currentPage === visibleTotalPages}
-                                    >
-                                        »
-                                    </Button>
+                            {isVisibleLoading ? (
+                                <div className="flex justify-center items-center h-full">
+                                    <span>Loading...</span>
                                 </div>
-                                <div className="text-sm text-muted-foreground">
-                                    Page {currentPage} of {visibleTotalPages}
-                                </div>
-                            </div>
+                            ) : (
+                                <>
+                                    {paginatedTools(filteredVisibleTools).map((tool) => (
+                                        <ToolCard
+                                            key={tool.id}
+                                            tool={tool}
+                                            isSelected={tempSelectedTools.some((t) => t.id === tool.id)}
+                                            onSelect={() => handleToolToggle(tool)}
+                                        />
+                                    ))}
+                                    <div className="mt-4 flex flex-col items-center space-y-2">
+                                        <div className="join space-x-1">
+                                            <Button
+                                                className="join-item px-2 sm:px-4"
+                                                onClick={() => onVisiblePageChange(1)}
+                                                disabled={currentPage === 1}
+                                            >
+                                                «
+                                            </Button>
+                                            <Button
+                                                className="join-item px-2 sm:px-4"
+                                                onClick={() => onVisiblePageChange(currentPage - 1)}
+                                                disabled={currentPage === 1}
+                                            >
+                                                ‹
+                                            </Button>
+                                            {Array.from({ length: Math.min(5, visibleTotalPages) }, (_, i) => {
+                                                const pageNumber = currentPage - 2 + i;
+                                                if (pageNumber > 0 && pageNumber <= visibleTotalPages) {
+                                                    return (
+                                                        <Button
+                                                            key={pageNumber}
+                                                            className={`join-item px-3 sm:px-4 ${pageNumber === currentPage ? 'bg-primary text-primary-foreground' : ''}`}
+                                                            onClick={() => onVisiblePageChange(pageNumber)}
+                                                        >
+                                                            {pageNumber}
+                                                        </Button>
+                                                    );
+                                                }
+                                                return null;
+                                            })}
+                                            <Button
+                                                className="join-item px-2 sm:px-4"
+                                                onClick={() => onVisiblePageChange(currentPage + 1)}
+                                                disabled={currentPage === visibleTotalPages}
+                                            >
+                                                ›
+                                            </Button>
+                                            <Button
+                                                className="join-item px-2 sm:px-4"
+                                                onClick={() => onVisiblePageChange(visibleTotalPages)}
+                                                disabled={currentPage === visibleTotalPages}
+                                            >
+                                                »
+                                            </Button>
+                                        </div>
+                                        <div className="text-sm text-muted-foreground">
+                                            Page {currentPage} of {visibleTotalPages}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </TabsContent>
                     </div>
                 </Tabs>

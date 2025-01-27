@@ -293,6 +293,8 @@ export function CreateAgentForm({
               visibleTotalPages={visibleTotalPages}
               onPageChange={handlePageChange}
               onVisiblePageChange={handleVisiblePageChange}
+              isLoading={isLoading}
+              isVisibleLoading={isLoading}
             />
             <Input
               id="tools"
