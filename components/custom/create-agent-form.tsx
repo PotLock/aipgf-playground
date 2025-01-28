@@ -66,11 +66,12 @@ export function CreateAgentForm({
   const [totalPages, setTotalPages] = useState(1);
   const [visibleTotalPages, setVisibleTotalPages] = useState(1);
   const limit = 10; // Number of tools per page
+  const [query, setQuery] = useState('');
 
-  const fetchTools = async (page = 1, limit = 10) => {
+  const fetchTools = async (page = 1, limit = 10, query = '') => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/tool?page=${page}&limit=${limit}`);
+      const response = await fetch(`/api/tool?page=${page}&limit=${limit}&query=${query}`);
       if (!response.ok) {
         throw new Error('Failed to fetch tools');
       }
@@ -84,10 +85,10 @@ export function CreateAgentForm({
     }
   };
 
-  const fetchVisibleTools = async (page = 1, limit = 10) => {
+  const fetchVisibleTools = async (page = 1, limit = 10, query = '') => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/tool/all?page=${page}&limit=${limit}`);
+      const response = await fetch(`/api/tool/all?page=${page}&limit=${limit}&query=${query}`);
       if (!response.ok) {
         throw new Error('Failed to fetch visible tools');
       }
@@ -102,9 +103,12 @@ export function CreateAgentForm({
   };
 
   useEffect(() => {
-    fetchTools(currentPage);
-    fetchVisibleTools(currentPage);
-  }, [currentPage]);
+    fetchTools(currentPage, limit, query);
+  }, [currentPage, limit, query]);
+
+  useEffect(() => {
+    fetchVisibleTools(currentPage, limit, query);
+  }, [currentPage, limit, query]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -294,6 +298,8 @@ export function CreateAgentForm({
               onVisiblePageChange={handleVisiblePageChange}
               isLoading={isLoading}
               isVisibleLoading={isLoading}
+              query={query}
+              setQuery={setQuery}
             />
             <Input
               id="tools"
