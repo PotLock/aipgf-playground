@@ -16,11 +16,7 @@ interface Tool {
     avatar?: string
 }
 
-interface ToolCardProps {
-    tools: Tool[]
-}
-
-export default function UpdateAgent({ tools, agent }: any) {
+export default function UpdateAgent({ agent }: any) {
     const router = useRouter();
     const [isSuccessful, setIsSuccessful] = useState(false);
 
@@ -52,7 +48,7 @@ export default function UpdateAgent({ tools, agent }: any) {
 
     return (
         <div className="flex flex-col min-w-0 h-dvh bg-background">
-            <CreateAgentForm action={handleSubmit} tools={tools} agent={agent}>
+            <CreateAgentForm action={handleSubmit} agent={agent}>
                 <SubmitButton isSuccessful={isSuccessful}>Update</SubmitButton>
             </CreateAgentForm>
         </div>

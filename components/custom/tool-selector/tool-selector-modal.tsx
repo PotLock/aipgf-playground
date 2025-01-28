@@ -1,13 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-
+import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
 import { ToolCard } from "./tool-card"
+import { Pagination } from "./pagination"
 
 interface Tool {
     id: string
@@ -22,8 +22,8 @@ interface ToolSelectorModalProps {
     onClose: () => void
     onToolsSelect: (tools: Tool[]) => void
     selectedTools: Tool[]
-    tools: Tool[]
-    visibleTools: Tool[]
+    tools: Tool[] | null | undefined
+    visibleTools: Tool[] | null | undefined
     currentPage: number
     totalPages: number
     visibleTotalPages: number
@@ -46,7 +46,7 @@ export function ToolSelectorModal({
     onPageChange,
     onVisiblePageChange,
     isLoading,
-    isVisibleLoading
+    isVisibleLoading,
 }: ToolSelectorModalProps) {
     const [activeTab, setActiveTab] = useState("user")
     const [modalSearchQuery, setModalSearchQuery] = useState("")
@@ -57,27 +57,21 @@ export function ToolSelectorModal({
         setTempSelectedTools(selectedTools)
     }, [selectedTools])
 
-    const filteredTools = Array.isArray(tools)
-        ? tools.filter(
-            (tool) =>
-                tool.name.toLowerCase().includes(modalSearchQuery.toLowerCase()) ||
-                tool.description.toLowerCase().includes(modalSearchQuery.toLowerCase())
-        )
-        : []
+    const filteredTools = (tools || []).filter(
+        (tool) =>
+            tool.name.toLowerCase().includes(modalSearchQuery.toLowerCase()) ||
+            tool.description.toLowerCase().includes(modalSearchQuery.toLowerCase()),
+    )
 
-    const filteredVisibleTools = Array.isArray(visibleTools)
-        ? visibleTools.filter(
-            (tool) =>
-                tool.name.toLowerCase().includes(modalSearchQuery.toLowerCase()) ||
-                tool.description.toLowerCase().includes(modalSearchQuery.toLowerCase())
-        )
-        : []
+    const filteredVisibleTools = (visibleTools || []).filter(
+        (tool) =>
+            tool.name.toLowerCase().includes(modalSearchQuery.toLowerCase()) ||
+            tool.description.toLowerCase().includes(modalSearchQuery.toLowerCase()),
+    )
 
     const handleToolToggle = (tool: Tool) => {
         setTempSelectedTools((prev) =>
-            prev.some((t) => t.id === tool.id)
-                ? prev.filter((t) => t.id !== tool.id)
-                : [...prev, tool]
+            prev.some((t) => t.id === tool.id) ? prev.filter((t) => t.id !== tool.id) : [...prev, tool],
         )
     }
 
@@ -94,165 +88,97 @@ export function ToolSelectorModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle>Select Tools</DialogTitle>
-                </DialogHeader>
-                <div className="mb-4">
-                    <Input
-                        type="text"
-                        placeholder="Search tools..."
-                        value={modalSearchQuery}
-                        onChange={(e) => setModalSearchQuery(e.target.value)}
-                        className="w-full"
-                    />
-                </div>
-                <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="user">Your Tools</TabsTrigger>
-                        <TabsTrigger value="favorite">Explore Tools</TabsTrigger>
-                    </TabsList>
-                    <div className="h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                        <TabsContent value="user">
-                            {isLoading ? (
-                                <div className="flex justify-center items-center h-full">
-                                    <span>Loading...</span>
-                                </div>
-                            ) : (
-                                <>
-                                    {paginatedTools(filteredTools).map((tool) => (
-                                        <ToolCard
-                                            key={tool.id}
-                                            tool={tool}
-                                            isSelected={tempSelectedTools.some((t) => t.id === tool.id)}
-                                            onSelect={() => handleToolToggle(tool)}
-                                        />
-                                    ))}
-                                    <div className="mt-4 flex flex-col items-center space-y-2">
-                                        <div className="join space-x-1">
-                                            <Button
-                                                className="join-item px-2 sm:px-4"
-                                                onClick={() => onPageChange(1)}
-                                                disabled={currentPage === 1}
-                                            >
-                                                «
-                                            </Button>
-                                            <Button
-                                                className="join-item px-2 sm:px-4"
-                                                onClick={() => onPageChange(currentPage - 1)}
-                                                disabled={currentPage === 1}
-                                            >
-                                                ‹
-                                            </Button>
-                                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                                const pageNumber = currentPage - 2 + i;
-                                                if (pageNumber > 0 && pageNumber <= totalPages) {
-                                                    return (
-                                                        <Button
-                                                            key={pageNumber}
-                                                            className={`join-item px-3 sm:px-4 ${pageNumber === currentPage ? 'bg-primary text-primary-foreground' : ''}`}
-                                                            onClick={() => onPageChange(pageNumber)}
-                                                        >
-                                                            {pageNumber}
-                                                        </Button>
-                                                    );
-                                                }
-                                                return null;
-                                            })}
-                                            <Button
-                                                className="join-item px-2 sm:px-4"
-                                                onClick={() => onPageChange(currentPage + 1)}
-                                                disabled={currentPage === totalPages}
-                                            >
-                                                ›
-                                            </Button>
-                                            <Button
-                                                className="join-item px-2 sm:px-4"
-                                                onClick={() => onPageChange(totalPages)}
-                                                disabled={currentPage === totalPages}
-                                            >
-                                                »
-                                            </Button>
-                                        </div>
-                                        <div className="text-sm text-muted-foreground">
-                                            Page {currentPage} of {totalPages}
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-                        </TabsContent>
-                        <TabsContent value="favorite">
-                            {isVisibleLoading ? (
-                                <div className="flex justify-center items-center h-full">
-                                    <span>Loading...</span>
-                                </div>
-                            ) : (
-                                <>
-                                    {paginatedTools(filteredVisibleTools).map((tool) => (
-                                        <ToolCard
-                                            key={tool.id}
-                                            tool={tool}
-                                            isSelected={tempSelectedTools.some((t) => t.id === tool.id)}
-                                            onSelect={() => handleToolToggle(tool)}
-                                        />
-                                    ))}
-                                    <div className="mt-4 flex flex-col items-center space-y-2">
-                                        <div className="join space-x-1">
-                                            <Button
-                                                className="join-item px-2 sm:px-4"
-                                                onClick={() => onVisiblePageChange(1)}
-                                                disabled={currentPage === 1}
-                                            >
-                                                «
-                                            </Button>
-                                            <Button
-                                                className="join-item px-2 sm:px-4"
-                                                onClick={() => onVisiblePageChange(currentPage - 1)}
-                                                disabled={currentPage === 1}
-                                            >
-                                                ‹
-                                            </Button>
-                                            {Array.from({ length: Math.min(5, visibleTotalPages) }, (_, i) => {
-                                                const pageNumber = currentPage - 2 + i;
-                                                if (pageNumber > 0 && pageNumber <= visibleTotalPages) {
-                                                    return (
-                                                        <Button
-                                                            key={pageNumber}
-                                                            className={`join-item px-3 sm:px-4 ${pageNumber === currentPage ? 'bg-primary text-primary-foreground' : ''}`}
-                                                            onClick={() => onVisiblePageChange(pageNumber)}
-                                                        >
-                                                            {pageNumber}
-                                                        </Button>
-                                                    );
-                                                }
-                                                return null;
-                                            })}
-                                            <Button
-                                                className="join-item px-2 sm:px-4"
-                                                onClick={() => onVisiblePageChange(currentPage + 1)}
-                                                disabled={currentPage === visibleTotalPages}
-                                            >
-                                                ›
-                                            </Button>
-                                            <Button
-                                                className="join-item px-2 sm:px-4"
-                                                onClick={() => onVisiblePageChange(visibleTotalPages)}
-                                                disabled={currentPage === visibleTotalPages}
-                                            >
-                                                »
-                                            </Button>
-                                        </div>
-                                        <div className="text-sm text-muted-foreground">
-                                            Page {currentPage} of {visibleTotalPages}
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-                        </TabsContent>
+            <DialogContent className="max-w-4xl p-0">
+
+                <div className="flex flex-col h-[80vh]">
+                    {/* Header */}
+                    <div className="flex items-center justify-between p-4 border-b">
+                        <DialogTitle>Select Tools</DialogTitle>
                     </div>
-                </Tabs>
-                <div className="mt-4 flex justify-end">
-                    <Button onClick={handleSave}>Save Selection</Button>
+                    {/* Search */}
+                    <div className="p-4 border-b">
+                        <Input
+                            type="text"
+                            placeholder="Search tools..."
+                            value={modalSearchQuery}
+                            onChange={(e) => setModalSearchQuery(e.target.value)}
+                        />
+                    </div>
+
+                    {/* Tabs and Content */}
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="user">Your Tools</TabsTrigger>
+                            <TabsTrigger value="favorite">Explore Tools</TabsTrigger>
+                        </TabsList>
+                        <div className="flex-1 overflow-hidden flex flex-col">
+                            <div className="flex-1 overflow-y-auto p-4">
+                                <TabsContent value="user" className="mt-0 h-full">
+                                    {isLoading ? (
+                                        <div className="flex justify-center items-center h-full">
+                                            <span>Loading...</span>
+                                        </div>
+                                    ) : filteredTools.length === 0 ? (
+                                        <div className="flex justify-center items-center h-full">
+                                            <span>No tools found</span>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                            {paginatedTools(filteredTools).map((tool) => (
+                                                <ToolCard
+                                                    key={tool.id}
+                                                    tool={tool}
+                                                    isSelected={tempSelectedTools.some((t) => t.id === tool.id)}
+                                                    onSelect={() => handleToolToggle(tool)}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                </TabsContent>
+                                <TabsContent value="favorite" className="mt-0 h-full">
+                                    {isVisibleLoading ? (
+                                        <div className="flex justify-center items-center h-full">
+                                            <span>Loading...</span>
+                                        </div>
+                                    ) : filteredVisibleTools.length === 0 ? (
+                                        <div className="flex justify-center items-center h-full">
+                                            <span>No tools found</span>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                            {paginatedTools(filteredVisibleTools).map((tool) => (
+                                                <ToolCard
+                                                    key={tool.id}
+                                                    tool={tool}
+                                                    isSelected={tempSelectedTools.some((t) => t.id === tool.id)}
+                                                    onSelect={() => handleToolToggle(tool)}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                </TabsContent>
+                            </div>
+                            {/* Pagination */}
+                            <div className="border-t p-4">
+                                {activeTab === "user" ? (
+                                    <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
+                                ) : (
+                                    <Pagination
+                                        currentPage={currentPage}
+                                        totalPages={visibleTotalPages}
+                                        onPageChange={onVisiblePageChange}
+                                    />
+                                )}
+                            </div>
+                        </div>
+                    </Tabs>
+
+                    {/* Footer */}
+                    <div className="border-t p-4">
+                        <Button className="w-full" onClick={handleSave}>
+                            Save Selection
+                        </Button>
+                    </div>
                 </div>
             </DialogContent>
         </Dialog>
