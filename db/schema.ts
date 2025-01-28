@@ -117,6 +117,7 @@ export const tool = pgTable('Tool', {
   avatar: text('avatar'),
   name: text('name').notNull(),
   typeName: varchar('typeName', { length: 64 }).notNull(),
+  visible: boolean('visible').notNull().default(false),
   description: text('description'),
   //Tool Contract
   // args: json('args'),
@@ -150,6 +151,7 @@ export const agent = pgTable('Agent', {
   prompt: text('prompt').notNull(),
   tools: json('tools'),
   suggestedActions: json('suggestedActions'),
+  visible: boolean('visible').notNull().default(false),
   userId: uuid('userId')
     .notNull()
     .references(() => user.id),

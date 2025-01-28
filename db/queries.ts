@@ -23,7 +23,7 @@ import {
 // Optionally, if not using username/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
 // https://authjs.dev/reference/adapter/drizzle
-let client = postgres(`${process.env.POSTGRES_URL!}?sslmode=require`);
+let client = postgres(process.env.POSTGRES_URL!);
 let db = drizzle(client);
 
 export async function getUser(email: string): Promise<Array<User>> {
@@ -378,6 +378,7 @@ export async function createAgent({
         intro,
         model,
         userId,
+        visible: false,
         suggestedActions,
       })
       .returning({
@@ -391,6 +392,7 @@ export async function createAgent({
         model: agent.model,
         userId: agent.userId,
         createdAt: agent.createdAt,
+        visibility: agent.visible,
         suggestedActions: agent.suggestedActions,
       });
   } catch (error) {
@@ -511,6 +513,7 @@ export async function createTool({
         avatar: tool.avatar,
         name: tool.name,
         description: tool.description,
+        visibility: tool.visible,
         data: tool.data,
         userId: tool.userId,
         createdAt: tool.createdAt,
@@ -522,20 +525,46 @@ export async function createTool({
   }
 }
 
-export async function getToolByUserId({ userId }: { userId: string }) {
+export async function getToolByUserId({ userId, page = 1, limit = 10 }: { userId: string, page?: number, limit?: number }) {
   try {
-    return await db
+    const offset = (page - 1) * limit;
+
+    const tools = await db
       .select()
       .from(tool)
       .where(eq(tool.userId, userId))
-      .orderBy(desc(tool.createdAt));
+      .orderBy(desc(tool.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    const totalTools = await db
+      .select({ count: count() })
+      .from(tool)
+      .where(eq(tool.userId, userId));
+
+    return {
+      tools,
+      totalTools: totalTools[0].count,
+    };
   } catch (error) {
     console.log(error);
     console.error('Failed to get tools by userId from database');
     throw error;
   }
 }
-
+export async function getToolById(id: string) {
+  try {
+    const [selectedTool] = await db
+      .select()
+      .from(tool)
+      .where(eq(tool.id, id));
+    return selectedTool;
+  } catch (error) {
+    console.log(error);
+    console.error('Failed to get Tool from database');
+    throw error;
+  }
+}
 export async function getToolsByIds(ids: any[]): Promise<Array<Tool>> {
   try {
     return await db.select().from(tool).where(inArray(tool.id, ids));
@@ -545,3 +574,139 @@ export async function getToolsByIds(ids: any[]): Promise<Array<Tool>> {
   }
 }
 
+export async function updateTool({
+  id,
+  name,
+  description,
+  avatar,
+  data,
+  typeName,
+}: Tool) {
+  try {
+    return await db
+      .update(tool)
+      .set({
+        name,
+        description,
+        avatar,
+        data,
+        typeName
+      })
+      .where(eq(tool.id, id))
+      .returning({
+        id: tool.id,
+        name: tool.name,
+        description: tool.description,
+        avatar: tool.avatar,
+        data: tool.data,
+        userId: tool.userId,
+        createdAt: tool.createdAt,
+        typeName: tool.typeName,
+      });
+  } catch (error) {
+    console.error('Failed to update tool in database', error);
+    throw error;
+  }
+}
+
+export async function removeToolById(id: string) {
+  try {
+    const [selectedTool] = await db
+      .select()
+      .from(tool)
+      .where(eq(tool.id, id));
+
+    if (!selectedTool) {
+      throw new Error('tool not found');
+    }
+    await db
+      .delete(tool)
+      .where(eq(tool.id, id));
+  }
+  catch (error) {
+    console.log(error);
+    console.error('Failed to remove Tool from database');
+    throw error;
+  }
+}
+export async function changeToolVisibility(id: string, visibility: boolean) {
+  try {
+    const [selectedTool] = await db
+      .select()
+      .from(tool)
+      .where(eq(tool.id, id));
+
+    if (!selectedTool) {
+      throw new Error('Tool not found');
+    }
+
+    await db
+      .update(tool)
+      .set({ visible: visibility })
+      .where(eq(tool.id, id));
+  } catch (error) {
+    console.log(error);
+    console.error('Failed to change tool visibility');
+    throw error;
+  }
+}
+
+export async function changeAgentVisibility(id: string, visibility: boolean) {
+  try {
+    const [selectedAgent] = await db
+      .select()
+      .from(agent)
+      .where(eq(agent.id, id));
+
+    if (!selectedAgent) {
+      throw new Error('Agent not found');
+    }
+
+    await db
+      .update(agent)
+      .set({ visible: visibility })
+      .where(eq(agent.id, id));
+  } catch (error) {
+    console.log(error);
+    console.error('Failed to change agent visibility');
+    throw error;
+  }
+}
+export async function getVisibleTools({ page = 1, limit = 10 }: { page: number, limit: number }) {
+  try {
+    const offset = (page - 1) * limit;
+    const [tools, totalTools] = await Promise.all([
+      db
+        .select()
+        .from(tool)
+        .where(eq(tool.visible, true))
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ count: count() })
+        .from(tool)
+        .where(eq(tool.visible, true))
+    ]);
+
+    return { tools, totalTools: totalTools[0].count };
+  } catch (error) {
+    console.log(error);
+    console.error('Failed to get visible tools');
+    throw error;
+  }
+}
+
+export async function getVisibleAgents() {
+  try {
+    const visibleAgents = await db
+      .select()
+      .from(agent)
+      .where(eq(agent.visible, true));
+
+    return visibleAgents;
+  } catch (error) {
+    console.log(error);
+    console.error('Failed to get visible agents');
+    throw error;
+  }
+}

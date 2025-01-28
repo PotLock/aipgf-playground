@@ -10,7 +10,5 @@ export default async function Page() {
   if (!session || !session.user) {
     return Response.json('Unauthorized!', { status: 401 });
   }
-
-  const tools = await getToolByUserId({ userId: session.user.id! });
-  return <CreateAgent tools={tools as any} />;
+  return <CreateAgent />;
 }

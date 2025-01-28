@@ -1,6 +1,6 @@
 import { List, Plus, PlusCircle, Server, Trash2, Upload, X } from "lucide-react";
 import Form from 'next/form';
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { models } from '@/ai/models';
 
@@ -16,8 +16,7 @@ import ActionCard from "./suggest-action/action-card";
 import CreateActionModal from "./suggest-action/create-action-modal";
 import { ToolCard } from "./tool-selector/tool-card";
 import { ToolSelectorModal } from "./tool-selector/tool-selector-modal";
-
-
+import { toast } from "sonner";
 
 interface Tool {
   id: string
@@ -33,15 +32,9 @@ interface SuggestedAction {
   action: string
 }
 
-export function CreateAgentForm({
-  agent,
-  action,
-  children,
-  tools
-}: {
+interface CreateAgentFormProps {
   action: any;
   children: React.ReactNode;
-  tools: any;
   agent?: {
     id: string;
     name: string;
@@ -53,16 +46,75 @@ export function CreateAgentForm({
     tools: string[];
     suggestedActions: SuggestedAction[];
   };
+}
 
-}) {
+export function CreateAgentForm({
+  agent,
+  action,
+  children,
+}: CreateAgentFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-
 
   const [actions, setActions] = useState<SuggestedAction[]>(agent?.suggestedActions || [])
   const [actionsValue, setActionsValue] = useState<string>(agent ? JSON.stringify(agent.suggestedActions) : '')
   const [avatarPreview, setAvatarPreview] = useState<string | null>(agent?.avatar || null);
-  const [selectedTools, setSelectedTools] = useState<Tool[]>(agent?.tools ? tools.filter((tool: any) => agent.tools.includes(tool.id)) : [])
+  const [tools, setTools] = useState<Tool[] | null>(null);
+  const [visibleTools, setVisibleTools] = useState<Tool[] | null>(null);
+  const [selectedTools, setSelectedTools] = useState<Tool[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [visibleTotalPages, setVisibleTotalPages] = useState(1);
+  const limit = 10; // Number of tools per page
+
+  const fetchTools = async (page = 1, limit = 10) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/tool?page=${page}&limit=${limit}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch tools');
+      }
+      const data = await response.json();
+      setTools(data.tools);
+      setTotalPages(data.totalPages);
+    } catch (error) {
+      console.error('Failed to fetch tools:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchVisibleTools = async (page = 1, limit = 10) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/tool/all?page=${page}&limit=${limit}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch visible tools');
+      }
+      const data = await response.json();
+      setVisibleTools(data.tools);
+      setVisibleTotalPages(data.totalPages);
+    } catch (error) {
+      console.error('Failed to fetch visible tools:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTools(currentPage);
+    fetchVisibleTools(currentPage);
+  }, [currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleVisiblePageChange = (page: number) => {
+    setCurrentPage(page);
+    fetchVisibleTools(page);
+  };
+
   const [selectedToolsInput, setSelectedToolsInput] = useState<string>(agent ? JSON.stringify(agent.tools) : '')
 
   const [isModalToolOpen, setIsModalToolOpen] = useState(false)
@@ -78,7 +130,6 @@ export function CreateAgentForm({
     setSelectedTools((prev) => prev.filter((tool) => tool.id !== toolId))
   }
 
-
   const handleCreateAction = (newAction: Omit<SuggestedAction, 'id'>) => {
     const actionWithId = {
       ...newAction,
@@ -93,11 +144,11 @@ export function CreateAgentForm({
     setActions(actions.filter(action => action.id !== id))
   }
 
-
   const deleteAllActions = () => {
     setActions([])
     setActionsValue('')
   }
+
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -216,10 +267,6 @@ export function CreateAgentForm({
           </div>
 
           <div className="space-y-2">
-            {/* <Label
-              htmlFor="text"            >
-              Tool
-            </Label> */}
             <div className="flex items-center space-x-2">
               <Button onClick={(e) => { e.preventDefault(); setIsModalToolOpen(true) }}>Add Tools</Button>
             </div>
@@ -239,7 +286,15 @@ export function CreateAgentForm({
               onClose={() => setIsModalToolOpen(false)}
               onToolsSelect={handleToolsSelect}
               selectedTools={selectedTools}
-              tools={tools}
+              tools={tools as any}
+              visibleTools={visibleTools as any}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              visibleTotalPages={visibleTotalPages}
+              onPageChange={handlePageChange}
+              onVisiblePageChange={handleVisiblePageChange}
+              isLoading={isLoading}
+              isVisibleLoading={isLoading}
             />
             <Input
               id="tools"
@@ -252,7 +307,6 @@ export function CreateAgentForm({
           </div>
           <div className="space-y-2">
             <div className="space-y-2">
-              {/* <Label>Suggested Actions</Label> */}
               <div className="flex items-center space-x-2">
                 <Button onClick={(e) => { e.preventDefault(); setIsModalActionOpen(true) }} >
                   <Plus className="mr-2 size-4" /> Create Suggested Action

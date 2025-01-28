@@ -32,9 +32,11 @@ import { CodeEditor } from "./code-editor" // Import the CodeEditor component
 export function CreateToolForm({
   action,
   children,
+  tool,
 }: {
   action: any
   children: React.ReactNode
+  tool?: any // Make tool optional since it's only needed for updates
 }) {
   const [selectedForm, setSelectedForm] = useState<string | null>(null)
   const [widgetArgs, setWidgetArgs] = useState([{ name: "", description: "", type: "", defaultValue: "" }])
@@ -67,6 +69,13 @@ return \`\${greating} World\`;`)
   const [isCurrentVersion, setIsCurrentVersion] = useState<boolean>(true)
   const [currentVersionIndex, setCurrentVersionIndex] = useState<number>(0)
   const [suggestions, setSuggestions] = useState<Array<any>>([])
+
+  // Add new state for name and description
+  const [name, setName] = useState("")
+  const [description, setDescription] = useState("")
+
+  // Add new state for tool ID
+  const [toolId, setToolId] = useState("")
 
   const saveContent = (updatedContent: string, debounce: boolean) => {
     setWidgetCode(updatedContent)
@@ -202,8 +211,19 @@ return \`\${greating} World\`;`)
         name: func.name,
         kind: func.kind,
         args: func.params?.args || [],
+        isLoaded: false // Add isLoaded flag
       }))
-      setContractMethods(methods)
+
+      // If we have existing methods with values, merge them
+      if (contractMethods.length > 0) {
+        const mergedMethods = methods.map((newMethod:any) => {
+          const existingMethod = contractMethods.find(m => m.name === newMethod.name)
+          return existingMethod || newMethod
+        })
+        setContractMethods(mergedMethods)
+      } else {
+        setContractMethods(methods)
+      }
     } catch (err) {
       setError("Error fetching contract methods. Please check your inputs and try again.")
       console.error(err)
@@ -480,9 +500,8 @@ return \`\${greating} World\`;`)
               <Label htmlFor="chain">Chain</Label>
               <Select
                 value={chain}
-                onValueChange={async (value) => {
+                onValueChange={(value) => {
                   setChain(value)
-                  await updateContractJsonInput(selectedMethods)
                 }}
               >
                 <SelectTrigger id="chain">
@@ -501,9 +520,8 @@ return \`\${greating} World\`;`)
               <Label htmlFor="network">Network</Label>
               <Select
                 value={network}
-                onValueChange={async (value) => {
+                onValueChange={(value) => {
                   setNetwork(value)
-                  await updateContractJsonInput(selectedMethods)
                 }}
               >
                 <SelectTrigger id="network">
@@ -525,9 +543,8 @@ return \`\${greating} World\`;`)
                 name="contract-address"
                 placeholder="Enter contract address"
                 value={contractAddress}
-                onChange={async (e) => {
+                onChange={(e) => {
                   setContractAddress(e.target.value)
-                  await updateContractJsonInput(selectedMethods)
                 }}
               />
             </div>
@@ -549,34 +566,43 @@ return \`\${greating} World\`;`)
                           htmlFor={`method-${method.name}`}
                           className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                         >
-                          {method.name} ({method.kind})
+                          {method.name}
                         </Label>
                         {loadingMethods.includes(method.name) && <Loader2 className="size-4 animate-spin" />}
                       </div>
-                      {selectedMethods.includes(method.name) && method.isLoaded && (
+                      {selectedMethods.includes(method.name) && (
                         <div className="mt-4 space-y-4">
+                          <div className="text-sm text-muted-foreground">Type: {method.kind}</div>
                           {method.description && <p className="text-sm text-muted-foreground">{method.description}</p>}
-                          <h5 className="text-sm font-medium">Arguments:</h5>
-                          {method.args.map((arg: any, index: number) => (
-                            <div key={index} className="pl-6 border-l-2 border-gray-200">
-                              <p className="text-sm font-medium">{arg.name}</p>
-                              <p className="text-sm text-muted-foreground">{arg.type_schema.type}</p>
-                              {arg.description && <p className="text-sm text-muted-foreground">{arg.description}</p>}
-                              <Input
-                                className="mt-2"
-                                placeholder={`Enter ${arg.name}`}
-                                value={arg.value || ""}
-                                onChange={async (e) => {
-                                  const updatedMethods = [...contractMethods]
-                                  updatedMethods[contractMethods.findIndex((m) => m.name === method.name)].args[
-                                    index
-                                  ].value = e.target.value
-                                  setContractMethods(updatedMethods)
-                                  await updateContractJsonInput(selectedMethods)
-                                }}
-                              />
-                            </div>
-                          ))}
+                          {method.isLoaded && method.args && method.args.length > 0 && (
+                            <>
+                              <h5 className="text-sm font-medium">Arguments:</h5>
+                              {method.args.map((arg: any, index: number) => (
+                                <div key={index} className="pl-6 border-l-2 border-gray-200">
+                                  <p className="text-sm font-medium">{arg.name}</p>
+                                  <p className="text-sm text-muted-foreground">{arg.type_schema?.type || arg.type}</p>
+                                  {arg.description && <p className="text-sm text-muted-foreground">{arg.description}</p>}
+                                  <Input
+                                    className="mt-2"
+                                    placeholder={`Enter ${arg.name}`}
+                                    value={arg.value || ""}
+                                    onChange={(e) => {
+                                      const updatedMethods = [...contractMethods]
+                                      const methodIndex = updatedMethods.findIndex((m) => m.name === method.name)
+                                      if (!updatedMethods[methodIndex].args) {
+                                        updatedMethods[methodIndex].args = []
+                                      }
+                                      updatedMethods[methodIndex].args[index] = {
+                                        ...updatedMethods[methodIndex].args[index],
+                                        value: e.target.value
+                                      }
+                                      setContractMethods(updatedMethods)
+                                    }}
+                                  />
+                                </div>
+                              ))}
+                            </>
+                          )}
                         </div>
                       )}
                     </CardContent>
@@ -910,6 +936,99 @@ return \`\${greating} World\`;`)
         return null
     }
   }
+
+  // Update the useEffect to include name and description
+  useEffect(() => {
+    if (tool) {
+      // Set basic tool info
+      setToolId(tool.id || '')
+      setName(tool.name || '')
+      setDescription(tool.description || '')
+      setSelectedForm(tool.typeName)
+      setAvatar(tool.avatar || null)
+      
+      // Handle different tool types
+      if (tool.typeName === 'widget') {
+        setWidgetCode(tool.data.code || '')
+        setWidgetArgs(tool.data.args || [{ name: "", description: "", type: "", defaultValue: "" }])
+        // Set enum values if they exist
+        const newEnumValues = tool.data.args?.map((arg: any) => 
+          arg.type === 'enum' ? (arg.enumValues || []) : []
+        ) || []
+        setEnumValues(newEnumValues)
+      } 
+      else if (tool.typeName === 'smartcontract') {
+        setChain(tool.data.chain || '')
+        setNetwork(tool.data.network || '')
+        setContractAddress(tool.data.contractAddress || '')
+        
+        // Update to preserve method values and show all methods
+        const savedMethods = tool.data.methods || []
+        
+        // Fetch all methods first
+        fetchContractMethods(
+          tool.data.chain || '', 
+          tool.data.network || '', 
+          tool.data.contractAddress || ''
+        ).then(() => {
+          // After fetching, merge with saved methods
+          setContractMethods(prevMethods => {
+            return prevMethods.map(method => {
+              const savedMethod = savedMethods.find((m: any) => m.name === method.name)
+              if (savedMethod) {
+                return {
+                  ...method,
+                  ...savedMethod,
+                  isLoaded: true,
+                  args: savedMethod.args || method.args
+                }
+              }
+              return method
+            })
+          })
+          
+          // Set selected methods from saved data
+          setSelectedMethods(savedMethods.map((m: any) => m.name))
+        })
+      }
+      else if (tool.typeName === 'api') {
+        setApiTitle(tool.data.title || '')
+        setApiVersion(tool.data.version || '')
+        setApiDescription(tool.data.description || '')
+        setApiEndpoint(tool.data.endpoint || '')
+        setApiKey(tool.data.apiKey || '')
+        setApiPaths(tool.data.paths || [{
+          path: "",
+          method: "get",
+          summary: "",
+          description: "",
+          operationId: "",
+          requestBody: null,
+          parameters: [{ name: "", in: "query", description: "", required: false, type: "string" }],
+        }])
+      }
+    }
+  }, [tool])
+
+  // Update the useEffect for data changes
+  useEffect(() => {
+    if (selectedForm === 'smartcontract') {
+      const contractData = {
+        chain,
+        network,
+        contractAddress,
+        // Only include selected methods in the data
+        methods: contractMethods
+          .filter(method => selectedMethods.includes(method.name))
+          .map(method => ({
+            ...method,
+            isLoaded: true
+          }))
+      }
+      setData(JSON.stringify(contractData))
+    }
+  }, [chain, network, contractAddress, contractMethods, selectedMethods, selectedForm])
+
   return (
     <Card className="w-full max-w-2xl mx-auto ">
       <CardHeader>
@@ -918,6 +1037,13 @@ return \`\${greating} World\`;`)
       </CardHeader>
       <CardContent className="space-y-6">
         <Form action={action}>
+          {/* Add hidden input for tool ID */}
+          <Input 
+            type="hidden" 
+            name="id" 
+            value={toolId} 
+          />
+          
           <div className="space-y-4">
             <div className="flex items-center space-x-4">
               <Avatar className="size-20" onClick={handleAvatarClick}>
@@ -945,7 +1071,14 @@ return \`\${greating} World\`;`)
             </div>
             <div>
               <Label htmlFor="name">Name</Label>
-              <Input id="name" name="name" placeholder="Enter your name" aria-describedby="name-description" />
+              <Input 
+                id="name" 
+                name="name" 
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter your name" 
+                aria-describedby="name-description" 
+              />
               <p id="name-description" className="text-sm text-muted-foreground">
                 Please enter tool name
               </p>
@@ -955,6 +1088,8 @@ return \`\${greating} World\`;`)
               <Textarea
                 id="description"
                 name="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 placeholder="Enter a description"
                 aria-describedby="description-description"
               />
