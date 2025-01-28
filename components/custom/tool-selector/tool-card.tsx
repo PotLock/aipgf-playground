@@ -1,57 +1,56 @@
-"use client"
-
-import { Trash2 } from 'lucide-react'
-
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Switch } from "@/components/ui/switch"
-
-
 interface Tool {
     id: string
     name: string
     description: string
     isFavorite: boolean
     avatar?: string
-}
-
-interface ToolCardProps {
+  }
+  
+  interface ToolCardProps {
     tool: Tool
     isSelected: boolean
-    onSelect?: () => void
-    onRemove?: () => void
-    showSwitch?: boolean
-}
-
-export function ToolCard({ tool, isSelected, onSelect, onRemove, showSwitch = true }: ToolCardProps) {
+    onSelect: () => void
+  }
+  
+  export function ToolCard({ tool, isSelected, onSelect }: ToolCardProps) {
     return (
-        <Card className={`my-2 relative transition-all duration-200 ${!showSwitch ? 'bg-primary/5 hover:bg-primary/10' : ''}`}>
-            <CardHeader className="flex flex-row items-center space-y-0 p-4">
-                <Avatar className="size-9 mr-4">
-                    <AvatarImage src={tool.avatar} alt={tool.name} />
-                    <AvatarFallback>{tool.name.slice(0, 2).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <div className="grow mr-4">
-                    <CardTitle className="text-sm font-medium leading-none">{tool.name}</CardTitle>
-                    <CardDescription className="text-xs text-muted-foreground mt-1 line-clamp-2">{tool.description}</CardDescription>
-                </div>
-                {showSwitch ? (
-                    <Switch
-                        id={`tool-${tool.id}`}
-                        checked={isSelected}
-                        onCheckedChange={onSelect}
-                    />
-                ) : (
-                    <button
-                        onClick={onRemove}
-                        className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
-                        aria-label="Remove tool"
-                    >
-                        <Trash2 size={18} />
-                    </button>
-                )}
-            </CardHeader>
-        </Card>
+      <div
+        className={`
+          relative p-4 rounded-lg border cursor-pointer transition-all
+          hover:border-primary/50 hover:shadow-sm
+          ${isSelected ? "border-primary bg-primary/5" : "border-border"}
+        `}
+        onClick={onSelect}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            onSelect()
+          }
+        }}
+      >
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0 w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center">
+            {tool.avatar ? (
+              <img src={tool.avatar || "/placeholder.svg"} alt="" className="w-6 h-6 rounded" />
+            ) : (
+              <span className="text-xs font-medium">{tool.name.substring(0, 2).toUpperCase()}</span>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium truncate">{tool.name}</h3>
+            <p className="text-sm text-muted-foreground line-clamp-2">{tool.description}</p>
+          </div>
+          <div className="absolute top-2 right-2">
+            <div
+              className={`w-4 h-4 rounded-full border-2 transition-colors
+                ${isSelected ? "border-primary bg-primary" : "border-muted-foreground"}
+              `}
+            />
+          </div>
+        </div>
+      </div>
     )
-}
-
+  }
+  
+  

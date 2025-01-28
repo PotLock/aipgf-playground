@@ -276,8 +276,7 @@ export function CreateAgentForm({
                   key={tool.id}
                   tool={tool}
                   isSelected={true}
-                  onRemove={() => handleToolRemove(tool.id)}
-                  showSwitch={false}
+                  onSelect={() => handleToolRemove(tool.id)}
                 />
               ))}
             </div>
