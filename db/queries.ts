@@ -1,7 +1,7 @@
 'server-only';
 
 import { genSaltSync, hashSync } from 'bcrypt-ts';
-import { and, asc, count, desc, eq, gt, inArray } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, inArray, like } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
@@ -445,14 +445,14 @@ export async function updateAgent({
   }
 }
 
-export async function getAgentByUserId({ userId, page = 1, limit = 10 }: { userId: string, page?: number, limit?: number }) {
+export async function getAgentByUserId({ userId, page = 1, limit = 10, query = '' }: { userId: string, page?: number, limit?: number, query?: string }) {
   try {
     const offset = (page - 1) * limit;
 
     const agents = await db
       .select()
       .from(agent)
-      .where(eq(agent.userId, userId))
+      .where(and(eq(agent.userId, userId), like(agent.name, `%${query}%`)))
       .orderBy(desc(agent.createdAt))
       .limit(limit)
       .offset(offset); // Add pagination
@@ -466,21 +466,11 @@ export async function getAgentByUserId({ userId, page = 1, limit = 10 }: { userI
             .from(tool)
             .where(inArray(tool.id, agent.tools as string[]));
         }
-        return {
-          ...agent,
-          tools,
-        };
+        return { ...agent, tools };
       })
     );
-    const totalAgents = await db
-      .select({ count: count() })
-      .from(agent)
-      .where(eq(agent.userId, userId));
 
-    return {
-      agents: agentWithTools,
-      totalAgents: totalAgents[0].count,
-    };
+    return { agents: agentWithTools, totalAgents: agents.length };
   } catch (error) {
     console.error('Failed to get agents by user ID', error);
     throw error;
@@ -525,14 +515,14 @@ export async function createTool({
   }
 }
 
-export async function getToolByUserId({ userId, page = 1, limit = 10 }: { userId: string, page?: number, limit?: number }) {
+export async function getToolByUserId({ userId, page = 1, limit = 10, query = '' }: { userId: string, page?: number, limit?: number, query?: string }) {
   try {
     const offset = (page - 1) * limit;
 
     const tools = await db
       .select()
       .from(tool)
-      .where(eq(tool.userId, userId))
+      .where(and(eq(tool.userId, userId), like(tool.name, `%${query}%`)))
       .orderBy(desc(tool.createdAt))
       .limit(limit)
       .offset(offset);
@@ -540,15 +530,14 @@ export async function getToolByUserId({ userId, page = 1, limit = 10 }: { userId
     const totalTools = await db
       .select({ count: count() })
       .from(tool)
-      .where(eq(tool.userId, userId));
-
+      .where(and(eq(tool.userId, userId), like(tool.name, `%${query}%`)));
     return {
       tools,
       totalTools: totalTools[0].count,
     };
   } catch (error) {
     console.log(error);
-    console.error('Failed to get tools by userId from database');
+    console.error('Failed to get tools by user ID');
     throw error;
   }
 }
@@ -672,20 +661,21 @@ export async function changeAgentVisibility(id: string, visibility: boolean) {
     throw error;
   }
 }
-export async function getVisibleTools({ page = 1, limit = 10 }: { page: number, limit: number }) {
+export async function getVisibleTools({ page = 1, limit = 10, query = '' }: { page: number, limit: number, query?: string }) {
   try {
     const offset = (page - 1) * limit;
     const [tools, totalTools] = await Promise.all([
       db
         .select()
         .from(tool)
-        .where(eq(tool.visible, true))
+        .where(and(eq(tool.visible, true), like(tool.name, `%${query}%`)))
         .limit(limit)
         .offset(offset),
       db
         .select({ count: count() })
         .from(tool)
-        .where(eq(tool.visible, true))
+        .where(and(eq(tool.visible, true), like(tool.name, `%${query}%`)))
+        
     ]);
 
     return { tools, totalTools: totalTools[0].count };
@@ -696,14 +686,23 @@ export async function getVisibleTools({ page = 1, limit = 10 }: { page: number, 
   }
 }
 
-export async function getVisibleAgents() {
+export async function getVisibleAgents({ page = 1, limit = 10, query = '' }: { page: number, limit: number, query?: string }) {
   try {
-    const visibleAgents = await db
-      .select()
-      .from(agent)
-      .where(eq(agent.visible, true));
+    const offset = (page - 1) * limit;
+    const [agents, totalAgents] = await Promise.all([
+      db
+        .select()
+        .from(agent)
+        .where(and(eq(agent.visible, true), like(agent.name, `%${query}%`)))
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ count: count() })
+        .from(agent)
+        .where(and(eq(agent.visible, true), like(agent.name, `%${query}%`)))
+    ]);
 
-    return visibleAgents;
+    return { agents, totalAgents: totalAgents[0].count };
   } catch (error) {
     console.log(error);
     console.error('Failed to get visible agents');

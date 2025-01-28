@@ -8,14 +8,6 @@ import { SubmitButton } from '@/components/custom/submit-button';
 
 import { updateAgentAction, UpdateAgentActionState } from './actions';
 
-interface Tool {
-    id: string
-    name: string
-    description: string
-    isFavorite: boolean
-    avatar?: string
-}
-
 export default function UpdateAgent({ agent }: any) {
     const router = useRouter();
     const [isSuccessful, setIsSuccessful] = useState(false);

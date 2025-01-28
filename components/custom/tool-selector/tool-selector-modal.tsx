@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -31,6 +30,8 @@ interface ToolSelectorModalProps {
     onVisiblePageChange: (page: number) => void
     isLoading: boolean
     isVisibleLoading: boolean
+    query: string
+    setQuery: (query: string) => void
 }
 
 export function ToolSelectorModal({
@@ -47,9 +48,10 @@ export function ToolSelectorModal({
     onVisiblePageChange,
     isLoading,
     isVisibleLoading,
+    query,
+    setQuery
 }: ToolSelectorModalProps) {
     const [activeTab, setActiveTab] = useState("user")
-    const [modalSearchQuery, setModalSearchQuery] = useState("")
     const [tempSelectedTools, setTempSelectedTools] = useState<Tool[]>(selectedTools)
     const [itemsPerPage] = useState(10)
 
@@ -59,16 +61,16 @@ export function ToolSelectorModal({
 
     const filteredTools = (tools || []).filter(
         (tool) =>
-            tool.name.toLowerCase().includes(modalSearchQuery.toLowerCase()) ||
-            tool.description.toLowerCase().includes(modalSearchQuery.toLowerCase()),
+            tool.name.toLowerCase().includes(query.toLowerCase()) ||
+            tool.description.toLowerCase().includes(query.toLowerCase()),
     )
 
     const filteredVisibleTools = (visibleTools || []).filter(
         (tool) =>
-            tool.name.toLowerCase().includes(modalSearchQuery.toLowerCase()) ||
-            tool.description.toLowerCase().includes(modalSearchQuery.toLowerCase()),
+            tool.name.toLowerCase().includes(query.toLowerCase()) ||
+            tool.description.toLowerCase().includes(query.toLowerCase()),
     )
-
+    
     const handleToolToggle = (tool: Tool) => {
         setTempSelectedTools((prev) =>
             prev.some((t) => t.id === tool.id) ? prev.filter((t) => t.id !== tool.id) : [...prev, tool],
@@ -100,8 +102,8 @@ export function ToolSelectorModal({
                         <Input
                             type="text"
                             placeholder="Search tools..."
-                            value={modalSearchQuery}
-                            onChange={(e) => setModalSearchQuery(e.target.value)}
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
                         />
                     </div>
 
