@@ -2,63 +2,56 @@
 
 import React, { useEffect, useState } from 'react';
 
-import { useWalletSelector } from "@/components/context/wallet-selector-provider"
 
 import TransactionReview from './transaction-review';
 import { Button } from '../ui/button';
 
-export const ButtonAction = ({ transaction }: any) => {
+export const NearTransaction = ({ transaction }: any) => {
 
-    const { accountId, selector, modal } = useWalletSelector();
     const [isAccountAddress, setIsAccountAddress] = useState(null);
 
-    useEffect(() => {
-        if (accountId) {
-            console.log(accountId)
-            setIsAccountAddress(accountId as any)
-        }
-    }, [accountId])
+   
 
     const onTransfer = async () => {
-        const originalObject = JSON.parse(transaction);
-        const signer = { signerId: accountId! };
-        const args = { ...signer, ...originalObject }
+        // const originalObject = JSON.parse(transaction);
+        // const signer = { signerId: accountId! };
+        // const args = { ...signer, ...originalObject }
 
-        try {
-            const wallet = await selector.wallet();
-            await wallet.signAndSendTransaction({
-                signerId: accountId!,
-                receiverId: args.receiverId,
-                actions: [
-                    {
-                        type: "FunctionCall",
-                        params: {
-                            methodName: args.actions[0].params.methodName,
-                            args: args.actions[0].params.args,
-                            gas: "30000000000000",
-                            deposit: "10000000000000000000000",
-                        },
-                    },
-                ],
-            });
-        } catch (err) {
-            console.error('Error', err);
-        }
+        // try {
+        //     const wallet = await selector.wallet();
+        //     await wallet.signAndSendTransaction({
+        //         signerId: accountId!,
+        //         receiverId: args.receiverId,
+        //         actions: [
+        //             {
+        //                 type: "FunctionCall",
+        //                 params: {
+        //                     methodName: args.actions[0].params.methodName,
+        //                     args: args.actions[0].params.args,
+        //                     gas: "30000000000000",
+        //                     deposit: "10000000000000000000000",
+        //                 },
+        //             },
+        //         ],
+        //     });
+        // } catch (err) {
+        //     console.error('Error', err);
+        // }
     };
 
     return (
         <>
             <div className="flex flex-col gap-3 px-4 py-3 text-white">
-
                 {isAccountAddress ? (<div
                     className="flex w-full cursor-pointer items-center justify-center gap-1 px-11 py-1 uppercase [border-image-slice:13_fill] [border-image-width:15px] md:w-auto "
                     onClick={onTransfer}
                 >
-                    <i className="ico-send-right-icon" /> Excute
-                </div>) : (
+                    <i className="ico-send-right-icon" />
+                    Excute
+                </div>
+                ) : (
                     <Button
                         className="flex w-full cursor-pointer items-center justify-center gap-1 px-11 py-1 uppercase [border-image-slice:13_fill] [border-image-width:15px] md:w-auto "
-                        onClick={modal.show}
                     >
                         <i className="ico-send-right-icon" /> Login to excute
                     </Button>
@@ -71,21 +64,13 @@ export const ButtonAction = ({ transaction }: any) => {
 
 export const TransactionFrame = ({ transaction }: any) => {
 
-    const { accountId, selector, modal } = useWalletSelector();
-    const [isAccountAddress, setIsAccountAddress] = useState(null);
 
-    useEffect(() => {
-        if (accountId) {
-            setIsAccountAddress(accountId as any)
-        }
-    }, [accountId])
     const originalObject = JSON.parse(transaction);
-    const signer = { signerId: accountId! };
+    const signer = { signerId: "accountId!" };
     const args = { ...signer, ...originalObject }
     const onTransfer = async () => {
         try {
-            const wallet = await selector.wallet();
-            await wallet.signAndSendTransaction(args);
+
         } catch (err) {
             console.error('Error', err);
         }
@@ -100,7 +85,7 @@ export const TransactionFrame = ({ transaction }: any) => {
             type={args.actions[0].params.methodName}
             amount={(yoctoNEAR / BigInt(args.actions[0].params.deposit)).toString()}
             from={args.receiverId}
-            to={accountId!}
+            to={'accountId!'}
             fees={{
                 estimated: "0.00000",
                 limit: "0",

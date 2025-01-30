@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { ErrorBoundary } from 'react-error-boundary';
 import StringToReactComponent from 'string-to-react-component'
 
-import { TransactionFrame, ButtonAction } from './walletAction'
+import { TransactionFrame, NearTransaction } from './walletAction'
 
 export const Widget = ({ code, args, append }: { code: string, args: any, append: any }) => {
     const near = new providers.JsonRpcProvider({
@@ -31,7 +31,7 @@ export const Widget = ({ code, args, append }: { code: string, args: any, append
                 1. Create custom widget Agent like : <widget prompt="blue span with balance of wallet 0x1231 from tool" > </widget>
                 2. Can handle multiple multi-chain wallets and funding
             */}
-            <StringToReactComponent data={{ useEffect, useState, near, args, TransactionFrame, ButtonAction, appendMessage }}>
+            <StringToReactComponent data={{ useEffect, useState, near, args, TransactionFrame, NearTransaction, appendMessage }}>
                 {`(props)=>{
                     const {useEffect, useState, near, args, TransactionFrame ,appendMessage } = props;
                     ${generateDestructuring(args)}
