@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 import { auth } from '@/app/(auth)/auth';
 import { createAgent } from '@/db/queries';
-import { CreateAccount } from '../../(relay)/near/near-sdk';
+import { createImplicitAccount } from '../../(relay)/near/near-sdk';
 
 const createAgentFormSchema = z.object({
   name: z.string().min(4),
@@ -54,8 +54,9 @@ export const createAgentAction = async (
     });
     const tools = JSON.parse(validatedData.tools);
     const suggestedActions = JSON.parse(validatedData.suggestedActions);
-    const { res, privateKey, seed } = await CreateAccount(validatedData.name);
-    console.log('res', res);
+
+    const { seedPhrase, publicKey, secretKey } = await createImplicitAccount();
+    console.log('res', secretKey);
     await createAgent({
       name: validatedData.name,
       avatar: validatedData.avatar,
@@ -67,7 +68,7 @@ export const createAgentAction = async (
       tools: tools,
       suggestedActions: suggestedActions,
       userId: session?.user?.id,
-      privateKey: privateKey,
+      privateKey: { nearAccount: { seedPhrase, publicKey, secretKey } },
     } as any);
 
     return { status: 'success' };
