@@ -1,5 +1,5 @@
-import { List, Plus, PlusCircle, Server, Trash2, Upload, X } from "lucide-react";
-import Form from 'next/form';
+import { Check, List, Plus, PlusCircle, Server, Trash2, Upload, X, ChevronsUpDown } from "lucide-react";
+import Form from "next/form"
 import { useEffect, useRef, useState } from "react";
 
 import { models } from '@/ai/models';
@@ -10,13 +10,28 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Select, SelectItem, SelectContent, SelectGroup, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from '../ui/textarea';
 import ActionCard from "./suggest-action/action-card";
 import CreateActionModal from "./suggest-action/create-action-modal";
 import { ToolCard } from "./tool-selector/tool-card";
 import { ToolSelectorModal } from "./tool-selector/tool-selector-modal";
-import { toast } from "sonner";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import { cn } from "../utils/tool.util";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { set } from "date-fns";
 
 interface Tool {
   id: string
@@ -64,9 +79,18 @@ export function CreateAgentForm({
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [selectedModel, setSelectedModel] = useState<string>(agent?.model || '');
   const [visibleTotalPages, setVisibleTotalPages] = useState(1);
   const limit = 10; // Number of tools per page
   const [query, setQuery] = useState('');
+
+  const [open, setOpen] = useState(false)
+
+  const [name, setName] = useState("")
+  const [description, setDescription] = useState("")
+
+  const [prompt, setPrompt] = useState("")
+  const [intro, setIntro] = useState("")
 
   const fetchTools = async (page = 1, limit = 10, query = '') => {
     setIsLoading(true);
@@ -169,8 +193,20 @@ export function CreateAgentForm({
     fileInputRef.current?.click()
   }
 
+  // Update the useEffect to include name and description
+  useEffect(() => {
+    if (agent) {
+      setName(agent.name)
+      setDescription(agent.description)
+      setPrompt(agent.prompt)
+      setIntro(agent.intro)
+      setSelectedModel(agent.model)
+    }
+  }
+    , [agent])
+
   return (
-    <Card >
+    <Card className='border-0'>
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl">{agent ? 'Update Agent' : 'Create an Agent'}</CardTitle>
         <CardDescription>
@@ -217,7 +253,9 @@ export function CreateAgentForm({
           </div>
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
-            <Input id="name" name="name" defaultValue={agent?.name || ''} placeholder="Agent Name" required />
+            <Input id="name" name="name" value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Agent Name" required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
@@ -225,7 +263,8 @@ export function CreateAgentForm({
               id="description"
               name="description"
               placeholder="Describe the agent's capabilities"
-              defaultValue={agent?.description || ''}
+              onChange={(e) => setDescription(e.target.value)}
+              value={description}
               required
             />
           </div>
@@ -235,8 +274,8 @@ export function CreateAgentForm({
               id="prompt"
               name="prompt"
               placeholder="Enter the agent's initial prompt"
-              defaultValue={agent?.prompt || ''}
-              required
+              onChange={(e) => setPrompt(e.target.value)}
+              value={prompt} required
             />
           </div>
           <div className="space-y-2">
@@ -246,29 +285,64 @@ export function CreateAgentForm({
               name="intro"
               type="text"
               placeholder="Enter the agent's initial intro"
-              defaultValue={agent?.intro || ''}
+              onChange={(e) => setIntro(e.target.value)}
+              value={intro}
               required
             />
           </div>
+
           <div className="space-y-2">
-            <Label
-              htmlFor="text"
-            >
-              Model
-            </Label>
-            <Select name="model" defaultValue={agent?.model}>
-              <SelectTrigger >
-                <SelectValue placeholder="Select Model" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {models.map((model, index) => (
-                    <SelectItem value={model.apiIdentifier} key={index}>{model.label}</SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+
+            <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={open}
+                  className="w-[200px] justify-between"
+                >
+                  {selectedModel
+                    ? models.find((model) => model.apiIdentifier === selectedModel)?.label
+                    : "Select model..."}
+                  <ChevronsUpDown className="opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0">
+
+                <Command>
+                  <CommandInput
+                    placeholder="Search model..."
+                    className="h-9"
+                  />
+                  <CommandList>
+                    <CommandEmpty>No model found.</CommandEmpty>
+                    <CommandGroup>
+                      {models.map((model, i) => (
+                        <CommandItem
+                          value={model.apiIdentifier}
+                          key={i}
+                          onSelect={(value) => {
+                            setSelectedModel(value)
+                          }}
+                        >
+                          {model.label}
+                          <Check
+                            className={cn(
+                              "ml-auto",
+                              model.apiIdentifier === selectedModel
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
+
 
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
@@ -301,14 +375,7 @@ export function CreateAgentForm({
               query={query}
               setQuery={setQuery}
             />
-            <Input
-              id="tools"
-              name="tools"
-              hidden
-              className="hidden"
-              type="text"
-              defaultValue={selectedToolsInput}
-            />
+
           </div>
           <div className="space-y-2">
             <div className="space-y-2">
@@ -329,10 +396,24 @@ export function CreateAgentForm({
               </div>
             </div>
             <Input
+              name="tools"
+              className="hidden"
+              type="text"
+              defaultValue={selectedToolsInput}
+            />
+            <Input
               name="suggestedActions"
               className="hidden"
               type="text"
               defaultValue={actionsValue}
+            />
+            <Input
+              id="model"
+              name="model"
+              className="hidden"
+              type="text"
+              defaultValue={selectedModel}
+
             />
           </div>
           {children}

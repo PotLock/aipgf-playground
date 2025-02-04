@@ -21,7 +21,7 @@ export default async function Page(props: { searchParams: Promise<any> }) {
         <div className="flex flex-row items-center justify-between space-y-0 pb-2">
           <h2 className="text-2xl font-bold tracking-tight">Tool</h2>
           <Button asChild>
-            <Link href="/create-Tool">
+            <Link href="/create-tool">
               Create Tool
             </Link>
           </Button>

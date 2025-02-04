@@ -1,52 +1,92 @@
-<a href="https://aipgf.potlock.org/">
-  <h1 align="center">AI PGF - Playground</h1>
-</a>
+### 🚀 About AIPGF Playground
 
-<p align="center">
-  An Open-Source AI Chatbot Onchain Built by AI PGF by Potlock.
-</p>
+#### 🌟 Project Overview
 
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#model-providers"><strong>Model Providers</strong></a> ·
-  <a href="#deploy-your-own"><strong>Deploy Your Own</strong></a> ·
-  <a href="#running-locally"><strong>Running locally</strong></a>
-</p>
-<br/>
+We build Agent Cho onchain for low dev without code. Additionally, you can convert smart contracts from StarkNet to tools seamlessly.
 
-## Features
+---
 
-- [NearBlock](https://nearblocks.io/) Onchain Integration
-  - Advanced Connect to Ethereum data via RPC
-  - Advanced Connect to Near data
-- [OpenAI](https://spec.openapis.org/oas/v3.1.0.html) OpenAPI Specification v3.1.0
-  - Advanced Connect to API data
-- [NextAuth.js](https://github.com/nextauthjs/next-auth)
-  - Simple and secure authentication
-- [Near Wallet Selector](https://github.com/near/wallet-selector)
-  - Connect to web3 wallet
-## Model Providers
+#### 📈 Key Features
 
-This template ships with OpenAI `gpt-4o` as the default. However, with the [AI SDK](https://sdk.vercel.ai/docs), you can switch LLM providers to [OpenAI](https://openai.com), [Anthropic](https://anthropic.com), [Cohere](https://cohere.com/), and [many more](https://sdk.vercel.ai/providers/ai-sdk-providers) with just a few lines of code.
+- **Convert OpenAPI to Tool**: Easily transform OpenAPI specifications into functional tools.
+- **Convert Smart Contracts (StarkNet) to Tool**: Seamlessly turn StarkNet smart contracts into deployable tools.
+- **Build Frontend for Agent through Widget**: Effortlessly create interactive frontends for agents using customizable widgets.
+- **Low-Code Implementation**: Allows developers to deploy onchain agents with minimal coding required.
+- **Customizable Workflows**: Flexible configurations for diverse onchain interactions.
+- **Scalable Infrastructure**: Designed to support growth and evolving use cases.
+- **User-Friendly Interface**: Streamlined dashboard for managing agents efficiently.
+- **Secure Operations**: Built-in mechanisms to ensure data and interaction safety.
 
-## Introduce
+---
 
-This is an agent framework for lowcode engineers to integrate blockchain as quickly as possible without too many customization limitations.
+#### 🏈 Explain Your Features
 
+Let the judges know your unique features for the project:
 
-## Running locally
+- **Convert ABI to Tool for AI**: Agents convert ABI into well-defined tools for AI integration, enhancing their functionality.
+- **Agent-Driven Data Retrieval**: Agents utilize defined tools to fetch and process relevant data seamlessly.
+- **Interface for Connectivity**: A streamlined interface enables agents to connect with tool data, APIs, and other integrations effortlessly.
+- **Intuitive Drag-and-Drop Interface**: Simplifies the creation and deployment of agents.
+- **Onchain Verification**: Ensures transparency and integrity of agent interactions.
+- **Plug-and-Play Modules**: Ready-made components for common use cases.
+- **Real-Time Monitoring**: Track agent performance and onchain events instantly.
 
-You will need to use the environment variables [defined in `.env.example`](.env.example) to run Next.js AI Chatbot. It's recommended you use [Vercel Environment Variables](https://vercel.com/docs/projects/environment-variables) for this, but a `.env` file is all that is necessary.
+---
 
-> Note: You should not commit your `.env` file or it will expose secrets that will allow others to control access to your various OpenAI and authentication provider accounts.
+#### 📦 Tech Stack
 
-1. Install Vercel CLI: `npm i -g vercel`
-2. Link local instance with Vercel and GitHub accounts (creates `.vercel` directory): `vercel link`
-3. Download your environment variables: `vercel env pull`
+**Frontend:**  React, TypeScript, TailwindCSS.
 
-```bash
-pnpm install
-pnpm dev
-```
+**Backend:** Node.js, Express.js.
 
-Your app template should now be running on [localhost:3000](http://localhost:3000/).
+**Database:** MongoDB with onchain data synchronization.
+
+**APIs:** Integrations with Vercel AI SDK, Web3.js, and third-party data sources.
+
+---
+
+#### 🛠️ How It Works
+
+1. **Create Tool from Smart Contract**: Convert a StarkNet smart contract into a deployable and functional tool within minutes.
+2. **Create Tool from OpenAPI Data**: Transform OpenAPI specifications into agent-ready tools effortlessly.
+3. **Create Widget to Integrate with Smart Contract**: Build customizable frontend widgets to interact seamlessly with smart contracts.
+4. **Create Agent and Import Tool**: Combine tools into an agent and import them for seamless operation.
+5. **Start Chat**: Begin interactions with the agent via an intuitive chat interface.
+
+---
+
+#### 📌 Technicals
+
+- **Smart Contracts:** Modular smart contracts ensure adaptability and security.
+- **Decentralized Storage:** Utilizes IPFS for metadata and asset management.
+- **AI Integration:** Leverages AI for decision-making and process optimization.
+- **Event Handling:** Real-time subscription to onchain events using WebSocket.
+
+---
+
+#### ✅ Why Your Submission?
+
+- **Innovation:** Merges low-code tools with blockchain for a novel developer experience.
+- **Accessibility:** Lowers the barrier to entry for onchain development.
+- **Scalability:** Supports a wide range of use cases from DeFi to NFTs.
+- **Community Impact:** Democratizes the ability to deploy sophisticated onchain agents.
+
+---
+
+#### 🌍 Project Future
+
+- **Agent Marketplace for Onchain**: Create a marketplace for deploying and sharing agents across onchain platforms.
+- **Tool Marketplace for Onchain**: Enable developers to buy, sell, and share tools tailored for onchain ecosystems.
+- **Data Marketplace for Agents**: Provide a platform for agents to access and utilize premium data for enhanced functionality.
+- **Ecosystem Integration:** Collaborate with existing onchain protocols for deeper compatibility.
+- **AI Enhancements:** Improve agent intelligence through more advanced AI algorithms.
+- **Open-Source Framework:** Empower the community to contribute and extend functionality.
+
+---
+
+#### 🤝 Team & Contributions
+
+- 🧑‍💻 **Kurodenjiro**: Lead Developer.
+
+Provide any additional collaboration details here.
+
