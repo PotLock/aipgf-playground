@@ -2,7 +2,7 @@
 
 #### 🌟 Project Overview
 
-We build Agent Cho onchain for low dev without code. Additionally, you can convert smart contracts from StarkNet to tools seamlessly.
+We build Agent for onchain for low dev without code. Additionally, you can convert smart contracts from StarkNet to tools seamlessly.
 
 ---
 
