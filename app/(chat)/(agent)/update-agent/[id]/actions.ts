@@ -29,15 +29,6 @@ const updateAgentFormSchema = z.object({
   suggestedActions: z.string(),
 });
 
-export interface CreateAgentActionState {
-  status:
-  | 'idle'
-  | 'in_progress'
-  | 'success'
-  | 'failed'
-  | 'agent_exists'
-  | 'invalid_data';
-}
 export interface UpdateAgentActionState {
   status:
   | 'idle'
@@ -47,59 +38,11 @@ export interface UpdateAgentActionState {
   | 'agent_exists'
   | 'invalid_data';
 }
-export const createAgentAction = async (
-  _: CreateAgentActionState,
-  formData: FormData
-): Promise<CreateAgentActionState> => {
-  try {
-    const session = await auth();
-    let avatarUrl: string | undefined;
-    const imageFile = formData.get('avatar') as File | null;
-    if (imageFile && imageFile.size > 0) {
-      const blob = await put(imageFile.name, imageFile, {
-        access: 'public',
-      });
-      avatarUrl = blob.url;
-    }
-    const validatedData = createAgentFormSchema.parse({
-      avatar: avatarUrl,
-      name: formData.get('name'),
-      description: formData.get('description'),
-      intro: formData.get('intro'),
-      model: formData.get('model'),
-      prompt: formData.get('prompt'),
-      tools: formData.get('tools') || '[]',
-      suggestedActions: formData.get('suggestedActions') || '[]',
-    });
-    const tools = JSON.parse(validatedData.tools);
-    const suggestedActions = JSON.parse(validatedData.suggestedActions);
-    await createAgent({
-      name: validatedData.name,
-      avatar: validatedData.avatar,
-      description: validatedData.description,
-      intro: validatedData.intro,
-      model: validatedData.model,
-      prompt: validatedData.prompt,
-      createdAt: new Date(),
-      tools: tools,
-      suggestedActions: suggestedActions,
-      userId: session?.user?.id,
-    } as any);
 
-    return { status: 'success' };
-  } catch (error) {
-    console.log(error);
-    if (error instanceof z.ZodError) {
-      return { status: 'invalid_data' };
-    }
-
-    return { status: 'failed' };
-  }
-};
 export const updateAgentAction = async (
-  _: CreateAgentActionState,
+  _: UpdateAgentActionState,
   formData: FormData
-): Promise<CreateAgentActionState> => {
+): Promise<UpdateAgentActionState> => {
   try {
     const session = await auth();
     let avatarUrl: string | undefined;

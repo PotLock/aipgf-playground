@@ -64,10 +64,7 @@ const greating = 'Hello';
 return \`\${greating} World\`;`)
 
   // CodeEditor state
-  const [content, setContent] = useState<string>("")
   const [status, setStatus] = useState<"streaming" | "idle">("idle")
-  const [isCurrentVersion, setIsCurrentVersion] = useState<boolean>(true)
-  const [currentVersionIndex, setCurrentVersionIndex] = useState<number>(0)
   const [suggestions, setSuggestions] = useState<Array<any>>([])
 
   // Add new state for name and description
@@ -518,6 +515,7 @@ return \`\${greating} World\`;`)
             </div>
             <div>
               <Label htmlFor="network">Network</Label>
+              
               <Select
                 value={network}
                 onValueChange={(value) => {

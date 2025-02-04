@@ -367,6 +367,7 @@ export async function createAgent({
   suggestedActions,
   privateKey,
 }: Agent) {
+  console.log('createAgent', tools);
   try {
     return await db
       .insert(agent)

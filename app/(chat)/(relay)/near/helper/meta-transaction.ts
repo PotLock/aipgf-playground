@@ -66,7 +66,7 @@ export const createAccount = async (implicitAccount: string, publicKey: string, 
 
 };
 
-export const submitTransaction = async ({
+export const  submitTransaction = async ({
   network = process.env.NEXT_PUBLIC_NETWORK_ID as string,
   delegate,
 }: {
