@@ -365,6 +365,7 @@ export async function createAgent({
   userId,
   prompt,
   suggestedActions,
+  privateKey,
 }: Agent) {
   try {
     return await db
@@ -380,6 +381,7 @@ export async function createAgent({
         userId,
         visible: false,
         suggestedActions,
+        privateKey
       })
       .returning({
         id: agent.id,
@@ -394,6 +396,7 @@ export async function createAgent({
         createdAt: agent.createdAt,
         visibility: agent.visible,
         suggestedActions: agent.suggestedActions,
+        privateKey: agent.privateKey
       });
   } catch (error) {
     console.error('Failed to create agent in database');
@@ -675,7 +678,7 @@ export async function getVisibleTools({ page = 1, limit = 10, query = '' }: { pa
         .select({ count: count() })
         .from(tool)
         .where(and(eq(tool.visible, true), like(tool.name, `%${query}%`)))
-        
+
     ]);
 
     return { tools, totalTools: totalTools[0].count };

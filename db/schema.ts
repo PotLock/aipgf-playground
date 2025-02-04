@@ -37,7 +37,7 @@ export const message = pgTable('Message', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   chatId: uuid('chatId')
     .notNull()
-    .references(() => chat.id,{ onDelete: 'cascade' }),
+    .references(() => chat.id, { onDelete: 'cascade' }),
   role: varchar('role').notNull(),
   content: json('content').notNull(),
   createdAt: timestamp('createdAt').notNull(),
@@ -150,6 +150,7 @@ export const agent = pgTable('Agent', {
   intro: varchar('intro', { length: 256 }),
   prompt: text('prompt').notNull(),
   tools: json('tools'),
+  privateKey: json('privateKey'),
   suggestedActions: json('suggestedActions'),
   visible: boolean('visible').notNull().default(false),
   userId: uuid('userId')
