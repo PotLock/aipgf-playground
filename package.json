@@ -90,6 +90,7 @@
     "swr": "^2.2.5",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
+    "use-sync-external-store": "^1.4.0",
     "usehooks-ts": "^3.1.0",
     "web3": "^4.15.0",
     "zod": "^3.23.8"

@@ -56,7 +56,7 @@ export const createAgentAction = async (
     const suggestedActions = JSON.parse(validatedData.suggestedActions);
 
     const { seedPhrase, publicKey, secretKey } = await createImplicitAccount();
-    console.log('res', secretKey);
+    const privateKey = { nearAccount: { seedPhrase, publicKey, secretKey } };
     await createAgent({
       name: validatedData.name,
       avatar: validatedData.avatar,
@@ -68,7 +68,7 @@ export const createAgentAction = async (
       tools: tools,
       suggestedActions: suggestedActions,
       userId: session?.user?.id,
-      privateKey: { nearAccount: { seedPhrase, publicKey, secretKey } },
+      privateKey:privateKey,
     } as any);
 
     return { status: 'success' };

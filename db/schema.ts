@@ -150,7 +150,7 @@ export const agent = pgTable('Agent', {
   intro: varchar('intro', { length: 256 }),
   prompt: text('prompt').notNull(),
   tools: json('tools'),
-  privateKey: json('tools'),
+  privateKey: json('privateKey'),
   suggestedActions: json('suggestedActions'),
   visible: boolean('visible').notNull().default(false),
   userId: uuid('userId')
