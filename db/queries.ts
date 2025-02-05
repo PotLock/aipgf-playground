@@ -473,8 +473,11 @@ export async function getAgentByUserId({ userId, page = 1, limit = 10, query = '
         return { ...agent, tools };
       })
     );
-
-    return { agents: agentWithTools, totalAgents: agents.length };
+    const totalAgents = await db
+      .select({ count: count() })
+      .from(agent)
+      .where(and(eq(agent.userId, userId), like(agent.name, `%${query}%`)))
+    return { agents: agentWithTools, totalAgents: totalAgents[0].count };
   } catch (error) {
     console.error('Failed to get agents by user ID', error);
     throw error;
