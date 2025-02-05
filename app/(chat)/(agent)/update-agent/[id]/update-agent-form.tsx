@@ -7,6 +7,7 @@ import { CreateAgentForm } from '@/components/custom/create-agent-form';
 import { SubmitButton } from '@/components/custom/submit-button';
 
 import { updateAgentAction, UpdateAgentActionState } from './actions';
+import { ChatHeader } from '@/components/custom/chat-header';
 
 export default function UpdateAgent({ agent }: any) {
     const router = useRouter();
@@ -40,6 +41,7 @@ export default function UpdateAgent({ agent }: any) {
 
     return (
         <div className="flex flex-col min-w-0 h-dvh bg-background">
+             <ChatHeader />
             <CreateAgentForm action={handleSubmit} agent={agent}>
                 <SubmitButton isSuccessful={isSuccessful}>Update</SubmitButton>
             </CreateAgentForm>
