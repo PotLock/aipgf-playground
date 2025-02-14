@@ -159,3 +159,14 @@ export const agent = pgTable('Agent', {
 });
 
 export type Agent = InferSelectModel<typeof agent>;
+
+
+export const provider = pgTable('Provider', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('userId').notNull().references(() => user.id),
+  modelName: varchar('modelName', { length: 64 }).notNull(),
+  endpoint: varchar('endpoint', { length: 256 }).notNull(),
+  apiToken: varchar('apiToken', { length: 256 }).notNull(),
+});
+
+export type Provider = InferSelectModel<typeof provider>;

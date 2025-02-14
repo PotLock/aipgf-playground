@@ -3,6 +3,7 @@
 import { genSaltSync, hashSync } from 'bcrypt-ts';
 import { and, asc, count, desc, eq, gt, inArray, like } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
+
 import postgres from 'postgres';
 
 import {
@@ -18,6 +19,8 @@ import {
   Agent,
   Tool,
   tool,
+  provider,
+  Provider
 } from './schema';
 
 // Optionally, if not using username/pass login, you can
@@ -713,6 +716,110 @@ export async function getVisibleAgents({ page = 1, limit = 10, query = '' }: { p
   } catch (error) {
     console.log(error);
     console.error('Failed to get visible agents');
+    throw error;
+  }
+}
+
+export async function createProvider({
+  userId,
+  modelName,
+  endpoint,
+  apiToken,
+}: {
+  userId: string;
+  modelName: string;
+  endpoint: string;
+  apiToken: string;
+}) {
+  await db.insert(provider).values({
+    userId,
+    modelName,
+    endpoint,
+    apiToken,
+  });
+}
+
+
+export async function getModelsByUserId({ userId, page = 1, limit = 10, query = '' }: { userId: string, page?: number, limit?: number, query?: string }) {
+  try {
+    const offset = (page - 1) * limit;
+
+    const models = await db
+      .select()
+      .from(provider)
+      .where(and(eq(provider.userId, userId), like(provider.modelName, `%${query}%`)))
+      .limit(limit)
+      .offset(offset); // Add pagination
+
+    const totalModels = await db
+      .select({ count: count() })
+      .from(provider)
+      .where(and(eq(provider.userId, userId), like(provider.modelName, `%${query}%`)));
+
+    return { models, totalModels: totalModels[0].count };
+  } catch (error) {
+    console.error('Failed to get models by user ID', error);
+    throw error;
+  }
+}
+export async function updateModel({
+  id,
+  modelName,
+  endpoint,
+  apiToken,
+}: Provider) {
+  try {
+    return await db
+      .update(provider)
+      .set({
+        modelName,
+        endpoint,
+        apiToken,
+      })
+      .where(eq(provider.id, id))
+      .returning({
+        id: provider.id,
+        modelName: provider.modelName,
+        endpoint: provider.endpoint,
+        apiToken: provider.apiToken,
+        userId: provider.userId,
+      });
+  } catch (error) {
+    console.error('Failed to update model in database', error);
+    throw error;
+  }
+}
+export async function getModelById(id: string) {
+  try {
+
+    const [modelData] = await db
+      .select()
+      .from(provider)
+      .where(eq(provider.id, id))
+
+    return modelData; // Return the first element of the array
+  } catch (error) {
+    console.error('Failed to get model by ID', error);
+    throw error;
+  }
+}
+export async function removeModelById(id: string) {
+  try {
+    const [selectedProvider] = await db
+      .select()
+      .from(provider)
+      .where(eq(provider.id, id));
+
+    if (!selectedProvider) {
+      throw new Error('tool not found');
+    }
+    await db
+      .delete(provider)
+      .where(eq(provider.id, id));
+  }
+  catch (error) {
+    console.log(error);
+    console.error('Failed to remove Tool from database');
     throw error;
   }
 }

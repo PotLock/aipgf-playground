@@ -432,6 +432,7 @@ return \`\${greating} World\`;`)
                     </div>
                     <div>
                       <Label htmlFor={`arg-type-${index}`}>Type</Label>
+                      
                       <Select value={arg.type} onValueChange={(value) => updateWidgetArg(index, "type", value)}>
                         <SelectTrigger id={`arg-type-${index}`}>
                           <SelectValue placeholder="Select argument type" />

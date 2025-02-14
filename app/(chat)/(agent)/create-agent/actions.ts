@@ -7,6 +7,8 @@ import { auth } from '@/app/(auth)/auth';
 import { createAgent } from '@/db/queries';
 import { createImplicitAccount } from '../../(relay)/near/near-sdk';
 
+
+
 const createAgentFormSchema = z.object({
   name: z.string().min(4),
   avatar: z.any(),
@@ -27,11 +29,11 @@ export interface CreateAgentActionState {
   | 'agent_exists'
   | 'invalid_data';
 }
+
 export const createAgentAction = async (
   _: CreateAgentActionState,
   formData: FormData
 ): Promise<CreateAgentActionState> => {
-
   try {
     const session = await auth();
     let avatarUrl: string | undefined;
