@@ -1,14 +1,12 @@
 import { openai } from '@ai-sdk/openai';
 import { experimental_wrapLanguageModel as wrapLanguageModel } from 'ai';
 import { createModel } from '../provider'; // Assuming this is the correct import for Atoma SDK
-import { models as defaultModels } from './models'; // Import default models
-
 import { customMiddleware } from './custom-middleware';
 
 export const customModel = (provider: any) => {
   let model;
-  const isDefaultModel = defaultModels.some((defaultModel) => defaultModel.apiIdentifier === provider.apiIdentifier);
-  if (isDefaultModel) {
+  console.log('provider1', provider);
+  if (provider.apiIdentifier === 'gpt-4o-mini' || provider.apiIdentifier === 'gpt-4o') {
     model = openai(provider.apiIdentifier);
   } else {
     const customModel = createModel({

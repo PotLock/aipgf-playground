@@ -318,7 +318,7 @@ export function CreateAgentForm({
                   className="w-[200px] justify-between"
                 >
                   {selectedModel
-                    ? models.find((model) => model.apiIdentifier === selectedModel)?.modelName
+                    ? models.find((model) => model.id === selectedModel)?.modelName
                     : "Select model..."}
                   <ChevronsUpDown className="opacity-50" />
                 </Button>
@@ -338,6 +338,7 @@ export function CreateAgentForm({
                           value={model.id}
                           key={i}
                           onSelect={(value) => {
+
                             setSelectedModel(value)
                           }}
                         >
@@ -345,7 +346,7 @@ export function CreateAgentForm({
                           <Check
                             className={cn(
                               "ml-auto",
-                              model.apiIdentifier === selectedModel
+                              model.id === selectedModel
                                 ? "opacity-100"
                                 : "opacity-0"
                             )}
@@ -424,12 +425,11 @@ export function CreateAgentForm({
               defaultValue={actionsValue}
             />
             <Input
-              id="model"
-              name="model"
+              id="provider"
+              name="provider"
               className="hidden"
               type="text"
               defaultValue={selectedModel}
-
             />
           </div>
           {children}
