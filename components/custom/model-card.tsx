@@ -9,7 +9,7 @@ import { removeModel } from '@/app/(chat)/(models)/actions'
 interface Model {
     id: string;
     modelName: string;
-    endpoint: string;
+    apiIdentifier: string;
     apiToken: string;
 }
 
@@ -62,7 +62,7 @@ export function ModelCard({ model, onDelete, onCopyApiToken, onModelRemoved }: M
             <CardHeader className="flex flex-row items-center gap-4 mb-2">
                 <div className="flex-grow">
                     <CardTitle className="text-2xl">{model.modelName}</CardTitle>
-                    <CardDescription>Endpoint: {model.endpoint}</CardDescription>
+                    <CardDescription>Api Identifier: {model.apiIdentifier}</CardDescription>
                 </div>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>

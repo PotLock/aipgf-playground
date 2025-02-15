@@ -12,7 +12,7 @@ interface CreateProviderFormProps {
   model?: {
     id?: string;
     modelName: string;
-    endpoint: string;
+    apiIdentifier: string;
     apiToken: string;
   };
   children?: React.ReactNode;
@@ -21,7 +21,7 @@ interface CreateProviderFormProps {
 export function CreateProviderForm({ action, model, children }: CreateProviderFormProps) {
   const [id, setId] = useState(model?.id || '');
   const [modelName, setModelName] = useState(model?.modelName || '');
-  const [endpoint, setEndpoint] = useState(model?.endpoint || '');
+  const [apiIdentifier, setApiIdentifier] = useState(model?.apiIdentifier || '');
   const [apiToken, setApiToken] = useState(model?.apiToken || '');
 
   return (
@@ -46,13 +46,13 @@ export function CreateProviderForm({ action, model, children }: CreateProviderFo
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="endpoint">Endpoint</Label>
+            <Label htmlFor="endpoint">Api Identifier</Label>
             <Input
-              id="endpoint"
-              name="endpoint"
+              id="apiIdentifier"
+              name="apiIdentifier"
               type="url"
-              value={endpoint}
-              onChange={(e) => setEndpoint(e.target.value)}
+              value={apiIdentifier}
+              onChange={(e) => setApiIdentifier(e.target.value)}
               required
               placeholder="Enter endpoint URL"
             />

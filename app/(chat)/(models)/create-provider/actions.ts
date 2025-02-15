@@ -26,7 +26,7 @@ export const createProviderAction = async (
 
     const validatedData = createProviderFormSchema.parse({
       modelName: formData.get('modelName'),
-      apiIde: formData.get('endpoint'),
+      apiIdentifier: formData.get('apiIdentifier'),
       apiToken: formData.get('apiToken'),
     });
 

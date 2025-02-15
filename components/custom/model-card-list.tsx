@@ -5,17 +5,19 @@ import { ModelCard } from './model-card';
 import { Card, CardContent, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { toast } from 'sonner';
+import { removeModel } from '@/app/(chat)/(models)/actions';
 
 interface Model {
   id: string;
   modelName: string;
-  endpoint: string;
+  apiIdentifier: string;
   apiToken: string;
 }
 
 export default function ModelCardList() {
   const [models, setModels] = useState<Model[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [IsRemoving, setIsRemoving] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 10; // Number of models per page

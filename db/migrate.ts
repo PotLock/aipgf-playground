@@ -46,17 +46,17 @@ const insertDemoData = async (db: any) => {
     }
 
     // Insert demo models
-    const demoModels = [
-      {
-        id: "ae5e2dd9-fc5b-4a50-82d3-6cf17181e76c",
-        userId: "a6064c03-c7b2-4a2f-8447-33ee42732a92",
-        modelName: "test",
-        apiId: "https://www.youtube.com/watch?v=fq0Lhg3F8TI",
-        apiToken: "test",
-      },
-    ];
+    // const demoModels = [
+    //   {
+    //     id: "ae5e2dd9-fc5b-4a50-82d3-6cf17181e76c",
+    //     userId: "a6064c03-c7b2-4a2f-8447-33ee42732a92",
+    //     modelName: "test",
+    //     apiId: "https://www.youtube.com/watch?v=fq0Lhg3F8TI",
+    //     apiToken: "test",
+    //   },
+    // ];
 
-    await db.insert(provider).values(demoModels);
+    // await db.insert(provider).values(demoModels);
 
     // Insert demo agents
     // const demoAgents = [
