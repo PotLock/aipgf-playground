@@ -5,8 +5,7 @@ import { customMiddleware } from './custom-middleware';
 
 export const customModel = (provider: any) => {
   let model;
-  console.log('provider1', provider);
-  if (provider.apiIdentifier === 'gpt-4o-mini' || provider.apiIdentifier === 'gpt-4o') {
+  if (provider.apiIdentifier === 'gpt-4o-mini' || provider.apiIdentifier === 'gpt-4o' || provider.apiIdentifier === 'gpt-3.5-turbo') {
     model = openai(provider.apiIdentifier);
   } else {
     const customModel = createModel({
