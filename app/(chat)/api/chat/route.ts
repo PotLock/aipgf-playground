@@ -70,7 +70,6 @@ export async function POST(request: Request) {
     agent: any;
     tools: Tool[];
   } = await request.json();
-
   const session = await auth();
 
   if (!session || !session.user || !session.user.id) {
@@ -78,8 +77,8 @@ export async function POST(request: Request) {
   }
 
 
-  if (!agent.model) {
-    return new Response('Model not found', { status: 404 });
+  if (!agent.providerData) {
+    return new Response('Model not found', { status: 401 });
   }
 
   const coreMessages = convertToCoreMessages(messages);
@@ -483,13 +482,13 @@ export async function POST(request: Request) {
   }, {});
   const streamingData = new StreamData();
   const result = await streamText({
-    model: customModel(agent.provider),
+    model: customModel(agent.providerData),
     system: `Your name are ${agent.name} \n\n ${agent.prompt}`, //modelId === 'gpt-4o-canvas' ? canvasPrompt : regularPrompt,
     messages: coreMessages,
     maxSteps: 10,
     experimental_toolCallStreaming: true,
     experimental_activeTools:
-      agent.model.modelName === 'gpt-4o-canvas'
+      agent.providerData.modelName === 'gpt-4o-canvas'
         ? canvasTools
         : (Object.keys(toolsData) as any),
     tools: {
@@ -519,7 +518,7 @@ export async function POST(request: Request) {
           });
 
           const { fullStream } = await streamText({
-            model: customModel(agent.provider),
+            model: customModel(agent.providerData),
             system:
               'Write about the given topic. Markdown is supported. Use headings wherever appropriate.',
             prompt: title,
@@ -583,7 +582,7 @@ export async function POST(request: Request) {
           });
 
           const { fullStream } = await streamText({
-            model: customModel(agent.provider),
+            model: customModel(agent.providerData),
             system:
               'You are a helpful writing assistant. Based on the description, please update the piece of writing.',
             experimental_providerMetadata: {
@@ -656,7 +655,7 @@ export async function POST(request: Request) {
           > = [];
 
           const { elementStream } = await streamObject({
-            model: customModel(agent.provider),
+            model: customModel(agent.providerData),
             system:
               'You are a help writing assistant. Given a piece of writing, please offer suggestions to improve the piece of writing and describe the change. It is very important for the edits to contain full sentences instead of just words. Max 5 suggestions.',
             prompt: document.content,

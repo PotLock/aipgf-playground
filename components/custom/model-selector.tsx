@@ -41,7 +41,7 @@ export function ModelSelector({
         )}
       >
         <Button variant="outline" className="md:px-2 md:h-[34px]">
-          {selectModel?.label}
+          {selectModel?.modelName || 'Select model'}
           <ChevronDownIcon />
         </Button>
       </DropdownMenuTrigger>
@@ -61,7 +61,7 @@ export function ModelSelector({
             data-active={model.id === optimisticModelId}
           >
             <div className="flex flex-col gap-1 items-start">
-              {model.label}
+              {selectModel?.modelName || 'Select model'}
               {model.description && (
                 <div className="text-xs text-muted-foreground">
                   {model.description}

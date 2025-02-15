@@ -9,13 +9,13 @@ export interface Model {
 
 export const models: Array<Model> = [
   {
-    id: 'gpt-4o-mini',
+    id: 'ae5e2dd9-fc5b-4a50-82d3-6cf17181e76c',
     modelName: 'GPT 4o mini',
     apiIdentifier: 'gpt-4o-mini',
     description: 'Small model for fast, lightweight tasks',
   },
   {
-    id: 'gpt-4o',
+    id: 'ae5e2dd9-fc5b-4a50-82d3-6cf17181e76d',
     modelName: 'GPT 4o',
     apiIdentifier: 'gpt-4o',
     description: 'For complex, multi-step tasks',

@@ -142,6 +142,7 @@ export async function getAgentById(id: string) {
         prompt: agent.prompt,
         intro: agent.intro,
         provider: agent.provider,
+        providerData: provider,
         tools: agent.tools,
         privateKey: agent.privateKey,
         suggestedActions: agent.suggestedActions,

@@ -10,13 +10,21 @@ export async function saveModelId(model: string) {
   cookieStore.set('model-id', model);
 }
 
+
 export async function generateTitleFromUserMessage({
   message,
 }: {
   message: CoreUserMessage;
 }) {
+
+  const provider = {
+    id: 'ae5e2dd9-fc5b-4a50-82d3-6cf17181e76e',
+    modelName: 'GPT 3.5 turbo',
+    apiIdentifier: 'gpt-3.5-turbo',
+    description: 'Small model for fast, lightweight tasks',
+  }
   const { text: title } = await generateText({
-    model: customModel('gpt-3.5-turbo'),
+    model: customModel(provider),
     system: `\n
     - you will generate a short title based on the first message a user begins a conversation with
     - ensure it is not more than 80 characters long
