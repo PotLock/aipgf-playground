@@ -144,7 +144,9 @@ export const agent = pgTable('Agent', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   name: varchar('name', { length: 64 }).notNull(),
-  model: varchar('model', { length: 64 }).notNull(),
+  provider: uuid('provider')
+    .notNull()
+    .references(() => provider.id),
   description: varchar('description', { length: 256 }).notNull(),
   avatar: text('avatar'),
   intro: varchar('intro', { length: 256 }),
@@ -159,3 +161,14 @@ export const agent = pgTable('Agent', {
 });
 
 export type Agent = InferSelectModel<typeof agent>;
+
+
+export const provider = pgTable('Provider', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('userId').notNull().references(() => user.id),
+  modelName: varchar('modelName', { length: 64 }).notNull(),
+  apiIdentifier: varchar('apiIdentifier', { length: 256 }).notNull(),
+  apiToken: varchar('apiToken', { length: 256 }),
+});
+
+export type Provider = InferSelectModel<typeof provider>;

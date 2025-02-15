@@ -38,12 +38,12 @@ export default async function Page(props: { params: Promise<any> }) {
     models.find((model) => model.id === modelIdFromCookie)?.id ||
     DEFAULT_MODEL_NAME;
   const tools = await getToolsByIds(agent.tools as any);
+
   return (
     <PreviewChat
       startMessage={''}
       id={chat.id}
       initialMessages={convertToUIMessages(messagesFromDb)}
-      selectedModelId={selectedModelId}
       agent={agent}
       user={session.user as any}
       tools={tools}

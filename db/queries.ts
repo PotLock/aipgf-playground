@@ -3,6 +3,7 @@
 import { genSaltSync, hashSync } from 'bcrypt-ts';
 import { and, asc, count, desc, eq, gt, inArray, like } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
+
 import postgres from 'postgres';
 
 import {
@@ -18,6 +19,8 @@ import {
   Agent,
   Tool,
   tool,
+  provider,
+  Provider
 } from './schema';
 
 // Optionally, if not using username/pass login, you can
@@ -131,9 +134,25 @@ export async function getMessagesByChatId({ id }: { id: string }) {
 export async function getAgentById(id: string) {
   try {
     const [selectedAgent] = await db
-      .select()
+      .select({
+        id: agent.id,
+        avatar: agent.avatar,
+        name: agent.name,
+        description: agent.description,
+        prompt: agent.prompt,
+        intro: agent.intro,
+        provider: agent.provider,
+        tools: agent.tools,
+        privateKey: agent.privateKey,
+        suggestedActions: agent.suggestedActions,
+        createdAt: agent.createdAt,
+        visible: agent.visible,
+        userId: agent.userId,
+      })
       .from(agent)
+      .leftJoin(provider, eq(agent.provider, provider.id))
       .where(eq(agent.id, id));
+
     return selectedAgent;
   } catch (error) {
     console.log(error);
@@ -360,7 +379,7 @@ export async function createAgent({
   description,
   avatar,
   intro,
-  model,
+  provider,
   tools,
   userId,
   prompt,
@@ -378,7 +397,7 @@ export async function createAgent({
         prompt,
         avatar,
         intro,
-        model,
+        provider,
         userId,
         visible: false,
         suggestedActions,
@@ -392,7 +411,7 @@ export async function createAgent({
         prompt: agent.prompt,
         avatar: agent.avatar,
         intro: agent.intro,
-        model: agent.model,
+        model: agent.provider,
         userId: agent.userId,
         createdAt: agent.createdAt,
         visibility: agent.visible,
@@ -411,7 +430,7 @@ export async function updateAgent({
   description,
   avatar,
   intro,
-  model,
+  provider,
   tools,
   prompt,
   suggestedActions,
@@ -426,7 +445,7 @@ export async function updateAgent({
         prompt,
         avatar,
         intro,
-        model,
+        provider,
         suggestedActions,
       })
       .where(eq(agent.id, id))
@@ -438,7 +457,7 @@ export async function updateAgent({
         prompt: agent.prompt,
         avatar: agent.avatar,
         intro: agent.intro,
-        model: agent.model,
+        model: agent.provider,
         userId: agent.userId,
         createdAt: agent.createdAt,
         suggestedActions: agent.suggestedActions,
@@ -713,6 +732,110 @@ export async function getVisibleAgents({ page = 1, limit = 10, query = '' }: { p
   } catch (error) {
     console.log(error);
     console.error('Failed to get visible agents');
+    throw error;
+  }
+}
+
+export async function createProvider({
+  userId,
+  modelName,
+  apiIdentifier,
+  apiToken,
+}: {
+  userId: string;
+  modelName: string;
+  apiIdentifier: string;
+  apiToken: string;
+}) {
+  await db.insert(provider).values({
+    userId,
+    modelName,
+    apiIdentifier,
+    apiToken,
+  });
+}
+
+
+export async function getModelsByUserId({ userId, page = 1, limit = 10, query = '' }: { userId: string, page?: number, limit?: number, query?: string }) {
+  try {
+    const offset = (page - 1) * limit;
+
+    const models = await db
+      .select()
+      .from(provider)
+      .where(and(eq(provider.userId, userId), like(provider.modelName, `%${query}%`)))
+      .limit(limit)
+      .offset(offset); // Add pagination
+
+    const totalModels = await db
+      .select({ count: count() })
+      .from(provider)
+      .where(and(eq(provider.userId, userId), like(provider.modelName, `%${query}%`)));
+
+    return { models, totalModels: totalModels[0].count };
+  } catch (error) {
+    console.error('Failed to get models by user ID', error);
+    throw error;
+  }
+}
+export async function updateModel({
+  id,
+  modelName,
+  apiIdentifier,
+  apiToken,
+}: Provider) {
+  try {
+    return await db
+      .update(provider)
+      .set({
+        modelName,
+        apiIdentifier,
+        apiToken,
+      })
+      .where(eq(provider.id, id))
+      .returning({
+        id: provider.id,
+        modelName: provider.modelName,
+        endpoint: provider.apiIdentifier,
+        apiToken: provider.apiToken,
+        userId: provider.userId,
+      });
+  } catch (error) {
+    console.error('Failed to update model in database', error);
+    throw error;
+  }
+}
+export async function getModelById(id: string) {
+  try {
+
+    const [modelData] = await db
+      .select()
+      .from(provider)
+      .where(eq(provider.id, id))
+
+    return modelData; // Return the first element of the array
+  } catch (error) {
+    console.error('Failed to get model by ID', error);
+    throw error;
+  }
+}
+export async function removeModelById(id: string) {
+  try {
+    const [selectedProvider] = await db
+      .select()
+      .from(provider)
+      .where(eq(provider.id, id));
+
+    if (!selectedProvider) {
+      throw new Error('tool not found');
+    }
+    await db
+      .delete(provider)
+      .where(eq(provider.id, id));
+  }
+  catch (error) {
+    console.log(error);
+    console.error('Failed to remove Tool from database');
     throw error;
   }
 }

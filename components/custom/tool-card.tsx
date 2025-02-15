@@ -14,7 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Eye, EyeOff, Link, MoreVertical, Pencil, PlusCircle, Trash2 } from "lucide-react";
+import { Eye, EyeOff, MoreVertical, Pencil, PlusCircle, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -22,6 +22,7 @@ import { Button } from '../ui/button';
 import { removeTool, updateToolVisibility } from '@/app/(chat)/(tool)/action';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
 import { AlertDialogFooter, AlertDialogHeader } from '../ui/alert-dialog';
+import Link from 'next/link';
 
 
 interface ToolCardProps {

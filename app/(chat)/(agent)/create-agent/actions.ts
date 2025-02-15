@@ -7,12 +7,14 @@ import { auth } from '@/app/(auth)/auth';
 import { createAgent } from '@/db/queries';
 import { createImplicitAccount } from '../../(relay)/near/near-sdk';
 
+
+
 const createAgentFormSchema = z.object({
   name: z.string().min(4),
   avatar: z.any(),
   description: z.string().min(4),
   intro: z.string(),
-  model: z.string().min(4),
+  provider: z.string().min(4),
   prompt: z.string().min(4),
   tools: z.string(),
   suggestedActions: z.string(),
@@ -27,11 +29,11 @@ export interface CreateAgentActionState {
   | 'agent_exists'
   | 'invalid_data';
 }
+
 export const createAgentAction = async (
   _: CreateAgentActionState,
   formData: FormData
 ): Promise<CreateAgentActionState> => {
-
   try {
     const session = await auth();
     let avatarUrl: string | undefined;
@@ -47,7 +49,7 @@ export const createAgentAction = async (
       name: formData.get('name'),
       description: formData.get('description'),
       intro: formData.get('intro'),
-      model: formData.get('model'),
+      provider: formData.get('provider'),
       prompt: formData.get('prompt'),
       tools: formData.get('tools') || '[]',
       suggestedActions: formData.get('suggestedActions') || '[]',
@@ -62,7 +64,7 @@ export const createAgentAction = async (
       avatar: validatedData.avatar,
       description: validatedData.description,
       intro: validatedData.intro,
-      model: validatedData.model,
+      provider: validatedData.provider,
       prompt: validatedData.prompt,
       createdAt: new Date(),
       tools: tools,

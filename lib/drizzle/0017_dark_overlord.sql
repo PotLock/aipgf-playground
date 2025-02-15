@@ -1,0 +1,1 @@
+ALTER TABLE "Provider" ALTER COLUMN "apiToken" DROP NOT NULL;

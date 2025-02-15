@@ -2,15 +2,11 @@ import { Check, List, Plus, PlusCircle, Server, Trash2, Upload, X, ChevronsUpDow
 import Form from "next/form"
 import { useEffect, useRef, useState } from "react";
 
-import { models } from '@/ai/models';
-
-import { MultiSelect } from '../custom/multi-select';
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from '../ui/textarea';
 import ActionCard from "./suggest-action/action-card";
 import CreateActionModal from "./suggest-action/create-action-modal";
@@ -31,7 +27,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { set } from "date-fns";
+import { models as defaultModels, Model } from '../../ai/models'; // Import default models
 
 interface Tool {
   id: string
@@ -81,6 +77,8 @@ export function CreateAgentForm({
   const [totalPages, setTotalPages] = useState(1);
   const [selectedModel, setSelectedModel] = useState<string>(agent?.model || '');
   const [visibleTotalPages, setVisibleTotalPages] = useState(1);
+  const [models, setModels] = useState<{ id: string; apiIdentifier: string; modelName: string }[]>([]);
+
   const limit = 10; // Number of tools per page
   const [query, setQuery] = useState('');
 
@@ -91,6 +89,20 @@ export function CreateAgentForm({
 
   const [prompt, setPrompt] = useState("")
   const [intro, setIntro] = useState("")
+
+  const fetchModels = async () => {
+    try {
+      const response = await fetch('/api/models');
+      if (!response.ok) {
+        throw new Error('Failed to fetch models');
+      }
+      const data = await response.json();
+      const combinedModels = [...defaultModels, ...data.models];
+      setModels(combinedModels);
+    } catch (error) {
+      console.error('Failed to fetch models:', error);
+    }
+  };
 
   const fetchTools = async (page = 1, limit = 10, query = '') => {
     setIsLoading(true);
@@ -137,6 +149,10 @@ export function CreateAgentForm({
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
+
+  useEffect(() => {
+    fetchModels();
+  }, []);
 
   const handleVisiblePageChange = (page: number) => {
     setCurrentPage(page);
@@ -302,7 +318,7 @@ export function CreateAgentForm({
                   className="w-[200px] justify-between"
                 >
                   {selectedModel
-                    ? models.find((model) => model.apiIdentifier === selectedModel)?.label
+                    ? models.find((model) => model.apiIdentifier === selectedModel)?.modelName
                     : "Select model..."}
                   <ChevronsUpDown className="opacity-50" />
                 </Button>
@@ -319,13 +335,13 @@ export function CreateAgentForm({
                     <CommandGroup>
                       {models.map((model, i) => (
                         <CommandItem
-                          value={model.apiIdentifier}
+                          value={model.id}
                           key={i}
                           onSelect={(value) => {
                             setSelectedModel(value)
                           }}
                         >
-                          {model.label}
+                          {model.modelName}
                           <Check
                             className={cn(
                               "ml-auto",
