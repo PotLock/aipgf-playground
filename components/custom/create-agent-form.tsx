@@ -27,6 +27,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { models as defaultModels, Model } from '../../ai/models'; // Import default models
 
 interface Tool {
   id: string
@@ -76,7 +77,7 @@ export function CreateAgentForm({
   const [totalPages, setTotalPages] = useState(1);
   const [selectedModel, setSelectedModel] = useState<string>(agent?.model || '');
   const [visibleTotalPages, setVisibleTotalPages] = useState(1);
-  const [models, setModels] = useState<{ endpoint: string; modelName: string }[]>([]);
+  const [models, setModels] = useState<{ id: string; apiIdentifier: string; modelName: string }[]>([]);
 
   const limit = 10; // Number of tools per page
   const [query, setQuery] = useState('');
@@ -96,12 +97,13 @@ export function CreateAgentForm({
         throw new Error('Failed to fetch models');
       }
       const data = await response.json();
-      setModels(data.models);
+      const combinedModels = [...defaultModels, ...data.models];
+      setModels(combinedModels);
     } catch (error) {
       console.error('Failed to fetch models:', error);
     }
   };
-  
+
   const fetchTools = async (page = 1, limit = 10, query = '') => {
     setIsLoading(true);
     try {
@@ -151,7 +153,7 @@ export function CreateAgentForm({
   useEffect(() => {
     fetchModels();
   }, []);
-  
+
   const handleVisiblePageChange = (page: number) => {
     setCurrentPage(page);
     fetchVisibleTools(page);
@@ -316,7 +318,7 @@ export function CreateAgentForm({
                   className="w-[200px] justify-between"
                 >
                   {selectedModel
-                    ? models.find((model) => model.endpoint === selectedModel)?.modelName
+                    ? models.find((model) => model.apiIdentifier === selectedModel)?.modelName
                     : "Select model..."}
                   <ChevronsUpDown className="opacity-50" />
                 </Button>
@@ -333,7 +335,7 @@ export function CreateAgentForm({
                     <CommandGroup>
                       {models.map((model, i) => (
                         <CommandItem
-                          value={model.endpoint}
+                          value={model.id}
                           key={i}
                           onSelect={(value) => {
                             setSelectedModel(value)
@@ -343,7 +345,7 @@ export function CreateAgentForm({
                           <Check
                             className={cn(
                               "ml-auto",
-                              model.endpoint === selectedModel
+                              model.apiIdentifier === selectedModel
                                 ? "opacity-100"
                                 : "opacity-0"
                             )}

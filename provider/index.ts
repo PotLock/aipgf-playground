@@ -1,10 +1,10 @@
-export { createAtoma, atoma } from "./atoma-provider"
+export { createModel, model } from "./model-provider"
 export type {
-  AtomaProvider,
-  AtomaProviderSettings,
-} from "./atoma-provider"
+  ModelProvider,
+  ModelProviderSettings,
+} from "./model-provider"
 export type {
-  AtomaChatModelId,
-  AtomaChatSettings,
-} from "./atoma-chat-settings"
+  ModelChatModelId,
+  ModelChatSettings,
+} from "./model-chat-settings"
 

@@ -2,7 +2,6 @@ import { CoreMessage } from 'ai';
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 
-import { DEFAULT_MODEL_NAME, models } from '@/ai/models';
 import { auth } from '@/app/(auth)/auth';
 import { Chat } from '@/components/custom/chat';
 import { getAgentById, getToolsByIds } from '@/db/queries';
@@ -27,11 +26,7 @@ export default async function Page(props: { searchParams: Promise<any> }) {
         return notFound();
     }
 
-    const cookieStore = await cookies();
-    const modelIdFromCookie = cookieStore.get('model-id')?.value;
-    const selectedModelId =
-        models.find((model) => model.id === modelIdFromCookie)?.id ||
-        DEFAULT_MODEL_NAME;
+
     const id = generateUUID();
     const tools = await getToolsByIds(agent.tools as any);
     return (
@@ -40,7 +35,6 @@ export default async function Page(props: { searchParams: Promise<any> }) {
             key={id}
             id={id}
             initialMessages={[]}
-            selectedModelId={selectedModelId}
             agent={agent as any}
             user={session.user as any}
             tools={tools}

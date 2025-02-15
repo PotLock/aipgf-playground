@@ -4,18 +4,7 @@ import { put } from '@vercel/blob';
 import { z } from 'zod';
 
 import { auth } from '@/app/(auth)/auth';
-import { createAgent, updateAgent } from '@/db/queries';
-
-const createAgentFormSchema = z.object({
-  name: z.string().min(4),
-  avatar: z.any(),
-  description: z.string().min(4),
-  intro: z.string(),
-  model: z.string().min(4),
-  prompt: z.string().min(4),
-  tools: z.string(),
-  suggestedActions: z.string(),
-});
+import { updateAgent } from '@/db/queries';
 
 const updateAgentFormSchema = z.object({
   id: z.string(),
@@ -23,7 +12,7 @@ const updateAgentFormSchema = z.object({
   avatar: z.any(),
   description: z.string().min(4),
   intro: z.string(),
-  model: z.string().min(4),
+  provider: z.string().min(4),
   prompt: z.string().min(4),
   tools: z.string(),
   suggestedActions: z.string(),
@@ -59,7 +48,7 @@ export const updateAgentAction = async (
       name: formData.get('name'),
       description: formData.get('description'),
       intro: formData.get('intro'),
-      model: formData.get('model'),
+      provider: formData.get('provider'),
       tools: formData.get('tools'),
       prompt: formData.get('prompt'),
       suggestedActions: formData.get('suggestedActions'),
@@ -70,12 +59,12 @@ export const updateAgentAction = async (
     const suggestedActions = JSON.parse(validatedData.suggestedActions);
 
     await updateAgent({
-      id:validatedData.id,
+      id: validatedData.id,
       name: validatedData.name,
       avatar: validatedData.avatar,
       description: validatedData.description,
       intro: validatedData.intro,
-      model: validatedData.model,
+      provider: validatedData.provider,
       prompt: validatedData.prompt,
       createdAt: new Date(),
       tools: tools,

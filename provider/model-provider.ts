@@ -1,11 +1,11 @@
 import type { LanguageModelV1 } from "@ai-sdk/provider"
 import { OpenAICompatibleChatLanguageModel } from "@ai-sdk/openai-compatible"
 import { type FetchFunction, loadApiKey, withoutTrailingSlash } from "@ai-sdk/provider-utils"
-import type { AtomaChatModelId, AtomaChatSettings } from "./atoma-chat-settings"
+import type { ModelChatModelId, ModelChatSettings } from "./model-chat-settings"
 
-export interface AtomaProviderSettings {
+export interface ModelProviderSettings {
   /**
-   * Atoma API key
+   * Model API key
    */
   apiKey?: string
   /**
@@ -22,19 +22,19 @@ export interface AtomaProviderSettings {
   fetch?: FetchFunction
 }
 
-export interface AtomaProvider {
-  (modelId: AtomaChatModelId, settings?: AtomaChatSettings): LanguageModelV1
-  chatModel(modelId: AtomaChatModelId, settings?: AtomaChatSettings): LanguageModelV1
+export interface ModelProvider {
+  (modelId: ModelChatModelId, settings?: ModelChatSettings): LanguageModelV1
+  chatModel(modelId: ModelChatModelId, settings?: ModelChatSettings): LanguageModelV1
 }
 
-export function createAtoma(options: AtomaProviderSettings = {}): AtomaProvider {
-  const baseURL = withoutTrailingSlash(options.baseURL ?? "https://api.atoma.network/v1")
+export function createModel(options: ModelProviderSettings = {}): ModelProvider {
+  const baseURL = withoutTrailingSlash(options.baseURL ?? "https://api.model.network/v1")
 
   const getHeaders = () => ({
     Authorization: loadApiKey({
       apiKey: options.apiKey,
       environmentVariableName: "ATOMASDK_BEARER_AUTH",
-      description: "Atoma API key",
+      description: "Model API key",
     }),
     ...options.headers,
   })
@@ -47,26 +47,26 @@ export function createAtoma(options: AtomaProviderSettings = {}): AtomaProvider 
   }
 
   const getCommonModelConfig = (modelType: string): CommonModelConfig => ({
-    provider: `atoma.${modelType}`,
+    provider: `model.${modelType}`,
     url: ({ path }) => `${baseURL}${path}`,
     headers: getHeaders,
     fetch: options.fetch,
   })
 
-  const createChatModel = (modelId: AtomaChatModelId, settings: AtomaChatSettings = {}) => {
+  const createChatModel = (modelId: ModelChatModelId, settings: ModelChatSettings = {}) => {
     return new OpenAICompatibleChatLanguageModel(modelId, settings, {
       ...getCommonModelConfig("chat"),
       defaultObjectGenerationMode: "json",
     })
   }
 
-  const provider = (modelId: AtomaChatModelId, settings?: AtomaChatSettings) => createChatModel(modelId, settings)
+  const provider = (modelId: ModelChatModelId, settings?: ModelChatSettings) => createChatModel(modelId, settings)
 
   provider.chatModel = createChatModel
 
-  return provider as AtomaProvider
+  return provider as ModelProvider
 }
 
 // Export default instance
-export const atoma = createAtoma()
+export const model = createModel()
 

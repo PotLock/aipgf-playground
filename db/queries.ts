@@ -134,9 +134,25 @@ export async function getMessagesByChatId({ id }: { id: string }) {
 export async function getAgentById(id: string) {
   try {
     const [selectedAgent] = await db
-      .select()
+      .select({
+        id: agent.id,
+        avatar: agent.avatar,
+        name: agent.name,
+        description: agent.description,
+        prompt: agent.prompt,
+        intro: agent.intro,
+        provider: agent.provider,
+        tools: agent.tools,
+        privateKey: agent.privateKey,
+        suggestedActions: agent.suggestedActions,
+        createdAt: agent.createdAt,
+        visible: agent.visible,
+        userId: agent.userId,
+      })
       .from(agent)
+      .leftJoin(provider, eq(agent.provider, provider.id))
       .where(eq(agent.id, id));
+
     return selectedAgent;
   } catch (error) {
     console.log(error);
@@ -363,7 +379,7 @@ export async function createAgent({
   description,
   avatar,
   intro,
-  model,
+  provider,
   tools,
   userId,
   prompt,
@@ -381,7 +397,7 @@ export async function createAgent({
         prompt,
         avatar,
         intro,
-        model,
+        provider,
         userId,
         visible: false,
         suggestedActions,
@@ -395,7 +411,7 @@ export async function createAgent({
         prompt: agent.prompt,
         avatar: agent.avatar,
         intro: agent.intro,
-        model: agent.model,
+        model: agent.provider,
         userId: agent.userId,
         createdAt: agent.createdAt,
         visibility: agent.visible,
@@ -414,7 +430,7 @@ export async function updateAgent({
   description,
   avatar,
   intro,
-  model,
+  provider,
   tools,
   prompt,
   suggestedActions,
@@ -429,7 +445,7 @@ export async function updateAgent({
         prompt,
         avatar,
         intro,
-        model,
+        provider,
         suggestedActions,
       })
       .where(eq(agent.id, id))
@@ -441,7 +457,7 @@ export async function updateAgent({
         prompt: agent.prompt,
         avatar: agent.avatar,
         intro: agent.intro,
-        model: agent.model,
+        model: agent.provider,
         userId: agent.userId,
         createdAt: agent.createdAt,
         suggestedActions: agent.suggestedActions,
@@ -723,18 +739,18 @@ export async function getVisibleAgents({ page = 1, limit = 10, query = '' }: { p
 export async function createProvider({
   userId,
   modelName,
-  endpoint,
+  apiIdentifier,
   apiToken,
 }: {
   userId: string;
   modelName: string;
-  endpoint: string;
+  apiIdentifier: string;
   apiToken: string;
 }) {
   await db.insert(provider).values({
     userId,
     modelName,
-    endpoint,
+    apiIdentifier,
     apiToken,
   });
 }
@@ -765,7 +781,7 @@ export async function getModelsByUserId({ userId, page = 1, limit = 10, query = 
 export async function updateModel({
   id,
   modelName,
-  endpoint,
+  apiIdentifier,
   apiToken,
 }: Provider) {
   try {
@@ -773,14 +789,14 @@ export async function updateModel({
       .update(provider)
       .set({
         modelName,
-        endpoint,
+        apiIdentifier,
         apiToken,
       })
       .where(eq(provider.id, id))
       .returning({
         id: provider.id,
         modelName: provider.modelName,
-        endpoint: provider.endpoint,
+        endpoint: provider.apiIdentifier,
         apiToken: provider.apiToken,
         userId: provider.userId,
       });

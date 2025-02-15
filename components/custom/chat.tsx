@@ -21,7 +21,6 @@ import { Overview } from './overview';
 export function Chat({
   id,
   initialMessages,
-  selectedModelId,
   agent,
   tools,
   user,
@@ -29,7 +28,6 @@ export function Chat({
 }: {
   id: string;
   initialMessages: Array<Message>;
-  selectedModelId: string;
   agent: Agent;
   tools: Tool[];
   user: User,
@@ -48,7 +46,7 @@ export function Chat({
     stop,
     data: streamingData,
   } = useChat({
-    body: { id, modelId: selectedModelId, agent, tools },
+    body: { id, agent, tools },
     initialMessages,
     onFinish: () => {
       mutate('/api/history');

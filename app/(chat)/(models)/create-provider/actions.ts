@@ -6,7 +6,7 @@ import { createProvider } from '@/db/queries';
 
 const createProviderFormSchema = z.object({
   modelName: z.string().min(4),
-  endpoint: z.string().url(),
+  apiIdentifier: z.string().url(),
   apiToken: z.string().min(4),
 });
 
@@ -26,14 +26,14 @@ export const createProviderAction = async (
 
     const validatedData = createProviderFormSchema.parse({
       modelName: formData.get('modelName'),
-      endpoint: formData.get('endpoint'),
+      apiIde: formData.get('endpoint'),
       apiToken: formData.get('apiToken'),
     });
 
     await createProvider({
       userId: session.user.id as string,
       modelName: validatedData.modelName,
-      endpoint: validatedData.endpoint,
+      apiIdentifier: validatedData.apiIdentifier,
       apiToken: validatedData.apiToken,
     });
 
