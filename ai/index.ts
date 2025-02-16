@@ -10,7 +10,7 @@ export const customModel = (provider: any) => {
   } else {
     const customModel = createModel({
       baseURL: provider.apiIdentifier,
-      apiKey: provider.apiKey,
+      apiKey: provider.apiToken,
     });
     model = customModel(provider.modelName);
   }
