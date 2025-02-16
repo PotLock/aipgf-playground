@@ -10,7 +10,7 @@ import { removeModelById, updateModel } from '@/db/queries';
 const updateModelFormSchema = z.object({
   id: z.string(),
   modelName: z.string().min(4),
-  endpoint: z.string().url(),
+  apiIdentifier: z.string().url(),
   apiToken: z.string(),
 });
 
@@ -35,7 +35,7 @@ export const updateModelAction = async (
     const validatedData = updateModelFormSchema.parse({
       id: formData.get('id')  ,
       modelName: formData.get('modelName'),
-      endpoint: formData.get('endpoint'),
+      apiIdentifier: formData.get('apiIdentifier'),
       apiToken: formData.get('apiToken'),
     });
 
