@@ -81,6 +81,7 @@ export function Chat({
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
 
   useEffect(() => {
+    console.log('startMessage', startMessage);
     if (startMessage && messages.length == 0) {
       append({ content: startMessage, role: 'user' });
     }
