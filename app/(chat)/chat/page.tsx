@@ -1,11 +1,13 @@
 import { CoreMessage } from 'ai';
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
+import { redirect } from 'next/navigation'
 
 import { auth } from '@/app/(auth)/auth';
 import { Chat } from '@/components/custom/chat';
-import { getAgentById, getToolsByIds } from '@/db/queries';
+import { getAgentById, getToolsByIds, saveChat } from '@/db/queries';
 import { generateUUID } from '@/lib/utils';
+import { generateTitleFromUserMessage } from '../actions';
 
 export default async function Page(props: { searchParams: Promise<any> }) {
     const params = await props.searchParams;
@@ -28,16 +30,15 @@ export default async function Page(props: { searchParams: Promise<any> }) {
 
 
     const id = generateUUID();
-    const tools = await getToolsByIds(agent.tools as any);
-    return (
-        <Chat
-            startMessage={startMessage}
-            key={id}
-            id={id}
-            initialMessages={[]}
-            agent={agent as any}
-            user={session.user as any}
-            tools={tools}
-        />
-    );
+
+    const title = await generateTitleFromUserMessage({ message: startMessage });
+    await saveChat({
+        id,
+        userId: session.user.id as string,
+        title,
+        agentId: agent.id,
+    });
+
+
+    return redirect(`/chat/${id}?startMessage=${startMessage}`);
 }
